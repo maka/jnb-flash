@@ -8,8 +8,9 @@
 		
 		[Embed(source='../data/levels/test/rabbit.png')] private var ImgPlayer:Class;
 		
-		private var _move_speed:int = 400;
-		private var _jump_power:int = 800;   
+		private var _move_speed:int = 600;
+		
+		private var _jump_power:int = 210;   
 		private var _max_health:int=1;
 		private var _jumping:Boolean=false;
 		
@@ -19,8 +20,8 @@
 			loadGraphic(ImgPlayer, true, true, 19, 19); 
 			
 		    //Max speeds
-            maxVelocity.x = 200;
-            maxVelocity.y = 200;
+            maxVelocity.x = 120;
+            maxVelocity.y = 300;
             //Set the player health
             health = 1;
             //Gravity
@@ -63,7 +64,7 @@
                 facing = RIGHT;
                 velocity.x += _move_speed * FlxG.elapsed;                
             }
-			
+						
             if (FlxG.keys.justPressed("UP") && velocity.y == 0)
             {
                 velocity.y = -_jump_power;
@@ -86,7 +87,7 @@
 				{
 					play("jump");
 				}
-				if (Math.abs(velocity.y) < 40)
+				if ((velocity.y < 0 ? -velocity.y : velocity.y) < 40)
 				{
 					play("apex");
 				}
@@ -104,6 +105,8 @@
 			{
 				play("normal");
 			}
+			
+			
 			
 			super.update();
 		}
