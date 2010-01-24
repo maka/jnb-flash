@@ -2,108 +2,252 @@
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
-	
+
 	
 	public class Player	extends FlxSprite
 	{
 		
+		[Embed(source = '../data/levels/test/jump.mp3')] private var SoundJump:Class;
+		
 		[Embed(source='../data/levels/test/rabbit.png')] private var ImgPlayer:Class;
 		
-		private static const _DEFAULT_moveSpeed:int = 600;
-		private static const _DEFAULT_DRAG_X:int = 400;
-
-		private var _moveSpeed:int = _DEFAULT_moveSpeed;
 		
-		private var _jumpPower:int = 210;   // power of a normal jump (slightly more than 3 tiles)
-		private var _springPower:int = 300;  // power of a spring jump (slightly more than 6 tiles)
+		private static const _DEFAULT_GRAVITY:int = 560;
+		
+		// different speeds for different tiles
+		private static const _GROUND_SPEED:int = 750;
+		private static const _WATER_SPEED:int = _GROUND_SPEED;
+		private static const _AIR_SPEED:int = _GROUND_SPEED;
+		private static const _ICE_SPEED:int = 50;
+		
+		// different friction as well
+		private static const _GROUND_FRICTION:int = 500;
+		private static const _WATER_FRICTION:int = 0;
+		private static const _AIR_FRICTION:int = 0;
+		private static const _ICE_FRICTION:int = 0;
+
+		private var _moveSpeed:int = _GROUND_SPEED;
+		
+		private var _floatJumpPower:int = 170;   // power of a normal jump (slightly more than 3 tiles)
+		private var _jumpPower:int = 240;   // power of a normal jump (slightly more than 3 tiles)
+		private var _springPower:int = 340;  // power of a spring jump (slightly more than 6 tiles)
 		
 		private var _max_health:int = 1;
 		
-		private var _isGrounded:Boolean = true;
+		private var _isGrounded:Boolean = false;
 		private var _isSliding:Boolean = false;
 		private var _isRunning:Boolean = false;
-		
-		private var _apexThreshold:int = 35;	// the vertical velocity where the apex animation is played
-		
+		private var _isSwimming:Boolean = false;
+		private var _isFloating:Boolean = false;		
 		
 		public function jump(spring:Boolean = false):void
 		{
-			if (!_isGrounded)	// return if already in the air
+			if (!_isGrounded && !_isFloating/* && !_isSwimming */)	// return if already in the air
 				return;
 				
-			if (!spring)		// normal jump
-			    velocity.y = -_jumpPower;
-			else				// spring jump
-				velocity.y = -_springPower;
+			if (spring)				// spring jump (6 tiles)
+			    velocity.y = -_springPower;
+			else if (_isFloating)	// jump out of water (1 tile)
+			{
+				velocity.y = -_floatJumpPower;
+				setFloating(false);	// stop floating (restore gravity);
+			}
+	/*		else if (_isSwimming)	// jump out of water (1 tile)
+			{
+				velocity.y = -_floatJumpPower;
+			} */
+			else					// normal jump (3 tiles)
+				velocity.y = -_jumpPower;
+			
+			if (!spring)				// spring jump (6 tiles)
+				FlxG.play(SoundJump);				
 		}
 		
 		public function setGrounded(isGrounded:Boolean):void
 		{
 			if (_isGrounded == isGrounded)	// return if value is already set
 				return;
-				
-			_isGrounded = isGrounded;		// set value
+/*			if (_isSwimming && isGrounded)	// can't walk in water
+			{
+				trace ("touchdown");
+				return;
+			}					
+*/			_isGrounded = isGrounded;		// set value
 			
-			if (!_isGrounded)				// no drag in the air!
-				drag.x = 0;
-			else if (!_isSliding)			// set default drag if we're on solid, non-icy ground
-				drag.x = _DEFAULT_DRAG_X
+			if (!_isGrounded)				// can only slide on the ground
+				setSliding(false);
 		}
 		
+		public function isSwimming():Boolean { return _isSwimming; }
+		public function setSwimming(isSwimming:Boolean):void
+		{
+			if (_isSwimming == isSwimming)	// return if value is already set
+				return;
+				
+			_isSwimming = isSwimming;		// set value
+			
+			if (isSwimming)	
+			{
+				setGrounded(false);			// not on the ground anymore
+			
+				velocity.y *= 0.25;
+
+				var topTileEdge:Number = y - (y % 16);
+				PlayState.lyrBGSprites.add(new Splash(x, topTileEdge));
+				
+			
+
+			}	
+		}
+
+		public function isFloating():Boolean { return _isFloating; }
+		public function setFloating(isFloating:Boolean):void
+		{
+			if (_isFloating == isFloating)	// return if value is already set
+				return;
+				
+			_isFloating = isFloating;		// set value
+			
+			if (_isFloating)				// set vertical velocity to 0
+			{
+				velocity.y = 0;
+				setGrounded(false);
+			}
+		}
+
+		public function isSliding():Boolean { return _isSliding; }
 		public function setSliding(isSliding:Boolean):void
 		{
 			if (_isSliding == isSliding)	// return if value is already set
 				return;
 				
 			_isSliding = isSliding;			// set value
-			
-			if (isSliding)					// if we're sliding, remove drag, set movement speed to 1/10th of normal
-			{
-				drag.x = 0
-				_moveSpeed = _DEFAULT_moveSpeed / 10;
-			}
-			else if (_isGrounded)			// else, reset to normal if we're on solid ground
-			{
-				drag.x = _DEFAULT_DRAG_X;
-				_moveSpeed = _DEFAULT_moveSpeed;
-			}
 		}
-		
-		public function isSliding():Boolean		
-		{
-			return _isSliding;				// returns sliding state
-		}
-		
+
 		public function Player(X:Number,Y:Number):void
 		{
 			super(X, Y);
 			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
 			
 		    //Max speeds
-            maxVelocity.x = 120;
-            maxVelocity.y = 300;
+            maxVelocity.x = 75;
+            maxVelocity.y = 400;
             //Set the player health
             health = 1;
             //Gravity
-            acceleration.y = 420;            
+            acceleration.y = _DEFAULT_GRAVITY;            
             //Friction
-            drag.x = _DEFAULT_DRAG_X;
+            drag.x = _GROUND_FRICTION;
             // set bounding box
-            width = 13;
+            width = 15;
             height = 15;
-            offset.x = 3;
+            offset.x = 2;
             offset.y = 4;
 			
 			// set animations for everything the bunny can do
 			addAnimation("idle", [0]);
-			addAnimation("normal", [0, 1, 2, 3], 10);
-			addAnimation("jump", [4]);
+			addAnimation("normal", [0, 1, 2, 3], 15);
+			addAnimation("up", [4]);
 			addAnimation("apex", [5]);
-			addAnimation("fall", [6, 7], 10);
+			addAnimation("down", [6]);
+			addAnimation("downfast", [6, 7], 10);
 			addAnimation("dead", [8, 8, 8], 5);
 			
 			// the sprites face right by default
 			facing = RIGHT;
+		}
+		
+		private function setMovementVariables():void
+		{
+			// Sets the movement variables (speed of movement, drag, vertical acceleration) according to the Player's state (_isGrounded, _isSwimming, etc.)
+			
+			// on solid ground (non ice)
+			if (_isGrounded && !_isSliding)
+			{
+				_moveSpeed = _GROUND_SPEED;
+				drag.x = _GROUND_FRICTION;
+			}
+				
+			// on ice
+			if (_isGrounded && _isSliding)
+			{
+				_moveSpeed = _ICE_SPEED;
+				drag.x = _ICE_FRICTION;
+			}
+			
+			// in the air
+			if (!_isGrounded && !_isFloating && !_isSwimming)
+			{
+				_moveSpeed = _AIR_SPEED;
+				drag.x = _AIR_FRICTION;
+			}
+
+			// swimming
+			if (_isSwimming && !_isFloating)
+			{
+				_moveSpeed = _WATER_SPEED;
+				drag.x = _WATER_FRICTION;
+				acceleration.y = -60;
+			}
+
+			// floating
+			if (!_isSwimming && _isFloating)
+			{
+				_moveSpeed = _WATER_SPEED;
+				drag.x = _WATER_FRICTION;
+				acceleration.y = 0;
+			}
+
+			// out of water
+			if (!_isSwimming && !_isFloating)
+			{
+				acceleration.y = _DEFAULT_GRAVITY;
+			}
+
+		}
+		
+		private function animate():void
+		{
+			// animate!
+			var _apexThreshold:int = 30;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
+			var _downfastThreshold:int = 100;	// the vertical downward velocity where the downfast animation is played ([value] - ∞)
+
+			 // not on the ground (in air or water)
+			if (_isGrounded == false)
+			{
+				// going up
+				if (velocity.y < _apexThreshold)
+				{
+					play("up");
+				}
+				// at the apex of a jump or dive
+				if ((velocity.y < 0 ? -velocity.y : velocity.y) < _apexThreshold)
+				{
+					play("apex");
+				}
+				// going down
+				if (velocity.y > _apexThreshold && velocity.y < _downfastThreshold)
+				{
+					play("down");
+				}
+				// going down quickly
+				if (velocity.y >= _downfastThreshold)
+				{
+					play("downfast");
+				}
+			}
+			
+			// on the ground, running
+			else if (_isRunning == true)
+			{
+				play("normal");
+			}
+			
+			// on the ground, doing nothing
+			else			{
+				play("idle");
+			}			
+
 		}
 		
 		override public function update():void
@@ -136,38 +280,33 @@
 			{
 				_isRunning = false
 			}
-            if (FlxG.keys.justPressed("UP") && velocity.y == 0)
+            if (FlxG.keys.justPressed("UP"))
             {
                 jump();
-            }
-			
+            }			
 
-			// animate!
-			if (_isGrounded == false) // in the air
-			{
-				if (velocity.y < _apexThreshold)
-				{
-					play("jump");
-				}
-				if ((velocity.y < 0 ? -velocity.y : velocity.y) < _apexThreshold)
-				{
-					play("apex");
-				}
-				if (velocity.y > _apexThreshold)
-				{
-					play("fall");
-				}
-			}
-			else if (_isRunning == true) // on the ground, running
-			{
-				play("normal");
-			}
-			else						// on the ground, doing nothing
-			{
-				play("idle");
-			}			
-		
+            if (FlxG.keys.X)
+            {
+ 				flicker(1);
+            }			
+
+			
+			animate();
+			
+			setMovementVariables();
+			
 			super.update();
+			
+/*			trace  ("DRAG:" + drag.x.toString() + "; " + 
+					"MOVE_SPEED:" + _moveSpeed.toString() + "; " + 
+					"GRAVITY:" + acceleration.y.toString() + ";; " + 
+					"IS_GROUNDED: " + _isGrounded + "; " + 
+					"IS_SLIDING: " + _isSliding + "; " + 
+					"IS_RUNNING: " + _isRunning + "; " + 
+					"IS_SWIMMING: " + _isSwimming + "; " + 
+					"IS_FLOATING: " + _isFloating
+				   );
+*/
 		}
 	}
 
