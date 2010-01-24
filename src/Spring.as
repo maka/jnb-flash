@@ -29,6 +29,8 @@
 			addAnimationCallback(CallbackTest);
 
 			play("idle");
+			
+			trace("Spring: Initialized")
 		}
 		
 		public function Activate():void
@@ -36,14 +38,18 @@
 			play("idle");
 			play("sproing");
 			FlxG.play(SoundSpring);
+		
+			trace("Spring: Activated")
+
 		}
 		
 		private function CallbackTest(name:String, frameNumber:uint, frameIndex:uint):void
 		{
 			if (name == "sproing" && frameNumber == 5)
+			{
 				play("idle");
-
-			trace("Name: " + name + "; frameNumber: " + frameNumber.toString() + "; frameIndex: " + frameIndex.toString());
+				trace("Spring: Animation finished, now idle")
+			}
 		}
 	}
 }

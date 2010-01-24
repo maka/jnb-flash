@@ -2,7 +2,7 @@
 {
 	import flash.geom.Point;
 	import org.flixel.*;
-	
+
 	public class PlayState extends FlxState
 	{
 		[Embed(source='../data/levels/test/tiles.png')] private var ImgTiles:Class;
@@ -10,6 +10,8 @@
 		
 		[Embed(source = '../data/levels/test/level.png')] private var ImgBg:Class;
 		[Embed(source = '../data/levels/test/leveloverlay.png')] private var ImgFgMask:Class;
+		
+		private var bgMusic:FlxSound = new FlxSound();
 		
 		private var _player:Array = new Array();
 		private var _map:FlxTilemap;
@@ -26,6 +28,14 @@
 		
 		public function PlayState() 
 		{
+//			bgMusic.loadStream("http://sloeff.com/sachen/New.mp3", true);
+			bgMusic.loadStream("../data/levels/test/m_bump.mp3", true);
+
+			bgMusic.play();
+			
+			// fade in
+			FlxG.flash(0xff000000, 0.4);
+
 			super();
 			
 			// creating new layers

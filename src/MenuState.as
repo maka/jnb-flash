@@ -5,8 +5,10 @@
     {
         override public function MenuState():void
 	{
+        FlxG.flash(0xff000000, .4);
+		
 		var txt:FlxText
-		txt = new FlxText(0, (FlxG.width / 2) - 80, FlxG.width, "Flixel Tutorial Game")
+		txt = new FlxText(0, (FlxG.width / 2) - 80, FlxG.width, "Jump 'n Bump")
 		txt.setFormat(null,16,0xFFFFFFFF,"center")
 		this.add(txt);
 			
@@ -18,8 +20,7 @@
         {
             if (FlxG.keys.X)
             {
-                FlxG.flash(0xffffffff, 0.75);
-                FlxG.fade(0xff000000, 1, onFade);
+                FlxG.fade(0xff000000, .4, onFade);
             }
             super.update();
         }

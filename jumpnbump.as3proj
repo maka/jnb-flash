@@ -5,10 +5,10 @@
     <movie disabled="False" />
     <movie input="" />
     <movie path="bin\jumpnbump.swf" />
-    <movie fps="30" />
+    <movie fps="60" />
     <movie width="800" />
     <movie height="600" />
-    <movie version="10" />
+    <movie version="9" />
     <movie background="#FFFFFF" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
