@@ -58,9 +58,17 @@
 			lyrFG.add(_fg);
 
 			// creating a bunny
-			var playerid:int = 0;
-			_player[playerid] = new Player(200, 128);			
-			lyrSprites.add(_player[playerid]);
+			_player[0] = new Player(0, 200, 128);			
+			_player[1] = new Player(1, 216, 128);	
+			_player[2] = new Player(2, 232, 128);			
+			_player[3] = new Player(3, 248, 128);	
+			
+			for (var i:int = 0; i < _player.length; i++) 
+			{
+				lyrSprites.add(_player[i]);
+			}
+			
+			// lyrSprites.add(_player[playerid]);
 			
 			// creating the map
 			_map = new FlxTilemap;
@@ -153,6 +161,7 @@
 							_springs[i].Activate();
 
 					}
+					trace("player " + playerid + " is sprung");
 					
 					_player[playerid].jump(true);	// bounce!
 				}
@@ -276,20 +285,18 @@
 		
 		override public function update():void
         {
-			if (FlxG.mouse.justPressed())
+			for (var i:int = 0; i < _player.length; i++) 
 			{
-				trace("kaboom");
-				_player[0].x = FlxG.mouse.x;
-				_player[0].y = FlxG.mouse.y;
+				performTileLogic(i)
+				collideMapBorders(i);
 			}
-			
-			performTileLogic(0)
-
- 			collideMapBorders(0);
 
 			super.update();
 			
-			_map.collide(_player[0]);	// perform player-tilemap collisions
+			for (var j:int = 0; j < _player.length; j++) 
+			{
+				_map.collide(_player[j]);	// perform player-tilemap collisions
+			}
 		}	
 	}
 }

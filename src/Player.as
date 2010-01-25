@@ -9,8 +9,30 @@
 		
 		[Embed(source = '../data/levels/test/jump.mp3')] private var SoundJump:Class;
 		
-		[Embed(source='../data/levels/test/rabbit.png')] private var ImgPlayer:Class;
+		[Embed(source='../data/levels/test/rabbit1.png')] private var ImgPlayer1:Class;
+		[Embed(source='../data/levels/test/rabbit2.png')] private var ImgPlayer2:Class;
+		[Embed(source='../data/levels/test/rabbit3.png')] private var ImgPlayer3:Class;
+		[Embed(source='../data/levels/test/rabbit4.png')] private var ImgPlayer4:Class;
 		
+		// controls for all players
+		private static const _KEY_PL1_LEFT:String =	 "LEFT";
+		private static const _KEY_PL1_RIGHT:String = "RIGHT";
+		private static const _KEY_PL1_JUMP:String =  "UP";
+		private static const _KEY_PL2_LEFT:String =  "A";
+		private static const _KEY_PL2_RIGHT:String = "D";
+		private static const _KEY_PL2_JUMP:String =  "W";
+		private static const _KEY_PL3_LEFT:String =  "J";
+		private static const _KEY_PL3_RIGHT:String = "L";
+		private static const _KEY_PL3_JUMP:String =  "I";
+		private static const _KEY_PL4_LEFT:String =  "NUMPAD_FOUR";
+		private static const _KEY_PL4_RIGHT:String = "NUMPAD_SIX";
+		private static const _KEY_PL4_JUMP:String =  "NUMPAD_EIGHT";
+
+		// these will be set during player init
+		private var _KEY_LEFT:String;
+		private var _KEY_RIGHT:String;
+		private var _KEY_JUMP:String;
+
 		
 		private static const _DEFAULT_GRAVITY:int = 560;
 		
@@ -42,6 +64,8 @@
 		
 		public function jump(spring:Boolean = false):void
 		{
+			trace("jump init");
+			
 			if (!_isGrounded && !_isFloating/* && !_isSwimming */)	// return if already in the air
 				return;
 				
@@ -124,10 +148,41 @@
 			_isSliding = isSliding;			// set value
 		}
 
-		public function Player(X:Number,Y:Number):void
+		public function Player(playerID:uint, X:Number, Y:Number):void
 		{
 			super(X, Y);
-			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
+			
+			switch (playerID + 1) 
+			{
+				case 1:
+				loadGraphic(ImgPlayer1, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
+				_KEY_LEFT = _KEY_PL1_LEFT;
+				_KEY_RIGHT = _KEY_PL1_RIGHT;
+				_KEY_JUMP = _KEY_PL1_JUMP;
+				break;
+
+				case 2:
+				loadGraphic(ImgPlayer2, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
+				_KEY_LEFT = _KEY_PL2_LEFT;
+				_KEY_RIGHT = _KEY_PL2_RIGHT;
+				_KEY_JUMP = _KEY_PL2_JUMP;
+				break;
+
+				case 3:
+				loadGraphic(ImgPlayer3, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
+				_KEY_LEFT = _KEY_PL3_LEFT;
+				_KEY_RIGHT = _KEY_PL3_RIGHT;
+				_KEY_JUMP = _KEY_PL3_JUMP;
+				break;
+
+				case 4:
+				loadGraphic(ImgPlayer4, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
+				_KEY_LEFT = _KEY_PL4_LEFT;
+				_KEY_RIGHT = _KEY_PL4_RIGHT;
+				_KEY_JUMP = _KEY_PL4_JUMP;
+				break;
+			}
+			
 			
 		    //Max speeds
             maxVelocity.x = 75;
@@ -261,16 +316,16 @@
             }
 			
 			// handle input
-			if (FlxG.keys.LEFT || FlxG.keys.RIGHT)
+			if (FlxG.keys.pressed(_KEY_LEFT)|| FlxG.keys.pressed(_KEY_RIGHT))
 			{
 				_isRunning = true;
 				
-				if(FlxG.keys.LEFT)
+				if(FlxG.keys.pressed(_KEY_LEFT))
 				{
 					facing = LEFT;
 					velocity.x -= _moveSpeed * FlxG.elapsed;
 				}
-				else if (FlxG.keys.RIGHT)
+				else if (FlxG.keys.pressed(_KEY_RIGHT))
 				{
 					facing = RIGHT;
 					velocity.x += _moveSpeed * FlxG.elapsed;                
@@ -280,7 +335,7 @@
 			{
 				_isRunning = false
 			}
-            if (FlxG.keys.justPressed("UP"))
+            if (FlxG.keys.justPressed(_KEY_JUMP))
             {
                 jump();
             }			
