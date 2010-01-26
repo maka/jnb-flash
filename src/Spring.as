@@ -7,8 +7,9 @@
 	public class Spring	extends FlxSprite
 	{
 		
-		[Embed(source='../data/levels/test/spring.png')] private var ImgSpring:Class;
-		[Embed(source='../data/levels/test/spring.mp3')] private var SoundSpring:Class;
+		// original level
+		[Embed(source = '../data/levels/original/spring.png')] private var ImgSpring:Class;
+		[Embed(source = '../data/levels/original/spring.mp3')] private var SoundSpring:Class;
 		
 		
 		public function Spring(X:Number,Y:Number):void
@@ -25,7 +26,7 @@
 
 			// set animations for everything the bunny can do
 			addAnimation("idle", [5]);
-			addAnimation("sproing", [0, 1, 2, 3, 4, 5], 15, false);
+			addAnimation("sproing", [0, 1, 2, 3, 4, 5], 20, false);
 			addAnimationCallback(CallbackTest);
 
 			play("idle");

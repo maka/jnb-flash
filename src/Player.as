@@ -6,32 +6,21 @@
 	
 	public class Player	extends FlxSprite
 	{
-		
-		[Embed(source = '../data/levels/test/jump.mp3')] private var SoundJump:Class;
-		
-		[Embed(source='../data/levels/test/rabbit1.png')] private var ImgPlayer1:Class;
-		[Embed(source='../data/levels/test/rabbit2.png')] private var ImgPlayer2:Class;
-		[Embed(source='../data/levels/test/rabbit3.png')] private var ImgPlayer3:Class;
-		[Embed(source='../data/levels/test/rabbit4.png')] private var ImgPlayer4:Class;
-		
+		// original level
+		[Embed(source = '../data/levels/original/death.mp3')] private var SoundDeath:Class;
+		[Embed(source = '../data/levels/original/jump.mp3')] private var SoundJump:Class;
+		[Embed(source = '../data/levels/original/rabbit1.png')] private var ImgPlayer1:Class;
+		[Embed(source = '../data/levels/original/rabbit2.png')] private var ImgPlayer2:Class;
+		[Embed(source = '../data/levels/original/rabbit3.png')] private var ImgPlayer3:Class;
+		[Embed(source = '../data/levels/original/rabbit4.png')] private var ImgPlayer4:Class;
+	
 		// controls for all players
-		private static const _KEY_PL1_LEFT:String =	 "LEFT";
-		private static const _KEY_PL1_RIGHT:String = "RIGHT";
-		private static const _KEY_PL1_JUMP:String =  "UP";
-		private static const _KEY_PL2_LEFT:String =  "A";
-		private static const _KEY_PL2_RIGHT:String = "D";
-		private static const _KEY_PL2_JUMP:String =  "W";
-		private static const _KEY_PL3_LEFT:String =  "J";
-		private static const _KEY_PL3_RIGHT:String = "L";
-		private static const _KEY_PL3_JUMP:String =  "I";
-		private static const _KEY_PL4_LEFT:String =  "NUMPAD_FOUR";
-		private static const _KEY_PL4_RIGHT:String = "NUMPAD_SIX";
-		private static const _KEY_PL4_JUMP:String =  "NUMPAD_EIGHT";
-
-		// these will be set during player init
-		private var _KEY_LEFT:String;
-		private var _KEY_RIGHT:String;
-		private var _KEY_JUMP:String;
+		private static const _KEY_LEFT:Array = ["LEFT", "A", "J", "NUMPAD_FOUR"];
+		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
+		private static const _KEY_JUMP:Array = ["UP", "W", "I", "NUMPAD_EIGHT"];
+		
+		// current player id
+		private var _playerID:uint;
 
 		
 		private static const _DEFAULT_GRAVITY:int = 560;
@@ -62,6 +51,12 @@
 		private var _isSwimming:Boolean = false;
 		private var _isFloating:Boolean = false;		
 		
+		public function die():void
+		{
+			dead = true;
+			FlxG.play(SoundJump);				
+		}
+		
 		public function jump(spring:Boolean = false):void
 		{
 			trace("jump init");
@@ -70,10 +65,10 @@
 				return;
 				
 			if (spring)				// spring jump (6 tiles)
-			    velocity.y = -_springPower;
+			    velocity.y += -_springPower;
 			else if (_isFloating)	// jump out of water (1 tile)
 			{
-				velocity.y = -_floatJumpPower;
+				velocity.y += -_floatJumpPower;
 				setFloating(false);	// stop floating (restore gravity);
 			}
 	/*		else if (_isSwimming)	// jump out of water (1 tile)
@@ -81,7 +76,7 @@
 				velocity.y = -_floatJumpPower;
 			} */
 			else					// normal jump (3 tiles)
-				velocity.y = -_jumpPower;
+				velocity.y += -_jumpPower;
 			
 			if (!spring)				// spring jump (6 tiles)
 				FlxG.play(SoundJump);				
@@ -114,7 +109,7 @@
 			{
 				setGrounded(false);			// not on the ground anymore
 			
-				velocity.y *= 0.25;
+				velocity.y *= 0.35;
 
 				var topTileEdge:Number = y - (y % 16);
 				PlayState.lyrBGSprites.add(new Splash(x, topTileEdge));
@@ -150,36 +145,26 @@
 
 		public function Player(playerID:uint, X:Number, Y:Number):void
 		{
+			_playerID = playerID
+			
 			super(X, Y);
 			
-			switch (playerID + 1) 
+			switch (_playerID + 1) 
 			{
 				case 1:
 				loadGraphic(ImgPlayer1, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				_KEY_LEFT = _KEY_PL1_LEFT;
-				_KEY_RIGHT = _KEY_PL1_RIGHT;
-				_KEY_JUMP = _KEY_PL1_JUMP;
 				break;
 
 				case 2:
 				loadGraphic(ImgPlayer2, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				_KEY_LEFT = _KEY_PL2_LEFT;
-				_KEY_RIGHT = _KEY_PL2_RIGHT;
-				_KEY_JUMP = _KEY_PL2_JUMP;
 				break;
 
 				case 3:
 				loadGraphic(ImgPlayer3, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				_KEY_LEFT = _KEY_PL3_LEFT;
-				_KEY_RIGHT = _KEY_PL3_RIGHT;
-				_KEY_JUMP = _KEY_PL3_JUMP;
 				break;
 
 				case 4:
 				loadGraphic(ImgPlayer4, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				_KEY_LEFT = _KEY_PL4_LEFT;
-				_KEY_RIGHT = _KEY_PL4_RIGHT;
-				_KEY_JUMP = _KEY_PL4_JUMP;
 				break;
 			}
 			
@@ -263,6 +248,12 @@
 		
 		private function animate():void
 		{
+			if (dead)
+			{
+				play("dead");
+				return;
+			}	
+			
 			// animate!
 			var _apexThreshold:int = 30;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
 			var _downfastThreshold:int = 100;	// the vertical downward velocity where the downfast animation is played ([value] - ∞)
@@ -307,25 +298,26 @@
 		
 		override public function update():void
 		{
-			if(dead)
+/*			if(dead)
             {
                 if(finished) exists = false;
                 else
                     super.update();
                 return;
             }
+*/			
 			
 			// handle input
-			if (FlxG.keys.pressed(_KEY_LEFT)|| FlxG.keys.pressed(_KEY_RIGHT))
+			if (FlxG.keys.pressed(_KEY_LEFT[_playerID])|| FlxG.keys.pressed(_KEY_RIGHT[_playerID]))
 			{
 				_isRunning = true;
 				
-				if(FlxG.keys.pressed(_KEY_LEFT))
+				if(FlxG.keys.pressed(_KEY_LEFT[_playerID]))
 				{
 					facing = LEFT;
 					velocity.x -= _moveSpeed * FlxG.elapsed;
 				}
-				else if (FlxG.keys.pressed(_KEY_RIGHT))
+				else if (FlxG.keys.pressed(_KEY_RIGHT[_playerID]))
 				{
 					facing = RIGHT;
 					velocity.x += _moveSpeed * FlxG.elapsed;                
@@ -335,7 +327,7 @@
 			{
 				_isRunning = false
 			}
-            if (FlxG.keys.justPressed(_KEY_JUMP))
+            if (FlxG.keys.justPressed(_KEY_JUMP[_playerID]))
             {
                 jump();
             }			
@@ -343,9 +335,7 @@
             if (FlxG.keys.X)
             {
  				flicker(1);
-            }			
-
-			
+			}
 			animate();
 			
 			setMovementVariables();

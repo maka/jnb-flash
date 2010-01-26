@@ -5,13 +5,14 @@
 
 	public class PlayState extends FlxState
 	{
-		[Embed(source='../data/levels/test/tiles.png')] private var ImgTiles:Class;
-		[Embed(source = '../data/levels/test/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
-		
-		[Embed(source = '../data/levels/test/level.png')] private var ImgBg:Class;
-		[Embed(source = '../data/levels/test/leveloverlay.png')] private var ImgFgMask:Class;
-		
-		private var bgMusic:FlxSound = new FlxSound();
+		[Embed(source = '../data/levels/common/tiles.png')] private var ImgTiles:Class;
+
+		// original level		
+		[Embed(source = '../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
+		[Embed(source = '../data/levels/original/level.png')] private var ImgBg:Class;
+		[Embed(source = '../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
+		private var _bgMusicURL:String = "../data/levels/original/m_bump.mp3";
+		private var _bgMusic:FlxSound = new FlxSound();
 		
 		private var _player:Array = new Array();
 		private var _map:FlxTilemap;
@@ -28,10 +29,9 @@
 		
 		public function PlayState() 
 		{
-//			bgMusic.loadStream("http://sloeff.com/sachen/New.mp3", true);
-			bgMusic.loadStream("../data/levels/test/m_bump.mp3", true);
+			_bgMusic.loadStream(_bgMusicURL, true);
+			_bgMusic.play();
 
-			bgMusic.play();
 			
 			// fade in
 			FlxG.flash(0xff000000, 0.4);
@@ -112,7 +112,7 @@
 			return Math.floor(y / 16) * _map.widthInTiles + Math.floor(x / 16);
 		}
 		
-		private function performTileLogic(playerid:int):void
+		private function performTileLogic(playerid:uint):void
 		{
 			// Preparations:
 			var floatThreshold:uint = 1;	// the size of the area where the bunny is floating between water and air
@@ -225,7 +225,7 @@
 			}
 		}
 		
-		private function collideMapBorders(playerid:int):void
+		private function collideMapBorders(playerid:uint):void
 		{
 			var minX:Number = 1;
 			var minY:Number = 1;
@@ -283,6 +283,102 @@
 			}
 		}
 		
+		private function playerKill(killer:uint, killee:uint):void
+		{
+			_player[killer].velocity.y = -150;		
+			_player[killee].die();
+		}
+		
+		private function getAbsValue(x:Number):Number
+		{
+			return (x ^ (x >> 31)) - (x >> 31);
+		}
+
+		private function getDifference(a:Point, b:Point):Point
+		{
+			return new Point(a.x - b.x, a.y - b.y);
+		}
+		
+		private function collidePlayers():void
+		{
+			var numPlayers:uint = _player.length;
+			
+			var a:int = 0;
+			var b:int = 0;
+			
+			var maxWidth:Number, maxHeight:Number;
+				
+			for (a = 0; a < _player.length - 1; a++) 
+			{
+				for (b = a + 1; b < _player.length; b++) 
+				{
+					maxWidth = Math.max(_player[a].width, _player[b].width);
+					maxHeight = Math.max(_player[a].height, _player[b].height);
+
+					if (!_player[a].dead && !_player[b].dead)			// check that both are alive
+					{
+						if (getAbsValue(_player[a].x - _player[b].x) < maxWidth && 
+							getAbsValue(_player[a].y - _player[b].y) < maxHeight)	// check that they intersect
+						{												
+							if (getAbsValue(_player[a].y - _player[b].y) > (maxHeight - 3))
+							{
+								if (_player[a].y < _player[b].y)			// determine who's higher and kill the one below
+									playerKill(a, b);
+								else {
+									playerKill(b, a);
+								}
+							}
+							else
+							{
+								if (_player[a].x < _player[b].x)
+								{
+									if (_player[a].velocity.x > 0)
+										_player[a].x = _player[b].x - maxWidth;
+									else if (_player[b].velocity.x < 0)
+										_player[b].x = _player[a].x + maxWidth;
+									else
+									{
+										_player[a].x -= _player[a].velocity.x * FlxG.elapsed;
+										_player[b].x -= _player[b].velocity.x * FlxG.elapsed;
+									}
+									
+									// swap the bunnies' velocity values
+									_player[a].velocity.x ^= _player[b].velocity.x;
+									_player[b].velocity.x ^= _player[a].velocity.x;
+									_player[a].velocity.x ^= _player[b].velocity.x;
+									if (_player[a].velocity.x > 0)
+										_player[a].velocity.x = -_player[a].velocity.x;
+									if (_player[b].velocity.x < 0)
+										_player[b].velocity.x = -_player[b].velocity.x;
+								}
+								else
+								{
+									if (_player[a].velocity.x > 0)
+										_player[b].x = _player[a].x - maxWidth;
+									else if (_player[b].velocity.x < 0)
+										_player[a].x = _player[b].x + maxWidth;
+									else
+									{
+										_player[a].x -= _player[a].velocity.x * FlxG.elapsed;
+										_player[b].x -= _player[b].velocity.x * FlxG.elapsed;
+									}
+									
+									// swap the bunnies' velocity values
+									_player[a].velocity.x ^= _player[b].velocity.x;
+									_player[b].velocity.x ^= _player[a].velocity.x;
+									_player[a].velocity.x ^= _player[b].velocity.x;
+									if (_player[a].velocity.x < 0)
+										_player[a].velocity.x = -_player[a].velocity.x;
+									if (_player[b].velocity.x > 0)
+										_player[b].velocity.x = -_player[b].velocity.x;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		override public function update():void
         {
 			for (var i:int = 0; i < _player.length; i++) 
@@ -290,13 +386,19 @@
 				performTileLogic(i)
 				collideMapBorders(i);
 			}
+			
+			collidePlayers();
 
 			super.update();
+			
+			
 			
 			for (var j:int = 0; j < _player.length; j++) 
 			{
 				_map.collide(_player[j]);	// perform player-tilemap collisions
 			}
+			
+
 		}	
 	}
 }

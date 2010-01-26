@@ -7,8 +7,9 @@
 	public class Splash	extends FlxSprite
 	{
 		
-		[Embed(source='../data/levels/test/splash.png')] private var ImgSplash:Class;
-		[Embed(source = '../data/levels/test/splash.mp3')] private var SoundSplash:Class;
+		// original level
+		[Embed(source = '../data/levels/original/splash.png')] private var ImgSplash:Class;
+		[Embed(source = '../data/levels/original/splash.mp3')] private var SoundSplash:Class;
 		
 		
 		public function Splash(X:Number,Y:Number):void

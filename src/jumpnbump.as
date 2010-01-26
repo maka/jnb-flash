@@ -7,9 +7,16 @@
 	
 	public class jumpnbump extends FlxGame
 	{
+
+		public var test:String = "abc";
+	
 		public function jumpnbump() 
 		{
-			super(400, 256, MenuState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
+			FlxG.levels = new Array;
+			FlxG.levels[0] = "dm";
+			FlxG.levels[1] = "original";
+			
+			super(400, 256, PlayerSelectState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
 			showLogo = false;
 			//setLogoFX(0xff930000)
 		}
