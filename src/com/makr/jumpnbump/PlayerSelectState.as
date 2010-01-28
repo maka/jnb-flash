@@ -1,13 +1,14 @@
-﻿package
+﻿package com.makr.jumpnbump
 {
     import org.flixel.*;
     public class PlayerSelectState extends FlxState
     {
 		
 		// original level		
-		[Embed(source = '../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
-		[Embed(source = '../data/levels/original/level.png')] private var ImgBg:Class;
-		[Embed(source = '../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
+		[Embed(source = '../../../../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
+		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBg:Class;
+		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
+		
 		private var _bgMusicURL:String = "../data/levels/original/m_jump.mp3";
 		private var _bgMusic:FlxSound = new FlxSound();
 		

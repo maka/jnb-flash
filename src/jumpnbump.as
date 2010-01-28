@@ -1,5 +1,6 @@
-﻿package  
+﻿package
 {
+	import com.makr.jumpnbump.*;
 	import org.flixel.*;
 
 	[SWF(width="800", height="512", backgroundColor="#000000")] //Set the size and color of the Flash file

@@ -1,5 +1,7 @@
-﻿package  
+﻿package com.makr.jumpnbump
+
 {
+	import com.makr.jumpnbump.objects.Splash;
 	import flash.geom.Point;
 	import org.flixel.*;	
 
@@ -7,20 +9,17 @@
 	public class Player	extends FlxSprite
 	{
 		// original level
-		[Embed(source = '../data/levels/original/death.mp3')] private var SoundDeath:Class;
-		[Embed(source = '../data/levels/original/jump.mp3')] private var SoundJump:Class;
-		[Embed(source = '../data/levels/original/rabbit1.png')] private var ImgPlayer1:Class;
-		[Embed(source = '../data/levels/original/rabbit2.png')] private var ImgPlayer2:Class;
-		[Embed(source = '../data/levels/original/rabbit3.png')] private var ImgPlayer3:Class;
-		[Embed(source = '../data/levels/original/rabbit4.png')] private var ImgPlayer4:Class;
+		[Embed(source = '../../../../data/levels/original/death.mp3')] private var SoundDeath:Class;
+		[Embed(source = '../../../../data/levels/original/jump.mp3')] private var SoundJump:Class;
+		[Embed(source = '../../../../data/levels/original/rabbit.png')] private var ImgPlayer:Class;
 	
 		// controls for all players
 		private static const _KEY_LEFT:Array = ["LEFT", "A", "J", "NUMPAD_FOUR"];
 		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
 		private static const _KEY_JUMP:Array = ["UP", "W", "I", "NUMPAD_EIGHT"];
 		
-		// current player id
-		private var _playerID:uint;
+		// current rabbit id [0-3]
+		public var rabbitIndex:uint;
 
 		
 		private static const _DEFAULT_GRAVITY:int = 560;
@@ -54,7 +53,10 @@
 		public function die():void
 		{
 			dead = true;
-			FlxG.play(SoundJump);				
+			velocity.x = 0;
+			velocity.y = 0;
+            acceleration.y = 0;
+			FlxG.play(SoundDeath);				
 		}
 		
 		public function jump(spring:Boolean = false):void
@@ -143,31 +145,24 @@
 			_isSliding = isSliding;			// set value
 		}
 
-		public function Player(playerID:uint, X:Number, Y:Number):void
+		override public function reset(X:Number, Y:Number):void
 		{
-			_playerID = playerID
+			if (Math.random() > 0.5)
+				facing = LEFT;
+			dead = false;
+			exists = true;
+			x = X;
+			y = Y;
+			acceleration.y = _DEFAULT_GRAVITY;
+		}
+		
+		public function Player(newRabbitIndex:uint, X:Number, Y:Number):void
+		{
+			rabbitIndex = newRabbitIndex;
 			
 			super(X, Y);
 			
-			switch (_playerID + 1) 
-			{
-				case 1:
-				loadGraphic(ImgPlayer1, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				break;
-
-				case 2:
-				loadGraphic(ImgPlayer2, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				break;
-
-				case 3:
-				loadGraphic(ImgPlayer3, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				break;
-
-				case 4:
-				loadGraphic(ImgPlayer4, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
-				break;
-			}
-			
+			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
 			
 		    //Max speeds
             maxVelocity.x = 75;
@@ -184,14 +179,20 @@
             offset.x = 2;
             offset.y = 4;
 			
+			// set animationOffset to use the right graphics
+			var aO:uint = rabbitIndex * 9;
+			
 			// set animations for everything the bunny can do
-			addAnimation("idle", [0]);
-			addAnimation("normal", [0, 1, 2, 3], 15);
-			addAnimation("up", [4]);
-			addAnimation("apex", [5]);
-			addAnimation("down", [6]);
-			addAnimation("downfast", [6, 7], 10);
-			addAnimation("dead", [8, 8, 8], 5);
+		
+			addAnimation("idle", [0+aO]);
+			addAnimation("normal", [0+aO, 1+aO, 2+aO, 3+aO], 15);
+			addAnimation("up", [4+aO]);
+			addAnimation("apex", [5+aO]);
+			addAnimation("down", [6+aO]);
+			addAnimation("downfast", [6+aO, 7+aO], 10);
+			addAnimation("dead", [8+aO, 8+aO], 7);
+			
+			addAnimationCallback(animateCallback);
 			
 			// the sprites face right by default
 			facing = RIGHT;
@@ -246,6 +247,13 @@
 
 		}
 		
+		private function animateCallback(name:String, framenumber:uint, frameindex:uint):void
+		{
+//			trace("name:" + name + ", framenumber:" + framenumber.toString() + ", frameindex:" + frameindex.toString());
+			if (name == "dead" && framenumber == 1)
+				kill();
+		}
+		
 		private function animate():void
 		{
 			if (dead)
@@ -298,44 +306,41 @@
 		
 		override public function update():void
 		{
-/*			if(dead)
-            {
-                if(finished) exists = false;
-                else
-                    super.update();
+			if (dead)
+			{
+				animate();
+				super.update();
                 return;
-            }
-*/			
+			}
 			
 			// handle input
-			if (FlxG.keys.pressed(_KEY_LEFT[_playerID])|| FlxG.keys.pressed(_KEY_RIGHT[_playerID]))
+			if (!dead)
 			{
-				_isRunning = true;
-				
-				if(FlxG.keys.pressed(_KEY_LEFT[_playerID]))
+				if (FlxG.keys.pressed(_KEY_LEFT[rabbitIndex])|| FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]))
 				{
-					facing = LEFT;
-					velocity.x -= _moveSpeed * FlxG.elapsed;
+					_isRunning = true;
+					
+					if(FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]))
+					{
+						facing = LEFT;
+						velocity.x -= _moveSpeed * FlxG.elapsed;
+					}
+					else if (FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]))
+					{
+						facing = RIGHT;
+						velocity.x += _moveSpeed * FlxG.elapsed;                
+					}
 				}
-				else if (FlxG.keys.pressed(_KEY_RIGHT[_playerID]))
+				else
 				{
-					facing = RIGHT;
-					velocity.x += _moveSpeed * FlxG.elapsed;                
+					_isRunning = false
 				}
+				if (FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]))
+				{
+					jump();
+				}			
 			}
-			else
-			{
-				_isRunning = false
-			}
-            if (FlxG.keys.justPressed(_KEY_JUMP[_playerID]))
-            {
-                jump();
-            }			
-
-            if (FlxG.keys.X)
-            {
- 				flicker(1);
-			}
+			
 			animate();
 			
 			setMovementVariables();

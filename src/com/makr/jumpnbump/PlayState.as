@@ -1,16 +1,20 @@
-﻿package  
+﻿package com.makr.jumpnbump
 {
+	import com.makr.jumpnbump.objects.Gib;
+	import com.makr.jumpnbump.objects.Spring;
 	import flash.geom.Point;
 	import org.flixel.*;
 
 	public class PlayState extends FlxState
 	{
-		[Embed(source = '../data/levels/common/tiles.png')] private var ImgTiles:Class;
+		FlxG.showCursor();
+
+		[Embed(source = '../../../../data/levels/common/tiles.png')] private var ImgTiles:Class;
 
 		// original level		
-		[Embed(source = '../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
-		[Embed(source = '../data/levels/original/level.png')] private var ImgBg:Class;
-		[Embed(source = '../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
+		[Embed(source = '../../../../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
+		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBg:Class;
+		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
 		private var _bgMusicURL:String = "../data/levels/original/m_bump.mp3";
 		private var _bgMusic:FlxSound = new FlxSound();
 		
@@ -20,6 +24,9 @@
 		private var _fg:FlxSprite;
 		
 		private var _springs:Array;
+		private var _gibs:Array;
+		
+		private var _respawnMap:Array;
 		
 		public static var lyrBG:FlxLayer;
 		public static var lyrStage:FlxLayer;
@@ -87,6 +94,10 @@
 			
 			// creating the springs
 			createSprings();
+			
+			_gibs = new Array;
+			
+			buildRespawnMap();
 
 		}
 		
@@ -287,6 +298,8 @@
 		{
 			_player[killer].velocity.y = -150;		
 			_player[killee].die();
+			gibPlayer(killee);
+			
 		}
 		
 		private function getAbsValue(x:Number):Number
@@ -307,29 +320,42 @@
 			var b:int = 0;
 			
 			var maxWidth:Number, maxHeight:Number;
-				
+			
 			for (a = 0; a < _player.length - 1; a++) 
 			{
 				for (b = a + 1; b < _player.length; b++) 
 				{
-					maxWidth = Math.max(_player[a].width, _player[b].width);
-					maxHeight = Math.max(_player[a].height, _player[b].height);
+					//maxWidth = Math.max(_player[a].width, _player[b].width);
+					maxWidth = 12;
+					//maxHeight = Math.max(_player[a].height, _player[b].height);
+					maxHeight = 12;
 
-					if (!_player[a].dead && !_player[b].dead)			// check that both are alive
+					if (!_player[a].dead && !_player[b].dead)						// check that both are alive
 					{
 						if (getAbsValue(_player[a].x - _player[b].x) < maxWidth && 
 							getAbsValue(_player[a].y - _player[b].y) < maxHeight)	// check that they intersect
 						{												
-							if (getAbsValue(_player[a].y - _player[b].y) > (maxHeight - 3))
+							trace("players " + a.toString() + " and " + b.toString() + " intersect!");
+							
+							if (getAbsValue(_player[a].y - _player[b].y) > 5 )
 							{
-								if (_player[a].y < _player[b].y)			// determine who's higher and kill the one below
-									playerKill(a, b);
-								else {
+								trace("	someones going to die.");
+
+								
+								if (_player[a].y < _player[b].y)	// the one up top is faster than the one below
+								{
+									playerKill(a, b);								// playerKill(killer, killee);
+								}
+								else
+								{
 									playerKill(b, a);
 								}
 							}
 							else
 							{
+								trace("	someones going to get pushed.");
+
+								
 								if (_player[a].x < _player[b].x)
 								{
 									if (_player[a].velocity.x > 0)
@@ -379,6 +405,92 @@
 			}
 		}
 		
+		private function buildRespawnMap():void
+		{
+			_respawnMap = new Array;
+			
+			for (var x:int = 0; x < 22; x++) 
+			{
+				for (var y:int = 1; y < 15; y++) 
+				{
+					if (_map.getTileByIndex(y * 22 + x) == 0 &&		// if current tile  is VOID
+						_map.getTileByIndex((y + 1) * 22 + x) == 2)	// and tile below is SOLID
+					{
+						_respawnMap.push(new Point(x * 16 + 8, y * 16 + 8));
+
+					}
+				}
+			}
+			
+		}
+		
+		private function respawnPlayers():Boolean
+		{
+			var theDead:Array = new Array;
+			
+			for (var i:int = 0; i < _player.length; i++) 
+			{
+				if (!_player[i].exists)
+					theDead.push(i);
+			}
+
+			if (theDead.length == 0)
+				return false;
+				
+			for (var j:int = 0; j < theDead.length; j++) 
+			{
+				var respawnPoint:Point = _respawnMap[Math.floor(Math.random() * _respawnMap.length)];
+				_player[theDead[j]].reset(respawnPoint.x - 7, respawnPoint.y - 9);
+			}
+				
+				
+			return true;
+		}
+		
+		
+		private function gibPlayer(PlayerID:uint):void
+		{
+			var _gibKind:String;
+			var _gibIndex:uint;
+			
+			for (var re:int = 0; re < Math.floor(Math.random() * 5 + 5 ); re++) 
+			{
+				if (Math.random() * 10 < 4)
+				{
+					_gibKind = "Fur";
+				}
+				else
+				{
+					_gibKind = "Flesh";
+				}
+					
+				_gibIndex = _gibs.push(new Gib(	_player[PlayerID].rabbitIndex, 
+												_gibKind, _player[PlayerID].x + _player[PlayerID].width / 2, 
+												_player[PlayerID].y + _player[PlayerID].height / 2));
+				lyrBGSprites.add(_gibs[_gibIndex - 1]);
+			}
+			
+			// cleanup gib array
+			trace ("BEFORE: " + _gibs.length.toString());
+			
+			var indicesToDelete:Array = new Array;
+			
+			for (var i:int = 0; i < _gibs.length; i++) 
+			{
+				if (_gibs[i].dead)
+					indicesToDelete.push(i)
+			}
+
+			for (var j:int = 0; j < indicesToDelete.length; j++) 
+			{
+				_gibs.splice(indicesToDelete.pop, 1);
+			}
+			trace ("AFTER: " + _gibs.length.toString());
+			
+		}
+		
+
+		
 		override public function update():void
         {
 			for (var i:int = 0; i < _player.length; i++) 
@@ -387,15 +499,20 @@
 				collideMapBorders(i);
 			}
 			
-			collidePlayers();
-
 			super.update();
 			
+			respawnPlayers();
 			
-			
-			for (var j:int = 0; j < _player.length; j++) 
+			collidePlayers();
+
+			for (var j:int = 0; j < _gibs.length; j++) 
 			{
-				_map.collide(_player[j]);	// perform player-tilemap collisions
+				_map.collide(_gibs[j]);	// perform player-tilemap collisions
+			}
+
+			for (var k:int = 0; k < _player.length; k++) 
+			{
+				_map.collide(_player[k]);	// perform player-tilemap collisions
 			}
 			
 

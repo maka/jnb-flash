@@ -1,4 +1,4 @@
-﻿package  
+﻿package com.makr.jumpnbump.objects
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
@@ -8,8 +8,8 @@
 	{
 		
 		// original level
-		[Embed(source = '../data/levels/original/splash.png')] private var ImgSplash:Class;
-		[Embed(source = '../data/levels/original/splash.mp3')] private var SoundSplash:Class;
+		[Embed(source = '../../../../../data/levels/original/splash.png')] private var ImgSplash:Class;
+		[Embed(source = '../../../../../data/levels/original/splash.mp3')] private var SoundSplash:Class;
 		
 		
 		public function Splash(X:Number,Y:Number):void
@@ -26,19 +26,21 @@
 
 			// set animations for everything the bunny can do
 			addAnimation("splish", [0, 1, 2, 3, 4, 5, 6, 7, 8, 8], 25, false);
-			addAnimationCallback(CallbackTest);
+			addAnimationCallback(animationCallback);
 			FlxG.play(SoundSplash);		// make some noise
 			play("splish");
 			
-			trace("Splash: Initialized")
-			
+			trace("com.makr.jumpnbump.objects.Splash");
+			trace("	Initialized");
 		}
 		
-		private function CallbackTest(name:String, frameNumber:uint, frameIndex:uint):void
+		private function animationCallback(name:String, frameNumber:uint, frameIndex:uint):void
 		{
 			if (frameNumber == 9)
 			{
-				trace("Splash: Animation finished, entity destroyed")
+				trace("com.makr.jumpnbump.objects.Splash");
+				trace("	Animation finished");
+				trace("	Entity destroyed");
 				kill();
 			}
 

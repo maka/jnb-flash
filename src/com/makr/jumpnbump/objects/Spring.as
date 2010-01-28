@@ -1,4 +1,4 @@
-﻿package  
+﻿package com.makr.jumpnbump.objects
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
@@ -8,8 +8,8 @@
 	{
 		
 		// original level
-		[Embed(source = '../data/levels/original/spring.png')] private var ImgSpring:Class;
-		[Embed(source = '../data/levels/original/spring.mp3')] private var SoundSpring:Class;
+		[Embed(source = '../../../../../data/levels/original/spring.png')] private var ImgSpring:Class;
+		[Embed(source = '../../../../../data/levels/original/spring.mp3')] private var SoundSpring:Class;
 		
 		
 		public function Spring(X:Number,Y:Number):void
@@ -31,7 +31,8 @@
 
 			play("idle");
 			
-			trace("Spring: Initialized")
+			trace("com.makr.jumpnbump.objects.Spring");
+			trace("	Initialized");
 		}
 		
 		public function Activate():void
@@ -40,7 +41,8 @@
 			play("sproing");
 			FlxG.play(SoundSpring);
 		
-			trace("Spring: Activated")
+			trace("com.makr.jumpnbump.objects.Spring");
+			trace("	Activated");
 
 		}
 		
