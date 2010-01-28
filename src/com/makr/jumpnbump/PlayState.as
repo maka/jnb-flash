@@ -55,11 +55,9 @@
 		{
 			_bgMusic.loadStream(_bgMusicURL, true);
 			_bgMusic.play();
+			
 
 			
-			// fade in
-			FlxG.flash(0xff000000, 0.4);
-
 			super();
 			
 			// creating new layers
@@ -81,19 +79,6 @@
 			_fg.x = _fg.y = 0;
 			lyrFG.add(_fg);
 
-			// creating a bunny
-			_player[0] = new Player(0, 200, 128);			
-			_player[1] = new Player(1, 216, 128);	
-			_player[2] = new Player(2, 232, 128);			
-			_player[3] = new Player(3, 248, 128);	
-			
-			for (var i:int = 0; i < _player.length; i++) 
-			{
-				lyrSprites.add(_player[i]);
-			}
-			
-			// lyrSprites.add(_player[playerid]);
-			
 			// creating the map
 			_map = new FlxTilemap;
 			_map.loadMap(new DataMap, ImgTiles, 16)
@@ -116,6 +101,24 @@
 			
 			buildRespawnMap();
 
+			// creating the bunnies
+			if (FlxG.levels[2] & 1)
+				_player.push(new Player(0, 196, 128));			
+			if (FlxG.levels[2] & 2)
+				_player.push(new Player(1, 208, 128));	
+			if (FlxG.levels[2] & 4)
+				_player.push(new Player(2, 224, 128));			
+			if (FlxG.levels[2] & 8)
+				_player.push(new Player(3, 240, 128));	
+			
+				
+			for (var i:int = 0; i < _player.length; i++) 
+			{
+				lyrSprites.add(_player[i]);
+			}
+			
+			// fade in
+			FlxG.flash(0xff000000, 0.4);
 		}
 		
 		private function createSprings():void
@@ -316,6 +319,7 @@
 			_player[killer].velocity.y = -150;		
 			_player[killee].die();
 			gibPlayer(killee);
+			FlxG.scores[killer]++;
 			
 		}
 		
@@ -345,7 +349,8 @@
 						{												
 							trace("players " + a.toString() + " and " + b.toString() + " intersect!");
 							
-							if (getAbsValue(_player[a].y - _player[b].y) > 5 )
+							if ( (_player[a].y - _player[b].y > 5 && _player[a].velocity.y < _player[b].velocity.y) ||
+								(_player[b].y - _player[a].y > 5 && _player[b].velocity.y < _player[a].velocity.y) )
 							{
 								trace("	someones going to die.");
 
@@ -471,17 +476,17 @@
 			if (theDead.length == 0)
 				return false;
 				
-			for (var j:int = 0; j < theDead.length; j++) 
+			for each (var ghost:uint in theDead)
 			{
 				var respawnPoint:Point;
 				var closestPlayerDistance:Number;
 				do {
 					respawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
 					closestPlayerDistance = getClosestPlayerToPoint(respawnPoint)[1];
-					trace("respawnPlayers: Searching for respawn point for player " + i + "...")
+					trace("respawnPlayers: Searching for respawn point for player "+ghost+"...")
 				} while (closestPlayerDistance < 32);
 				
-				_player[theDead[j]].reset(respawnPoint.x - 7, respawnPoint.y - 9);
+				_player[ghost].reset(respawnPoint.x - 7, respawnPoint.y - 9);
 				trace("respawnPlayers: Found! (" + respawnPoint.x + ", " + respawnPoint.y + ")");
 			}
 				
@@ -495,7 +500,7 @@
 			var _gibKind:String;
 			var _gibIndex:uint;
 			
-			for (var re:int = 0; re < int(Math.random() * 5 + 5 ); re++) 
+			for (var re:int = 0; re < int(Math.random() * 6 + 5 ); re++) 
 			{
 				if (Math.random() * 10 < 4)
 				{
