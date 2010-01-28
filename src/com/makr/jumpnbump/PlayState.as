@@ -34,6 +34,23 @@
 		public static var lyrSprites:FlxLayer;
 		public static var lyrFG:FlxLayer;
 		
+		private function getAbsValue(x:Number):Number
+		{
+			if (x < 0)
+				return -x;
+			else
+				return x;
+			// return (x ^ (x >> 31)) - (x >> 31);
+		}
+		
+		private function getDistance(a:Point, b:Point):Number
+		{
+			var deltaX:Number = b.x-a.x;  
+			var deltaY:Number = b.y-a.y;  
+			return Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
+		}
+
+		
 		public function PlayState() 
 		{
 			_bgMusic.loadStream(_bgMusicURL, true);
@@ -120,7 +137,7 @@
 		
 		private function getTileIndex(x:Number, y:Number):uint
 		{
-			return Math.floor(y / 16) * _map.widthInTiles + Math.floor(x / 16);
+			return int(y / 16) * _map.widthInTiles + int(x / 16);
 		}
 		
 		private function performTileLogic(playerid:uint):void
@@ -162,8 +179,8 @@
 				if (tileBelow < _map.collideIndex || tileBelow == 4) 	// and the center does too (most of the bunny is on the spring)
 																		// OR the tile directly underneath is not solid (the bunny is touching nothing else)
 				{				
-					var leftCorner:Point = new Point(Math.floor(leftEdge / 16) * 16, Math.floor(below / 16) * 16);
-					var rightCorner:Point = new Point(Math.floor(rightEdge / 16) * 16, Math.floor(below / 16) * 16);
+					var leftCorner:Point = new Point(int(leftEdge / 16) * 16, int(below / 16) * 16);
+					var rightCorner:Point = new Point(int(rightEdge / 16) * 16, int(below / 16) * 16);
 					
 					for (var i:int = 0; i < _springs.length; i++) 
 					{
@@ -302,15 +319,6 @@
 			
 		}
 		
-		private function getAbsValue(x:Number):Number
-		{
-			return (x ^ (x >> 31)) - (x >> 31);
-		}
-
-		private function getDifference(a:Point, b:Point):Point
-		{
-			return new Point(a.x - b.x, a.y - b.y);
-		}
 		
 		private function collidePlayers():void
 		{
@@ -405,6 +413,32 @@
 			}
 		}
 		
+		private function getClosestPlayerToPoint(A:Point):Array
+		{
+			var playerPosition:Point = new Point;
+			
+			var closestPlayer:uint;
+			var closestDistance:Number = 10000;
+			var currentDistance:Number;
+			
+			for (var i:int = 0; i < _player.length; i++) 
+			{
+				playerPosition.x = _player[i].x;
+				playerPosition.y = _player[i].y;
+				
+				currentDistance = getDistance(playerPosition, A);
+				
+				if (currentDistance < closestDistance)
+				{
+					closestDistance = currentDistance;
+					closestPlayer = i;
+				}
+				
+			}
+			
+			return new Array(closestPlayer, closestDistance);
+		}
+
 		private function buildRespawnMap():void
 		{
 			_respawnMap = new Array;
@@ -439,8 +473,16 @@
 				
 			for (var j:int = 0; j < theDead.length; j++) 
 			{
-				var respawnPoint:Point = _respawnMap[Math.floor(Math.random() * _respawnMap.length)];
+				var respawnPoint:Point;
+				var closestPlayerDistance:Number;
+				do {
+					respawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+					closestPlayerDistance = getClosestPlayerToPoint(respawnPoint)[1];
+					trace("respawnPlayers: Searching for respawn point for player " + i + "...")
+				} while (closestPlayerDistance < 32);
+				
 				_player[theDead[j]].reset(respawnPoint.x - 7, respawnPoint.y - 9);
+				trace("respawnPlayers: Found! (" + respawnPoint.x + ", " + respawnPoint.y + ")");
 			}
 				
 				
@@ -453,7 +495,7 @@
 			var _gibKind:String;
 			var _gibIndex:uint;
 			
-			for (var re:int = 0; re < Math.floor(Math.random() * 5 + 5 ); re++) 
+			for (var re:int = 0; re < int(Math.random() * 5 + 5 ); re++) 
 			{
 				if (Math.random() * 10 < 4)
 				{

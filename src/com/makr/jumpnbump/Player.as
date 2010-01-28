@@ -41,6 +41,7 @@
 		private var _floatJumpPower:int = 170;   // power of a normal jump (slightly more than 3 tiles)
 		private var _jumpPower:int = 240;   // power of a normal jump (slightly more than 3 tiles)
 		private var _springPower:int = 340;  // power of a spring jump (slightly more than 6 tiles)
+		private var _bouncePower:int = 150;   // power of the bounce off a killed bunny
 		
 		private var _max_health:int = 1;
 		
@@ -59,7 +60,7 @@
 			FlxG.play(SoundDeath);				
 		}
 		
-		public function jump(spring:Boolean = false):void
+		public function jump(spring:Boolean = false, bounce:Boolean = false):void
 		{
 			trace("jump init");
 			
@@ -68,6 +69,8 @@
 				
 			if (spring)				// spring jump (6 tiles)
 			    velocity.y += -_springPower;
+			else if (bounce)				// bounce
+			    velocity.y += -_bouncePower;
 			else if (_isFloating)	// jump out of water (1 tile)
 			{
 				velocity.y += -_floatJumpPower;
@@ -78,7 +81,9 @@
 				velocity.y = -_floatJumpPower;
 			} */
 			else					// normal jump (3 tiles)
+			{
 				velocity.y += -_jumpPower;
+			}
 			
 			if (!spring)				// spring jump (6 tiles)
 				FlxG.play(SoundJump);				
@@ -95,8 +100,8 @@
 			}					
 */			_isGrounded = isGrounded;		// set value
 			
-			if (!_isGrounded)				// can only slide on the ground
-				setSliding(false);
+			if (!isGrounded)				// can only slide on the ground
+				setSliding(false);				
 		}
 		
 		public function isSwimming():Boolean { return _isSwimming; }
@@ -149,6 +154,9 @@
 		{
 			if (Math.random() > 0.5)
 				facing = LEFT;
+			else
+				facing = RIGHT;
+				
 			dead = false;
 			exists = true;
 			x = X;
@@ -338,7 +346,7 @@
 				if (FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]))
 				{
 					jump();
-				}			
+				}						
 			}
 			
 			animate();

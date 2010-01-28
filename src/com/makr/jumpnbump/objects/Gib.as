@@ -17,11 +17,13 @@
 		private var _blood:FlxEmitter;
 		private var _force:Number = 200;
 		private var _static:Boolean = false;
+		private var _bleeding:Boolean = true;
+		private var _killTimer:Number = 0;
 		
-		public function Gib(PlayerID:uint, Kind:String, X:Number, Y:Number, Static:Boolean=false, Xvel:Number = 0, Yvel:Number = 0 ):void
+		public function Gib(PlayerID:uint, Kind:String, X:Number, Y:Number, Static:Boolean=false, Bleeding:Boolean=true, Xvel:Number = 0, Yvel:Number = 0 ):void
 		{
 			_static = Static;
-			
+			_bleeding = Bleeding;
 			super(X, Y);
 			loadGraphic(ImgGib, true, true, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
 			
@@ -43,15 +45,19 @@
 				velocity.x = Xvel;
 				velocity.y = Yvel;
 			}
+			
             offset.x = 0;  //Where in the sprite the bounding box starts on the X axis
             offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
 
 			// set up the blood emitter
 			
-			_blood = FlxG.state.add(new FlxEmitter (X, Y)) as FlxEmitter;
-			_blood.createSprites(ImgBlood, _numBloodSprites, true, PlayState.lyrBGSprites);
-			_blood.gravity = _gravity * 0.2;
-			_blood.setRotation();
+			if (_bleeding)
+			{
+				_blood = FlxG.state.add(new FlxEmitter (X, Y)) as FlxEmitter;
+				_blood.createSprites(ImgBlood, _numBloodSprites, true, PlayState.lyrBGSprites);
+				_blood.gravity = _gravity * 0.2;
+				_blood.setRotation( -360, 360);
+			}
 
 			
 			// set sprites
@@ -72,7 +78,7 @@
 			switch (Kind) 
 			{
 				case "Fur":
-					animationName = "Fur" + Math.floor(Math.random()*8).toString();
+					animationName = "Fur" + int(Math.random()*8).toString();
 					break;
 					
 				case "Flesh":
@@ -82,8 +88,7 @@
 			
 			play(animationName);
 			
-			trace("com.makr.jumpnbump.objects.Gib");
-			trace("	Initialized");
+			trace("Gib:	Initialized");
 		}
 		
 		public function makeStatic():void
@@ -93,7 +98,8 @@
 			velocity.y = 0;
 			acceleration.x = 0;
 			acceleration.y = 0;
-			_blood.kill();
+			if (_bleeding)
+				_blood.kill();
 		}
 		
 		override public function update():void
@@ -101,14 +107,17 @@
 			if (_static)
 				return;
 				
-			_blood.x = x + 2;
-			_blood.y = y + 2;
-			
-			_blood.setXVelocity(velocity.x * 0.2, velocity.x*0.6);
-			_blood.setYVelocity(velocity.y * 0.2, velocity.y*0.6);
-			
+			angularVelocity = velocity.x * 20;
 
-
+			if (_bleeding)
+			{
+				_blood.x = x + 2;
+				_blood.y = y + 2;
+				
+				_blood.setXVelocity(velocity.x * 0.2, velocity.x*0.6);
+				_blood.setYVelocity(velocity.y * 0.2, velocity.y*0.6);
+			}
+			
 			if (x < 0 || x > 352)
 			{
 				velocity.x *= -.3;
@@ -122,12 +131,22 @@
 
 			if (velocity.x == 0 && velocity.y  == 0)
 			{
+				_killTimer += FlxG.elapsed;
+			}
+			
+			if (_killTimer > 1 )
+			{
+				
 				if (Math.random() * 100 < 7)	// 7 percent chance of becoming static
 				{
 					makeStatic();
+					trace("Gib:	Made Static");
 				}
 				else
+				{
 					kill();
+					trace("Gib:	Killed");
+				}
 			}
 
 			
@@ -139,7 +158,8 @@
 		
 		override public function kill():void
 		{
-			_blood.kill();
+			if (_bleeding)
+				_blood.kill();
 			super.kill();
 		}
 	}
