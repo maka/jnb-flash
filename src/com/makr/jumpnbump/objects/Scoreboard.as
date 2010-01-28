@@ -8,49 +8,41 @@
 	{
 		
 		// original level
-		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var ImgSpring:Class;
+		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var ImgNumber:Class;
 		
+		public var Tiles:Array = new Array;
 		
-		public function Scoreboard(X:Number,Y:Number):void
+		private function numberToArray(x:Number):Array
+		{  
+			var i:Array = [];  
+			var j:uint = 0;  
+			var text:String = "0" + int(x).toString();
+			while (j < text.length) {  
+				i.push(text.charAt(j++));  
+			}  
+			return i;  
+		}  
+		
+		public function Scoreboard():void
 		{
-			super(X, Y);
-			loadGraphic(ImgSpring, true, true, 16, 12); // load player sprite (is animated, is reversible, is 19x19)
-			
-            // set bounding box
-            width = 16;
-            height = 12;
-			
-            offset.x = 0;  //Where in the sprite the bounding box starts on the X axis
-            offset.y = 8;  //Where in the sprite the bounding box starts on the Y axis
-
-			// set animations for everything the bunny can do
-			addAnimation("idle", [5]);
-			addAnimation("sproing", [0, 1, 2, 3, 4, 5], 20, false);
-			addAnimationCallback(CallbackTest);
-
-			play("idle");
-			
-			trace("com.makr.jumpnbump.objects.Spring");
-			trace("	Initialized");
-		}
-		
-		public function Activate():void
-		{
-			play("idle");
-			play("sproing");
-			FlxG.play(SoundSpring);
-		
-			trace("com.makr.jumpnbump.objects.Spring");
-			trace("	Activated");
-
-		}
-		
-		private function CallbackTest(name:String, frameNumber:uint, frameIndex:uint):void
-		{
-			if (name == "sproing" && frameNumber == 5)
+			for (var y:int = 0; y < 4; y++) 
 			{
-				play("idle");
-				trace("Spring: Animation finished, now idle")
+				for (var x:int = 0; x < 2; x++) 
+				{
+					Tiles[y * 2 + x] = new ScoreboardTile(360 + x * 16, 34 + y * 64);
+				}
+			}
+			
+			trace("Scoreboard:	Initialized");
+		}
+		
+		public function update():void
+		{
+			for (var i:int = 0; i < FlxG.scores.length; i++) 
+			{
+				var scoreArray:Array = numberToArray(FlxG.scores[i]);
+				Tiles[2 * i + 1].play(scoreArray.pop());
+				Tiles[2 * i + 0].play(scoreArray.pop());
 			}
 		}
 	}

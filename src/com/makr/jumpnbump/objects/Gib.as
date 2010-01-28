@@ -107,7 +107,9 @@
 			if (_static)
 				return;
 				
-			angularVelocity = velocity.x * 20;
+			angularVelocity = velocity.x * 22.9183118;	// value is degrees per pixel of circumference of an object with 5 pixels diameter
+			
+			// Velocity.x in pixels/sec * 360 degrees / (5 pixels diameter * PI) == Velocity.x in pixels/sec * 22.9183118 degrees/pixel
 
 			if (_bleeding)
 			{

@@ -2,6 +2,7 @@
 {
 	import com.makr.jumpnbump.objects.Gib;
 	import com.makr.jumpnbump.objects.Spring;
+	import com.makr.jumpnbump.objects.Scoreboard;
 	import flash.geom.Point;
 	import org.flixel.*;
 
@@ -27,6 +28,8 @@
 		private var _gibs:Array;
 		
 		private var _respawnMap:Array;
+		
+		private var _scoreboard:Scoreboard;
 		
 		public static var lyrBG:FlxLayer;
 		public static var lyrStage:FlxLayer;
@@ -56,8 +59,6 @@
 			_bgMusic.loadStream(_bgMusicURL, true);
 			_bgMusic.play();
 			
-
-			
 			super();
 			
 			// creating new layers
@@ -86,8 +87,14 @@
             _map.collideIndex = 2;
             _map.follow();
            lyrStage.add(_map);
-
 			
+			// creating the scoreboard
+			_scoreboard = new Scoreboard();
+			for each (var tile:FlxSprite in _scoreboard.Tiles) 
+			{
+				lyrBG.add(tile);
+			}
+
 			this.add(lyrBG);
 		//	this.add(lyrStage);
 			this.add(lyrBGSprites);
@@ -320,7 +327,7 @@
 			_player[killee].die();
 			gibPlayer(killee);
 			FlxG.scores[killer]++;
-			
+			_scoreboard.update();
 		}
 		
 		
@@ -562,7 +569,7 @@
 				_map.collide(_player[k]);	// perform player-tilemap collisions
 			}
 			
-
+			
 		}	
 	}
 }
