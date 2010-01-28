@@ -156,8 +156,16 @@
 			
 			
 			super.update();
+		
 		}
 		
+		override public function hitWall(Contact:FlxCore = null):Boolean
+		{
+			velocity.x *= -Math.random();
+			
+			return true;
+		}
+
 		override public function kill():void
 		{
 			if (_bleeding)

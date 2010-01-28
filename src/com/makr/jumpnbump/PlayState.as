@@ -17,7 +17,6 @@
 		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBg:Class;
 		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
 		private var _bgMusicURL:String = "../data/levels/original/m_bump.mp3";
-		private var _bgMusic:FlxSound = new FlxSound();
 		
 		private var _player:Array = new Array();
 		private var _map:FlxTilemap;
@@ -56,8 +55,9 @@
 		
 		public function PlayState() 
 		{
-			_bgMusic.loadStream(_bgMusicURL, true);
-			_bgMusic.play();
+			FlxG.music = new FlxSound;
+			FlxG.music.loadStream(_bgMusicURL, true);
+			FlxG.music.play();
 			
 			super();
 			

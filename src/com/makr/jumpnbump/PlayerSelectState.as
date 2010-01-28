@@ -11,7 +11,6 @@
 		[Embed(source = '../../../../data/levels/original/menu.png')] private var ImgBg:Class;
 		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var ImgFgMask:Class;
 		private var _bgMusicURL:String = "../data/levels/original/m_jump.mp3";
-		private var _bgMusic:FlxSound = new FlxSound();
 		
 		private var _player:Array = new Array();
 		private var _bg:FlxSprite;
@@ -43,8 +42,9 @@
 		
 		public function PlayerSelectState() 
 		{
-			_bgMusic.loadStream(_bgMusicURL, true);
-			_bgMusic.play();
+			FlxG.music = new FlxSound;
+			FlxG.music.loadStream(_bgMusicURL, true);
+			FlxG.music.play();
 
 			
 			// fade in
@@ -165,7 +165,7 @@
 
         private function onFade():void
         {
-			_bgMusic.stop();
+			FlxG.music.stop();
 			FlxG.switchState(PlayState);
         }
 	}
