@@ -12,7 +12,7 @@
 		[Embed(source = '../../../../../data/levels/original/gore.png')] private var ImgGib:Class;
 		[Embed(source = '../../../../../data/levels/original/blood.png')] private var ImgBlood:Class;
 		
-		private var _gravity:Number = 200;
+		private var _gravity:Number = 150;
 		private var _numBloodSprites:uint = 6;
 		private var _blood:FlxEmitter;
 		private var _force:Number = 200;
@@ -33,12 +33,15 @@
 			
 			drag.x = 25;
 			
+            maxVelocity.x = 100;
+            maxVelocity.y = 200;
+
 			acceleration.y = _gravity;
 			
 			if (Xvel == 0 && Yvel == 0)
 			{
-				velocity.x = Math.random() * _force - _force * 0.5;
-				velocity.y = Math.random() * _force - _force * 0.5;
+				velocity.x = (Math.random() - 0.5 ) * _force;
+				velocity.y = (Math.random() - 0.5 ) * _force;
 			}
 			else
 			{
@@ -53,10 +56,10 @@
 			
 			if (_bleeding)
 			{
-				_blood = FlxG.state.add(new FlxEmitter (X, Y)) as FlxEmitter;
+				_blood = FlxG.state.add(new FlxEmitter (X, Y, 0.05)) as FlxEmitter;
 				_blood.createSprites(ImgBlood, _numBloodSprites, true, PlayState.lyrBGSprites);
-				_blood.gravity = _gravity * 0.2;
-				_blood.setRotation( -360, 360);
+				_blood.gravity = 0;
+				_blood.setRotation( -30, 30);
 			}
 
 			

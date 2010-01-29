@@ -18,8 +18,8 @@
 		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
 		private var _bgMusicURL:String = "../data/levels/original/m_bump.mp3";
 		
-		private var _player:Array = new Array();
 		private var _map:FlxTilemap;
+		private var _player:Array = new Array();
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
 		
@@ -507,7 +507,7 @@
 			var _gibKind:String;
 			var _gibIndex:uint;
 			
-			for (var re:int = 0; re < int(Math.random() * 6 + 5 ); re++) 
+			for (var re:int = 0; re < int(Math.random() * 6 + 9 ); re++) 
 			{
 				if (Math.random() * 10 < 4)
 				{
