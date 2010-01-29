@@ -150,7 +150,16 @@
 				if (_player[3].x > _trunk[3].x - _player[3].width)
 					FlxG.levels[2] |= 8;
 					
-				FlxG.fade(0xff000000, .4, onFade);
+				for (var i:int = 0; i < _player.length; i++) 
+				{
+					if (_player[i].x > _trunk[i].x - _player[i].width)
+					{
+						_player[i].setControls(false);
+						_player[i].setControlOverride("RIGHT");
+					}
+				}
+					
+				FlxG.fade(0xff000000, 1, onFade);
 		}
 		
 		override public function update():void

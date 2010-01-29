@@ -51,6 +51,9 @@
 		private var _isSwimming:Boolean = false;
 		private var _isFloating:Boolean = false;		
 		
+		private var _disableControls:Boolean = false;
+		private var _controlOverride:String = "";
+		
 		public function die():void
 		{
 			dead = true;
@@ -150,6 +153,27 @@
 			_isSliding = isSliding;			// set value
 		}
 
+		public function setControls(enabled:Boolean):void
+		{
+			if (_disableControls == !enabled)	// return if value is already set
+				return;
+				
+			_disableControls = !enabled;			// set value
+		}
+
+		public function setControlOverride(Override:String):void
+		{
+			if (Override == _controlOverride)	// return if value is already set
+				return;
+				
+			_controlOverride = Override;			// set value
+		}
+
+		public function resetControlOverride():void
+		{
+			_controlOverride = "";	// reset value
+		}
+		
 		override public function reset(X:Number, Y:Number):void
 		{
 			if (Math.random() > 0.5)
@@ -324,16 +348,19 @@
 			// handle input
 			if (!dead)
 			{
-				if (FlxG.keys.pressed(_KEY_LEFT[rabbitIndex])|| FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]))
+				if ((( FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) || FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
+					_controlOverride == "LEFT" || _controlOverride == "RIGHT" )
 				{
 					_isRunning = true;
 					
-					if(FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]))
+					if (((FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) ) && !_disableControls ) || 
+						_controlOverride == "LEFT")
 					{
 						facing = LEFT;
 						velocity.x -= _moveSpeed * FlxG.elapsed;
 					}
-					else if (FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]))
+					else if (((FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
+						_controlOverride == "RIGHT")
 					{
 						facing = RIGHT;
 						velocity.x += _moveSpeed * FlxG.elapsed;                
@@ -343,7 +370,8 @@
 				{
 					_isRunning = false
 				}
-				if (FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]))
+				if (((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) ) && !_disableControls ) 
+					|| _controlOverride == "JUMP")
 				{
 					jump();
 				}						

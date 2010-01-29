@@ -547,6 +547,10 @@
 		
 		override public function update():void
         {
+			if (FlxG.keys.justPressed("ESC"))
+				FlxG.fade(0xff000000, 1, onFade);
+
+			
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				performTileLogic(i)
@@ -568,8 +572,13 @@
 			{
 				_map.collide(_player[k]);	// perform player-tilemap collisions
 			}
-			
-			
 		}	
+
+        private function onFade():void
+        {
+			FlxG.music.stop();
+			FlxG.switchState(PlayerSelectState);
+        }
+	
 	}
 }
