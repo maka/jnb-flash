@@ -1,5 +1,7 @@
 ﻿package com.makr.jumpnbump
 {
+	import com.makr.jumpnbump.objects.ButFly;
+	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
 	import com.makr.jumpnbump.objects.Spring;
 	import com.makr.jumpnbump.objects.Scoreboard;
@@ -16,13 +18,20 @@
 		[Embed(source = '../../../../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
 		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBg:Class;
 		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFly:Class;
 		private var _bgMusicURL:String = "../data/levels/original/m_bump.mp3";
 		
+		private var _flyNoise:FlxSound;
 		private var _map:FlxTilemap;
 		private var _player:Array = new Array();
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
-		
+
+		private var _butflies:Array = new Array();
+		private static const NUM_BUTFLIES:uint = 2;
+		private var _flies:Array = new Array();
+		private static const NUM_FLIES:uint = 20;
+
 		private var _springs:Array;
 		private var _gibs:Array;
 		
@@ -59,7 +68,13 @@
 			FlxG.music.loadStream(_bgMusicURL, true);
 			FlxG.music.play();
 			
+			_flyNoise = new FlxSound;
+			_flyNoise.loadEmbedded(SoundFly, true);
+			_flyNoise.volume = 0;
+			_flyNoise.play();
+			
 			super();
+			
 			
 			// creating new layers
             lyrBG = new FlxLayer;
@@ -109,19 +124,52 @@
 			buildRespawnMap();
 
 			// creating the bunnies
+			var bunnySpawnPoint:Point = new Point(0, 0);
 			if (FlxG.levels[2] & 1)
-				_player.push(new Player(0, 196, 128));			
+			{
+				bunnySpawnPoint = getFreeSpawnPoint();
+				_player.push(new Player(0, bunnySpawnPoint.x, bunnySpawnPoint.y));			
+			}
 			if (FlxG.levels[2] & 2)
-				_player.push(new Player(1, 208, 128));	
+			{
+				bunnySpawnPoint = getFreeSpawnPoint();
+				_player.push(new Player(1, bunnySpawnPoint.x, bunnySpawnPoint.y));	
+			}
 			if (FlxG.levels[2] & 4)
-				_player.push(new Player(2, 224, 128));			
+			{
+				bunnySpawnPoint = getFreeSpawnPoint();
+				_player.push(new Player(2, bunnySpawnPoint.x, bunnySpawnPoint.y));			
+			}
 			if (FlxG.levels[2] & 8)
-				_player.push(new Player(3, 240, 128));	
+			{
+				bunnySpawnPoint = getFreeSpawnPoint();
+				_player.push(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
+			}
 			
 				
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				lyrSprites.add(_player[i]);
+			}
+
+			
+			// creating the flies
+			var flySpawnPoint:Point;
+			flySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+			for (var j:int = 0; j < NUM_FLIES; j++) 
+			{
+				_flies.push(new Fly(flySpawnPoint.x + Math.random() * 32 - 16, flySpawnPoint.y + Math.random() * 32 - 16));
+				lyrBGSprites.add(_flies[j]);
+			}
+			
+			
+			// creating the butflies
+			var butflySpawnPoint:Point;
+			for (var k:int = 0; k < NUM_BUTFLIES; k++) 
+			{
+				butflySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+				_butflies.push(new ButFly(butflySpawnPoint.x, butflySpawnPoint.y));
+				lyrBGSprites.add(_butflies[k]);
 			}
 			
 			// fade in
@@ -435,8 +483,8 @@
 			
 			for (var i:int = 0; i < _player.length; i++) 
 			{
-				playerPosition.x = _player[i].x;
-				playerPosition.y = _player[i].y;
+				playerPosition.x = _player[i].x + 8;
+				playerPosition.y = _player[i].y + 8;
 				
 				currentDistance = getDistance(playerPosition, A);
 				
@@ -462,12 +510,25 @@
 					if (_map.getTileByIndex(y * 22 + x) == 0 &&		// if current tile  is VOID
 						_map.getTileByIndex((y + 1) * 22 + x) == 2)	// and tile below is SOLID
 					{
-						_respawnMap.push(new Point(x * 16 + 8, y * 16 + 8));
+						_respawnMap.push(new Point(x * 16 + 1, y * 16 - 1));
 
 					}
 				}
 			}
 			
+		}
+		
+		private function getFreeSpawnPoint():Point
+		{
+			var spawnPoint:Point;
+			var closestPlayerDistance:Number;
+			do {
+				spawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+				closestPlayerDistance = getClosestPlayerToPoint(spawnPoint)[1];
+				trace("getFreeSpawnPoint: Searching for spawn point...")
+			} while (closestPlayerDistance < 32);
+			
+			return spawnPoint;
 		}
 		
 		private function respawnPlayers():Boolean
@@ -485,15 +546,8 @@
 				
 			for each (var ghost:uint in theDead)
 			{
-				var respawnPoint:Point;
-				var closestPlayerDistance:Number;
-				do {
-					respawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
-					closestPlayerDistance = getClosestPlayerToPoint(respawnPoint)[1];
-					trace("respawnPlayers: Searching for respawn point for player "+ghost+"...")
-				} while (closestPlayerDistance < 32);
-				
-				_player[ghost].reset(respawnPoint.x - 7, respawnPoint.y - 9);
+				var respawnPoint:Point = getFreeSpawnPoint();	
+				_player[ghost].reset(respawnPoint.x, respawnPoint.y);
 				trace("respawnPlayers: Found! (" + respawnPoint.x + ", " + respawnPoint.y + ")");
 			}
 				
@@ -557,20 +611,61 @@
 				collideMapBorders(i);
 			}
 			
+					
+			// fly stuff
+			var SwarmCenter:Point = new Point(0, 0);
+			for each (var thisFly:Fly in _flies) 
+			{
+				SwarmCenter.x += thisFly.x;
+				SwarmCenter.y += thisFly.y;
+			}
+			SwarmCenter.x /= NUM_FLIES;
+			SwarmCenter.y /= NUM_FLIES;
+			
+			// fly noise volume control
+			var PlayerToSwarmDistance:Number = getClosestPlayerToPoint(SwarmCenter)[1];
+			var FlyVolume:Number = 0.6 - PlayerToSwarmDistance / 200;
+			if (FlyVolume < 0)
+				FlyVolume = 0;
+				
+			_flyNoise.volume = FlyVolume;
+			
+			
+			var closestPlayerToFly:Array = new Array;
+			var closestPlayerToFlyPosition:Point;
+			for (var j:int = 0; j < NUM_FLIES; j++) 
+			{
+				closestPlayerToFly = getClosestPlayerToPoint(new Point(_flies[j].x, _flies[j].y));
+				closestPlayerToFlyPosition = new Point(_player[closestPlayerToFly[0]].x + 8, _player[closestPlayerToFly[0]].y + 8);
+				_flies[j].move(	SwarmCenter, 
+								closestPlayerToFlyPosition, 
+								closestPlayerToFly[1]);
+			}
+			
 			super.update();
 			
 			respawnPlayers();
 			
 			collidePlayers();
 
-			for (var j:int = 0; j < _gibs.length; j++) 
+			for each (var gib:Gib in _gibs)
 			{
-				_map.collide(_gibs[j]);	// perform player-tilemap collisions
+				_map.collide(gib);	// perform gib-tilemap collisions
 			}
 
-			for (var k:int = 0; k < _player.length; k++) 
+			for each (var player:Player in _player)
 			{
-				_map.collide(_player[k]);	// perform player-tilemap collisions
+				_map.collide(player);	// perform player-tilemap collisions
+			}
+
+			for each (var collideFly:Fly in _flies)
+			{
+				_map.collide(collideFly);	// perform fly-tilemap collisions
+			}
+
+			for each (var collideButFly:ButFly in _butflies)
+			{
+				_map.collide(collideButFly);	// perform fly-tilemap collisions
 			}
 		}	
 

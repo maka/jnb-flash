@@ -9,7 +9,7 @@
 		
 		// original level
 		[Embed(source = '../../../../../data/levels/original/splash.png')] private var ImgSplash:Class;
-		[Embed(source = '../../../../../data/levels/original/splash.mp3')] private var SoundSplash:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Splash")] private var SoundSplash:Class;
 		
 		
 		public function Splash(X:Number,Y:Number):void

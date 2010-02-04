@@ -9,8 +9,8 @@
 	public class Player	extends FlxSprite
 	{
 		// original level
-		[Embed(source = '../../../../data/levels/original/death.mp3')] private var SoundDeath:Class;
-		[Embed(source = '../../../../data/levels/original/jump.mp3')] private var SoundJump:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Death")] private var SoundDeath:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Jump")] private var SoundJump:Class;
 		[Embed(source = '../../../../data/levels/original/rabbit.png')] private var ImgPlayer:Class;
 	
 		// controls for all players

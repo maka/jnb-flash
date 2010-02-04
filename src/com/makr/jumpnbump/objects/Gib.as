@@ -169,6 +169,16 @@
 			return true;
 		}
 
+		override public function hitFloor(Contact:FlxCore = null):Boolean
+		{
+			if (velocity.y > 10)
+				velocity.y *= -0.25;
+			else
+				velocity.y = 0;
+			
+			return true;
+		}
+
 		override public function kill():void
 		{
 			if (_bleeding)

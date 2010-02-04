@@ -6,10 +6,6 @@
 	
 	public class Scoreboard
 	{
-		
-		// original level
-		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var ImgNumber:Class;
-		
 		public var Tiles:Array = new Array;
 		
 		private function numberToArray(x:Number):Array

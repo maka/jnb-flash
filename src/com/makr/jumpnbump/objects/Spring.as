@@ -9,7 +9,7 @@
 		
 		// original level
 		[Embed(source = '../../../../../data/levels/original/spring.png')] private var ImgSpring:Class;
-		[Embed(source = '../../../../../data/levels/original/spring.mp3')] private var SoundSpring:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Spring")] private var SoundSpring:Class;
 		
 		
 		public function Spring(X:Number,Y:Number):void
