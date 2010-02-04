@@ -8,11 +8,21 @@
 	
 	public class Player	extends FlxSprite
 	{
+		// witch level
+		[Embed(source = '../../../../data/levels/witch/rabbit.png')] private var ImgPlayerWitch:Class;
+		
 		// original level
-		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Death")] private var SoundDeath:Class;
-		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Jump")] private var SoundJump:Class;
-		[Embed(source = '../../../../data/levels/original/rabbit.png')] private var ImgPlayer:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Death")] private var SoundDeathOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Jump")] private var SoundJumpOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/rabbit.png')] private var ImgPlayerOriginal:Class;
 	
+		
+		private var SoundDeath:Class;
+		private var SoundJump:Class;
+		private var ImgPlayer:Class;
+
+		
+		
 		// controls for all players
 		private static const _KEY_LEFT:Array = ["LEFT", "A", "J", "NUMPAD_FOUR"];
 		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
@@ -38,8 +48,8 @@
 
 		private var _moveSpeed:int = _GROUND_SPEED;
 		
-		private var _floatJumpPower:int = 170;   // power of a normal jump (slightly more than 3 tiles)
-		private var _jumpPower:int = 240;   // power of a normal jump (slightly more than 3 tiles)
+		private var _floatJumpPower:int = 175;   // power of a normal jump (slightly more than 3 tiles)
+		private var _jumpPower:int = 245;   // power of a normal jump (slightly more than 3 tiles)
 		private var _springPower:int = 340;  // power of a spring jump (slightly more than 6 tiles)
 		private var _bouncePower:int = 150;   // power of the bounce off a killed bunny
 		
@@ -190,6 +200,24 @@
 		
 		public function Player(newRabbitIndex:uint, X:Number, Y:Number):void
 		{
+			switch (FlxG.levels[1])
+			{
+				case "witch":
+					SoundDeath = SoundDeathOriginal;
+					SoundJump = SoundJumpOriginal;
+					ImgPlayer = ImgPlayerWitch;
+					break;
+
+				case "original":
+				default:
+					SoundDeath = SoundDeathOriginal;
+					SoundJump = SoundJumpOriginal;
+					ImgPlayer = ImgPlayerOriginal;
+					break;
+			}
+
+
+			
 			rabbitIndex = newRabbitIndex;
 			
 			super(X, Y);

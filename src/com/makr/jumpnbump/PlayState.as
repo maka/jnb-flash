@@ -1,5 +1,6 @@
 ﻿package com.makr.jumpnbump
 {
+	import adobe.utils.MMExecute;
 	import com.makr.jumpnbump.objects.ButFly;
 	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
@@ -14,12 +15,51 @@
 
 		[Embed(source = '../../../../data/levels/common/tiles.png')] private var ImgTiles:Class;
 
+
+
+		// green level		
+		[Embed(source = '../../../../data/levels/green/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapGreen:Class;
+		[Embed(source = '../../../../data/levels/green/level.png')] private var ImgBgGreen:Class;
+		[Embed(source = '../../../../data/levels/green/leveloverlay.png')] private var ImgFgGreen:Class;
+		
+		// topsy level		
+		[Embed(source = '../../../../data/levels/topsy/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapTopsy:Class;
+		[Embed(source = '../../../../data/levels/topsy/level.png')] private var ImgBgTopsy:Class;
+		[Embed(source = '../../../../data/levels/topsy/leveloverlay.png')] private var ImgFgTopsy:Class;
+		
+		// rabtown level		
+		[Embed(source = '../../../../data/levels/rabtown/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapRabtown:Class;
+		[Embed(source = '../../../../data/levels/rabtown/level.png')] private var ImgBgRabtown:Class;
+		[Embed(source = '../../../../data/levels/rabtown/leveloverlay.png')] private var ImgFgRabtown:Class;
+		
+		// jump2 level		
+		[Embed(source = '../../../../data/levels/jump2/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapJump2:Class;
+		[Embed(source = '../../../../data/levels/jump2/level.png')] private var ImgBgJump2:Class;
+		[Embed(source = '../../../../data/levels/jump2/leveloverlay.png')] private var ImgFgJump2:Class;
+
+		// crystal2 level		
+		[Embed(source = '../../../../data/levels/crystal2/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapCrystal2:Class;
+		[Embed(source = '../../../../data/levels/crystal2/level.png')] private var ImgBgCrystal2:Class;
+		[Embed(source = '../../../../data/levels/crystal2/leveloverlay.png')] private var ImgFgCrystal2:Class;
+
+		// witch level		
+		[Embed(source = '../../../../data/levels/witch/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapWitch:Class;
+		[Embed(source = '../../../../data/levels/witch/level.png')] private var ImgBgWitch:Class;
+		[Embed(source = '../../../../data/levels/witch/leveloverlay.png')] private var ImgFgWitch:Class;
+
 		// original level		
-		[Embed(source = '../../../../data/levels/original/map.txt', mimeType = "application/octet-stream")] private var DataMap:Class;
-		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBg:Class;
-		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgMask:Class;
-		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFly:Class;
-		private var _bgMusicURL:String = "../data/levels/original/m_bump.mp3";
+		[Embed(source = '../../../../data/levels/original/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFlyOriginal:Class;
+		private var _bgMusicURLOriginal:String = "../data/levels/original/m_bump.mp3";
+		
+		private var DataMap:Class;
+		private var ImgBg:Class;
+		private var ImgFg:Class;
+		private var SoundFly:Class;
+		private var _bgMusicURL:String;
+		
 		
 		private var _flyNoise:FlxSound;
 		private var _map:FlxTilemap;
@@ -28,9 +68,11 @@
 		private var _fg:FlxSprite;
 
 		private var _butflies:Array = new Array();
-		private static const NUM_BUTFLIES:uint = 2;
+		private static const NUM_BUTFLIES:uint = 4;
 		private var _flies:Array = new Array();
 		private static const NUM_FLIES:uint = 20;
+		private static const NUM_FLIES_LOTF:uint = 50;
+		private var _numFlies:uint;
 
 		private var _springs:Array;
 		private var _gibs:Array;
@@ -62,8 +104,72 @@
 		}
 
 		
+		trace(FlxG.levels[1]);
+		
 		public function PlayState() 
 		{
+			switch (FlxG.levels[1])
+			{
+				case "green":
+					DataMap = DataMapGreen;
+					ImgBg = ImgBgGreen;
+					ImgFg = ImgFgGreen;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+				
+				case "topsy":
+					DataMap = DataMapTopsy;
+					ImgBg = ImgBgTopsy;
+					ImgFg = ImgFgTopsy;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+				
+				case "rabtown":
+					DataMap = DataMapRabtown;
+					ImgBg = ImgBgRabtown;
+					ImgFg = ImgFgRabtown;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+				
+				case "jump2":
+					DataMap = DataMapJump2;
+					ImgBg = ImgBgJump2;
+					ImgFg = ImgFgJump2;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+
+				case "crystal2":
+					DataMap = DataMapCrystal2;
+					ImgBg = ImgBgCrystal2;
+					ImgFg = ImgFgCrystal2;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+
+				case "witch":
+					DataMap = DataMapWitch;
+					ImgBg = ImgBgWitch;
+					ImgFg = ImgFgWitch;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+
+				case "original":
+				default:
+					DataMap = DataMapOriginal;
+					ImgBg = ImgBgOriginal;
+					ImgFg = ImgFgOriginal;
+					SoundFly = SoundFlyOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+			}
+
+			
+			
 			FlxG.music = new FlxSound;
 			FlxG.music.loadStream(_bgMusicURL, true);
 			FlxG.music.play();
@@ -75,6 +181,10 @@
 			
 			super();
 			
+			if (FlxG.levels[0] == "lotf")
+				_numFlies = NUM_FLIES_LOTF;
+			else
+				_numFlies = NUM_FLIES;
 			
 			// creating new layers
             lyrBG = new FlxLayer;
@@ -91,7 +201,7 @@
 			
 			// creating the foreground
 			_fg = new FlxSprite;
-			_fg.loadGraphic(ImgFgMask, false, false, 400, 256);
+			_fg.loadGraphic(ImgFg, false, false, 400, 256);
 			_fg.x = _fg.y = 0;
 			lyrFG.add(_fg);
 
@@ -156,7 +266,7 @@
 			// creating the flies
 			var flySpawnPoint:Point;
 			flySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
-			for (var j:int = 0; j < NUM_FLIES; j++) 
+			for (var j:int = 0; j < _numFlies; j++) 
 			{
 				_flies.push(new Fly(flySpawnPoint.x + Math.random() * 32 - 16, flySpawnPoint.y + Math.random() * 32 - 16));
 				lyrBGSprites.add(_flies[j]);
@@ -374,8 +484,17 @@
 			_player[killer].velocity.y = -150;		
 			_player[killee].die();
 			gibPlayer(killee);
-			FlxG.scores[killer]++;
-			_scoreboard.update();
+			if (FlxG.levels[0] == "lotf")
+			{
+				if (FlxG.score == -1 || FlxG.score == killee);
+					FlxG.score = killer;
+			}
+			else
+			{
+				FlxG.scores[killer]++;
+				_scoreboard.update();
+			}
+
 		}
 		
 		
@@ -602,7 +721,7 @@
 		override public function update():void
         {
 			if (FlxG.keys.justPressed("ESC"))
-				FlxG.fade(0xff000000, 1, onFade);
+				FlxG.fade(0xff000000, 1, quit);
 
 			
 			for (var i:int = 0; i < _player.length; i++) 
@@ -611,16 +730,32 @@
 				collideMapBorders(i);
 			}
 			
+			// LOTF
+			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
+			{
+				FlxG.scores[FlxG.score] += FlxG.elapsed;
+				_scoreboard.update();
+			}
+			
 					
 			// fly stuff
 			var SwarmCenter:Point = new Point(0, 0);
-			for each (var thisFly:Fly in _flies) 
+			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
 			{
-				SwarmCenter.x += thisFly.x;
-				SwarmCenter.y += thisFly.y;
+				SwarmCenter.x = _player[FlxG.score].x + 8;
+				SwarmCenter.y = _player[FlxG.score].y + 8;
 			}
-			SwarmCenter.x /= NUM_FLIES;
-			SwarmCenter.y /= NUM_FLIES;
+			else
+			{
+				for each (var thisFly:Fly in _flies) 
+				{
+					SwarmCenter.x += thisFly.x;
+					SwarmCenter.y += thisFly.y;
+				}
+				SwarmCenter.x /= _numFlies;
+				SwarmCenter.y /= _numFlies;
+			}
+
 			
 			// fly noise volume control
 			var PlayerToSwarmDistance:Number = getClosestPlayerToPoint(SwarmCenter)[1];
@@ -630,10 +765,12 @@
 				
 			_flyNoise.volume = FlyVolume;
 			
+			if (FlxG.levels[0] == "lotf")
+				_flyNoise.volume *= 0.5;
 			
 			var closestPlayerToFly:Array = new Array;
 			var closestPlayerToFlyPosition:Point;
-			for (var j:int = 0; j < NUM_FLIES; j++) 
+			for (var j:int = 0; j < _numFlies; j++) 
 			{
 				closestPlayerToFly = getClosestPlayerToPoint(new Point(_flies[j].x, _flies[j].y));
 				closestPlayerToFlyPosition = new Point(_player[closestPlayerToFly[0]].x + 8, _player[closestPlayerToFly[0]].y + 8);
@@ -669,8 +806,9 @@
 			}
 		}	
 
-        private function onFade():void
+        private function quit():void
         {
+			_flyNoise.stop();
 			FlxG.music.stop();
 			FlxG.switchState(PlayerSelectState);
         }

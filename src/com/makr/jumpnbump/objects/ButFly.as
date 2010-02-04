@@ -9,10 +9,21 @@
 	{
 		
 		// original level
-		[Embed(source = '../../../../../data/levels/original/butfly.png')] private var ImgButfly:Class;
+		[Embed(source = '../../../../../data/levels/original/butfly.png')] private var ImgButflyOriginal:Class;
 		
+		private var ImgButfly:Class;
+
 		public function ButFly(X:Number, Y:Number):void
 		{
+			switch (FlxG.levels[1])
+			{
+				case "original":
+				default:
+					ImgButfly = ImgButflyOriginal;
+					break;
+			}
+
+			
 			x = X;
 			y = Y;
 			

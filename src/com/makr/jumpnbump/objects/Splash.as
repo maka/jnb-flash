@@ -8,12 +8,25 @@
 	{
 		
 		// original level
-		[Embed(source = '../../../../../data/levels/original/splash.png')] private var ImgSplash:Class;
-		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Splash")] private var SoundSplash:Class;
+		[Embed(source = '../../../../../data/levels/original/splash.png')] private var ImgSplashOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Splash")] private var SoundSplashOriginal:Class;
+		
+		
+		private var ImgSplash:Class;
+		private var SoundSplash:Class;
 		
 		
 		public function Splash(X:Number,Y:Number):void
 		{
+			switch (FlxG.levels[1])
+			{
+				case "original":
+				default:
+					ImgSplash = ImgSplashOriginal;
+					SoundSplash = SoundSplashOriginal;
+					break;
+			}
+
 			super(X, Y);
 			loadGraphic(ImgSplash, true, true, 31, 13); // load player sprite (is animated, is reversible, is 19x19)
 			

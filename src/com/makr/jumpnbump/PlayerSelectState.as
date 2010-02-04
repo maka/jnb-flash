@@ -7,10 +7,26 @@
 
 	public class PlayerSelectState extends FlxState
 	{
+		// green level		
+		[Embed(source = '../../../../data/levels/green/menu.png')] private var ImgBgGreen:Class;
+
+		// topsy level		
+		[Embed(source = '../../../../data/levels/topsy/menu.png')] private var ImgBgTopsy:Class;
+		
+		// rabtown level		
+		[Embed(source = '../../../../data/levels/rabtown/menu.png')] private var ImgBgRabtown:Class;
+
+		
 		// original level		
-		[Embed(source = '../../../../data/levels/original/menu.png')] private var ImgBg:Class;
-		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var ImgFgMask:Class;
-		private var _bgMusicURL:String = "../data/levels/original/m_jump.mp3";
+		[Embed(source = '../../../../data/levels/original/menu.png')] private var ImgBgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var ImgFgOriginal:Class;
+		private var _bgMusicURLOriginal:String = "../data/levels/original/m_jump.mp3";
+		
+	
+		private var ImgBg:Class;
+		private var ImgFg:Class;
+		private var _bgMusicURL:String;
+
 		
 		private var _player:Array = new Array();
 		private var _bg:FlxSprite;
@@ -42,6 +58,35 @@
 		
 		public function PlayerSelectState() 
 		{
+			switch (FlxG.levels[1])
+			{
+				case "green":
+					ImgBg = ImgBgGreen;
+					ImgFg = ImgFgOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+
+				case "topsy":
+					ImgBg = ImgBgTopsy;
+					ImgFg = ImgFgOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+			
+				case "rabtown":
+					ImgBg = ImgBgRabtown;
+					ImgFg = ImgFgOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+				
+				
+				case "original":
+				default:
+					ImgBg = ImgBgOriginal;
+					ImgFg = ImgFgOriginal;
+					_bgMusicURL = _bgMusicURLOriginal;
+					break;
+			}
+
 			FlxG.music = new FlxSound;
 			FlxG.music.loadStream(_bgMusicURL, true);
 			FlxG.music.play();
@@ -54,6 +99,9 @@
 
 			
 			super();
+			
+			
+
 			
 			// creating new layers
             lyrBG = new FlxLayer;
@@ -69,7 +117,7 @@
 			
 			// creating the foreground
 			_fg = new FlxSprite;
-			_fg.loadGraphic(ImgFgMask, false, false, 400, 256);
+			_fg.loadGraphic(ImgFg, false, false, 400, 256);
 			_fg.x = _fg.y = 0;
 			lyrFG.add(_fg);
 			
@@ -95,6 +143,14 @@
 			this.add(lyrBGSprites);
 			this.add(lyrPlayers);
 			this.add(lyrFG);
+
+			var status:FlxText = new FlxText(10, 200, 380, FlxG.levels[1] + " / " + FlxG.levels[0]);
+			
+			status.color = 0xff666666;
+			
+			
+			this.add(status);
+			
 		}
 		
 		private function performMenuCollisions(playerid:uint):void

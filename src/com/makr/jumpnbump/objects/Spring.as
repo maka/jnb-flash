@@ -8,12 +8,23 @@
 	{
 		
 		// original level
-		[Embed(source = '../../../../../data/levels/original/spring.png')] private var ImgSpring:Class;
-		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Spring")] private var SoundSpring:Class;
+		[Embed(source = '../../../../../data/levels/original/spring.png')] private var ImgSpringOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Spring")] private var SoundSpringOriginal:Class;
 		
+		private var ImgSpring:Class;
+		private var SoundSpring:Class;
 		
 		public function Spring(X:Number,Y:Number):void
 		{
+			switch (FlxG.levels[1])
+			{
+				case "original":
+				default:
+					ImgSpring = ImgSpringOriginal;
+					SoundSpring = SoundSpringOriginal;
+					break;
+			}
+
 			super(X, Y);
 			loadGraphic(ImgSpring, true, true, 16, 12); // load player sprite (is animated, is reversible, is 19x19)
 			

@@ -8,10 +8,18 @@
 	public class Gib extends FlxSprite
 	{
 		
+		// witch level
+		[Embed(source = '../../../../../data/levels/witch/gore.png')] private var ImgGibWitch:Class;
+
 		// original level
-		[Embed(source = '../../../../../data/levels/original/gore.png')] private var ImgGib:Class;
-		[Embed(source = '../../../../../data/levels/original/blood.png')] private var ImgBlood:Class;
+		[Embed(source = '../../../../../data/levels/original/gore.png')] private var ImgGibOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/blood.png')] private var ImgBloodOriginal:Class;
 		
+		
+		private var ImgGib:Class;
+		private var ImgBlood:Class;
+		
+		private static const _STATIC_PERCENTAGE:uint = 8;
 		private var _gravity:Number = 150;
 		private var _numBloodSprites:uint = 6;
 		private var _blood:FlxEmitter;
@@ -22,6 +30,20 @@
 		
 		public function Gib(PlayerID:uint, Kind:String, X:Number, Y:Number, Static:Boolean=false, Bleeding:Boolean=true, Xvel:Number = 0, Yvel:Number = 0 ):void
 		{
+			switch (FlxG.levels[1])
+			{
+				case "witch":
+					ImgGib = ImgGibWitch;
+					ImgBlood = ImgBloodOriginal;
+					break;
+
+				case "original":
+				default:
+					ImgGib = ImgGibOriginal;
+					ImgBlood = ImgBloodOriginal;
+					break;
+			}
+
 			_static = Static;
 			_bleeding = Bleeding;
 			super(X, Y);
@@ -142,7 +164,7 @@
 			if (_killTimer > 1 )
 			{
 				
-				if (Math.random() * 100 < 7)	// 7 percent chance of becoming static
+				if (Math.random() * 100 < _STATIC_PERCENTAGE)	// [_STATIC_PERCENTAGE]% chance of becoming static
 				{
 					makeStatic();
 					trace("Gib:	Made Static");

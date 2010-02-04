@@ -19,16 +19,27 @@
 		{
 			super(X, Y);
 
-			var brightness:uint = uint(Math.random() * 0x40);
-			var color:uint = 0xff000000 + brightness * 0x00010000 + brightness * 0x00000100 + brightness;
+			var red:uint = uint(Math.random() * 0x40);
+			var green:uint = uint(Math.random() * 0x40);
+			var blue:uint = uint(Math.random() * 0x40);
+			var color:uint = 0xff000000 + red * 0x00010000 + green * 0x00000100 + blue;
+
 			createGraphic(1, 1, color);
 			
             // set bounding box
             width = 1;
             height = 1;
 			
-            maxVelocity.x = 50;
-            maxVelocity.y = 50;
+  			if (FlxG.levels[0] == "lotf")
+			{
+				maxVelocity.x = 100;
+				maxVelocity.y = 100;
+			}
+			else
+			{
+				maxVelocity.x = 50;
+				maxVelocity.y = 50;
+			}
 			
             offset.x = 0;  //Where in the sprite the bounding box starts on the X axis
             offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
@@ -38,18 +49,21 @@
 		{
 			var thisPosition:Point = new Point(x, y);
 			
-			// X AXIS
 			var direction:Point = new Point (0, 0);
 			
+			// cohesion
 			var cohesion:Point = new Point(0, 0);
-			if (getDistance(SwarmCenter, thisPosition) > 30 && ClosestPlayerDistance > 30)
+			if ((FlxG.levels[0] != "lotf" && getDistance(SwarmCenter, thisPosition) > 30) || 
+				(FlxG.levels[0] == "lotf" && getDistance(SwarmCenter, thisPosition) > 18))
 			{
 				cohesion = SwarmCenter.subtract(thisPosition);
 			}
 			direction = direction.add(cohesion);
 			
+			// avoidance
 			var avoidance:Point = new Point(0, 0);
-			if (ClosestPlayerDistance < 30)
+			if ((FlxG.levels[0] != "lotf" && ClosestPlayerDistance < 30) || 
+				(FlxG.levels[0] == "lotf" && ClosestPlayerDistance < 12))
 			{
 				var avoidanceDirection:Point = thisPosition.subtract(ClosestPlayer);
 				avoidanceDirection.normalize(1);
@@ -62,23 +76,23 @@
 		
 			direction = direction.add(avoidance);
 			
+			// random factor
 			var randomness:Point = new Point(0, 0);
 			randomness.x += (int(Math.random() * 3) - 1) * 30
 			randomness.y += (int(Math.random() * 3) - 1) * 30
 			direction = direction.add(randomness);
 			
-//			direction.x *= 50;
-//			direction.y *= 50;
-			
-			if (thisPosition.x + direction.x < 16)
+			// boundary check
+			if (thisPosition.x + direction.x < 1)
 				direction.x = 0;
 			if (thisPosition.x + direction.x> 351)
 				direction.x = 0;
-			if (thisPosition.y + direction.y < 0)
+			if (thisPosition.y + direction.y < 1)
 				direction.y = 0;
-			if (thisPosition.y +direction.y > 239)
+			if (thisPosition.y +direction.y > 255)
 				direction.y = 0;
 
+			// go go go
 			velocity = velocity.add(direction);
 		}
 

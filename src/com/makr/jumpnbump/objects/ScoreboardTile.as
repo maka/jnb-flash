@@ -7,14 +7,33 @@
 	public class ScoreboardTile extends FlxSprite
 	{
 		
+		// witch level
+		[Embed(source = '../../../../../data/levels/witch/numbers.png')] private var ImgNumberWitch:Class;
+
 		// original level
-		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var ImgNumber:Class;
+		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var ImgNumberOriginal:Class;
+		
+		
+		private var ImgNumber:Class;
+		
 		
 		public var Tiles:Array = new Array;
 		
 		
 		public function ScoreboardTile(X:Number, Y:Number):void
 		{
+			switch (FlxG.levels[1])
+			{
+				case "witch":
+					ImgNumber = ImgNumberWitch;
+					break;
+
+				case "original":
+				default:
+					ImgNumber = ImgNumberOriginal;
+					break;
+			}
+
 			x = X;
 			y = Y;
 			
