@@ -147,7 +147,7 @@
 			this.add(lyrPlayers);
 			this.add(lyrFG);
 
-			var statusText:FlxText = new FlxText(10, 236, 380, "Press ESC for options.		 (" + FlxG.levels[1] + "/" + FlxG.levels[0] + ")");
+			var statusText:FlxText = new FlxText(10, 236, 380, "Press ESC for options.		 (level: " + FlxG.levels[0] + "_" + FlxG.levels[1] + ")");
 			statusText.color = 0xff333333;
 			this.add(statusText);
 			
