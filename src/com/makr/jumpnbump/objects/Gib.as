@@ -47,7 +47,7 @@
 			_static = Static;
 			_bleeding = Bleeding;
 			super(X, Y);
-			loadGraphic(ImgGib, true, true, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(ImgGib, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
             width = 3;

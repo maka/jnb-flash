@@ -5,6 +5,7 @@
 	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
 	import com.makr.jumpnbump.objects.Spring;
+	import com.makr.jumpnbump.objects.Dust;
 	import com.makr.jumpnbump.objects.Scoreboard;
 	import flash.geom.Point;
 	import org.flixel.*;
@@ -60,10 +61,13 @@
 		private var SoundFly:Class;
 		private var _bgMusicURL:String;
 		
+		private var _player:Array = new Array();
+		private var _playerParticleTimer:Array = new Array();
+		private static const DUST_DELAY:Number = 0.1;
+		private static const BUBBLE_DELAY:Number = 0.3;
 		
 		private var _flyNoise:FlxSound;
 		private var _map:FlxTilemap;
-		private var _player:Array = new Array();
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
 
@@ -103,8 +107,6 @@
 			return Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
 		}
 
-		
-		trace(FlxG.levels[1]);
 		
 		public function PlayState() 
 		{
@@ -168,6 +170,7 @@
 					break;
 			}
 
+			
 			
 			
 			FlxG.music = new FlxSound;
@@ -259,6 +262,7 @@
 				
 			for (var i:int = 0; i < _player.length; i++) 
 			{
+				_playerParticleTimer[i] = 0;
 				lyrSprites.add(_player[i]);
 			}
 
@@ -484,14 +488,17 @@
 			_player[killer].velocity.y = -150;		
 			_player[killee].die();
 			gibPlayer(killee);
+			
+			var killerID:uint = _player[killer].rabbitIndex
+			var killeeID:uint = _player[killee].rabbitIndex
 			if (FlxG.levels[0] == "lotf")
 			{
-				if (FlxG.score == -1 || FlxG.score == killee);
-					FlxG.score = killer;
+				if (FlxG.score == -1 || FlxG.score == killeeID);
+					FlxG.score = killerID;
 			}
 			else
 			{
-				FlxG.scores[killer]++;
+				FlxG.scores[killerID]++;
 				_scoreboard.update();
 			}
 
@@ -720,14 +727,46 @@
 		
 		override public function update():void
         {
+			
 			if (FlxG.keys.justPressed("ESC"))
 				FlxG.fade(0xff000000, 1, quit);
 
+			if (FlxG.keys.justPressed("X"))
+				FlxG.quake(0.1);
+				
+			if (FlxG.keys.justPressed("C"))
+				FlxG.showSupportPanel();
 			
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				performTileLogic(i)
 				collideMapBorders(i);
+			}
+
+			// particle stuff
+			for (var h:int = 0; h < _player.length; h++) 
+			{
+				_playerParticleTimer[h] += FlxG.elapsed;
+				
+				if (_player[h].isGrounded() && 
+					(_player[h].movementX * _player[h].velocity.x < 0 || getAbsValue(_player[h].velocity.x) < 15) &&
+					_player[h].movementX != 0 &&
+					_playerParticleTimer[h] > DUST_DELAY)
+				{
+					if ( _player[h].facing == 0)	// LEFT == 0, RIGHT == 1
+						lyrBGSprites.add(new Dust(
+												  _player[h].x + 14,
+												  _player[h].y + _player[h].width,
+												  1
+												  ));
+					else
+						lyrBGSprites.add(new Dust(
+												  _player[h].x + 8, 
+												  _player[h].y + _player[h].width,
+												  -1
+												  ));
+					_playerParticleTimer[h] = 0;
+				}
 			}
 			
 			// LOTF
@@ -736,7 +775,6 @@
 				FlxG.scores[FlxG.score] += FlxG.elapsed;
 				_scoreboard.update();
 			}
-			
 					
 			// fly stuff
 			var SwarmCenter:Point = new Point(0, 0);
@@ -768,6 +806,7 @@
 			if (FlxG.levels[0] == "lotf")
 				_flyNoise.volume *= 0.5;
 			
+			
 			var closestPlayerToFly:Array = new Array;
 			var closestPlayerToFlyPosition:Point;
 			for (var j:int = 0; j < _numFlies; j++) 
@@ -785,25 +824,12 @@
 			
 			collidePlayers();
 
-			for each (var gib:Gib in _gibs)
-			{
-				_map.collide(gib);	// perform gib-tilemap collisions
-			}
+			_map.collideArray(_gibs);
+			_map.collideArray(_player);
+			_map.collideArray(_butflies);
 
-			for each (var player:Player in _player)
-			{
-				_map.collide(player);	// perform player-tilemap collisions
-			}
-
-			for each (var collideFly:Fly in _flies)
-			{
-				_map.collide(collideFly);	// perform fly-tilemap collisions
-			}
-
-			for each (var collideButFly:ButFly in _butflies)
-			{
-				_map.collide(collideButFly);	// perform fly-tilemap collisions
-			}
+//			if (FlxG.levels[0] != "lotf")
+				_map.collideArray(_flies);
 		}	
 
         private function quit():void

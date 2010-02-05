@@ -1,6 +1,8 @@
 ﻿package com.makr.jumpnbump
 
 {
+	import adobe.utils.CustomActions;
+	import com.makr.jumpnbump.objects.Dust;
 	import com.makr.jumpnbump.objects.Splash;
 	import flash.geom.Point;
 	import org.flixel.*;	
@@ -22,7 +24,6 @@
 		private var ImgPlayer:Class;
 
 		
-		
 		// controls for all players
 		private static const _KEY_LEFT:Array = ["LEFT", "A", "J", "NUMPAD_FOUR"];
 		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
@@ -31,7 +32,9 @@
 		// current rabbit id [0-3]
 		public var rabbitIndex:uint;
 
-		
+		// current x-movement force
+		public var movementX:Number = 0;
+	
 		private static const _DEFAULT_GRAVITY:int = 560;
 		
 		// different speeds for different tiles
@@ -102,6 +105,7 @@
 				FlxG.play(SoundJump);				
 		}
 		
+		public function isGrounded():Boolean { return _isGrounded; }
 		public function setGrounded(isGrounded:Boolean):void
 		{
 			if (_isGrounded == isGrounded)	// return if value is already set
@@ -215,7 +219,6 @@
 					ImgPlayer = ImgPlayerOriginal;
 					break;
 			}
-
 
 			
 			rabbitIndex = newRabbitIndex;
@@ -366,6 +369,8 @@
 		
 		override public function update():void
 		{
+			movementX = 0;
+			
 			if (dead)
 			{
 				animate();
@@ -385,13 +390,13 @@
 						_controlOverride == "LEFT")
 					{
 						facing = LEFT;
-						velocity.x -= _moveSpeed * FlxG.elapsed;
+						movementX -= _moveSpeed * FlxG.elapsed;
 					}
 					else if (((FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
 						_controlOverride == "RIGHT")
 					{
 						facing = RIGHT;
-						velocity.x += _moveSpeed * FlxG.elapsed;                
+						movementX += _moveSpeed * FlxG.elapsed;                
 					}
 				}
 				else
@@ -404,6 +409,8 @@
 					jump();
 				}						
 			}
+			
+			velocity.x += movementX;
 			
 			animate();
 			

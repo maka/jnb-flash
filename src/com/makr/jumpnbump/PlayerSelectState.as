@@ -58,6 +58,8 @@
 		
 		public function PlayerSelectState() 
 		{
+			FlxG.hideCursor();
+
 			switch (FlxG.levels[1])
 			{
 				case "green":
@@ -96,6 +98,7 @@
 			FlxG.flash(0xff000000, 0.4);
 
 			FlxG.levels[2] = FlxG.scores[0] = FlxG.scores[1] = FlxG.scores[2] = FlxG.scores[3] = 0;
+			FlxG.score = -1;
 
 			
 			super();
@@ -144,14 +147,14 @@
 			this.add(lyrPlayers);
 			this.add(lyrFG);
 
-			var status:FlxText = new FlxText(10, 200, 380, FlxG.levels[1] + " / " + FlxG.levels[0]);
+			var statusText:FlxText = new FlxText(10, 236, 380, "Press ESC for options.		 (" + FlxG.levels[1] + "/" + FlxG.levels[0] + ")");
+			statusText.color = 0xff333333;
+			this.add(statusText);
 			
-			status.color = 0xff666666;
-			
-			
-			this.add(status);
-			
+		
 		}
+
+		
 		
 		private function performMenuCollisions(playerid:uint):void
 		{
@@ -215,11 +218,14 @@
 					}
 				}
 					
-				FlxG.fade(0xff000000, 1, onFade);
+				FlxG.fade(0xff000000, 1, startGame);
 		}
 		
 		override public function update():void
         {
+			if (FlxG.keys.justPressed("ESC"))
+				FlxG.fade(0xff000000, 0.4, gotoMenu);
+
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				performMenuCollisions(i);
@@ -228,8 +234,14 @@
 			super.update();
 		}
 
-        private function onFade():void
+        private function gotoMenu():void
         {
+			FlxG.switchState(LevelSelectState);
+        }
+		
+		private function startGame():void
+        {
+			FlxG.hideCursor();
 			FlxG.music.stop();
 			FlxG.switchState(PlayState);
         }

@@ -28,7 +28,7 @@
 			}
 
 			super(X, Y);
-			loadGraphic(ImgSplash, true, true, 31, 13); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(ImgSplash, true, false, 31, 13); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
             width = 31;
