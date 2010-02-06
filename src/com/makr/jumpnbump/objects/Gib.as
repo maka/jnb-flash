@@ -27,6 +27,7 @@
 		private var _static:Boolean = false;
 		private var _bleeding:Boolean = true;
 		private var _killTimer:Number = 0;
+		private var _isSwimming:Boolean = false;
 		
 		public function Gib(PlayerID:uint, Kind:String, X:Number, Y:Number, Static:Boolean=false, Bleeding:Boolean=true, Xvel:Number = 0, Yvel:Number = 0 ):void
 		{
@@ -116,6 +117,26 @@
 			trace("Gib:	Initialized");
 		}
 		
+		public function isSwimming():Boolean { return _isSwimming; }
+		public function setSwimming(isSwimming:Boolean):void
+		{
+			if (_isSwimming == isSwimming)	// return if value is already set
+				return;
+				
+			_isSwimming = isSwimming;		// set value
+			
+			if (isSwimming)	
+			{
+				maxVelocity.x *= 0.25
+				maxVelocity.y *= 0.2;
+			}
+			else
+			{
+				maxVelocity.x *= 4
+				maxVelocity.y *= 5;
+			}
+		}
+
 		public function makeStatic():void
 		{
 			_static = true;

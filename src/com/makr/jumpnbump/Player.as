@@ -112,7 +112,7 @@
 		{
 			if (bounce)				// bounce does not depend on anything, so it is being handled first
 			{
-				if (FlxG.keys.pressed(_KEY_JUMP[rabbitIndex]))
+				if (FlxG.keys.pressed(_KEY_JUMP[rabbitIndex]))	// bounce higher if jump button is pressed at the same time
 				{
 					velocity.y = -_bounceAndJumpPower;
 				}

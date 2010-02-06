@@ -849,6 +849,15 @@
 								closestPlayerToFly[1]);
 			}
 			
+			// handle gibs underwater
+			for each (var gib:Gib in _gibs) 
+			{
+				if (_map.getTileByIndex(getTileIndex(gib.x, gib.y)) == 1)
+					gib.setSwimming(true);
+				else 
+					gib.setSwimming(false);
+			}
+			
 			super.update();
 			
 			
