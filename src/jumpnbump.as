@@ -29,7 +29,7 @@
 				FlxG.scores[2] = 0;
 				FlxG.scores[3] = 0;
 			}
-			FlxG.score = -1;		// lotf uses this variable to store the lord's playerID
+			FlxG.score = -1;		// lotf uses this variable to store the lord's rabbitIndex
 			
 			showLogo = false;
 			//setLogoFX(0xff930000)

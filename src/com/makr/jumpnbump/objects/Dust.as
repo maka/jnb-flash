@@ -2,11 +2,11 @@
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
-
 	
 	public class Dust	extends FlxSprite
 	{
 		
+		/// Individual level assets
 		// original level
 		[Embed(source = '../../../../../data/levels/original/dust.png')] private var ImgDustOriginal:Class;
 		

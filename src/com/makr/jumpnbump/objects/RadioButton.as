@@ -3,10 +3,10 @@
 	import flash.geom.Point;
 	import org.flixel.*;	
 
-	
 	public class RadioButton extends FlxButton
 	{
 	
+		/// Assets independent from level selection
 		[Embed(source = '../../../../../data/levels/common/radiobutton.png')] private var ImgRadioButton:Class;
 		
 		private var _radioButton:FlxSprite;

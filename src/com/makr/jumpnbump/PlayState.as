@@ -1,11 +1,11 @@
 ﻿package com.makr.jumpnbump
 {
-	import adobe.utils.MMExecute;
 	import com.makr.jumpnbump.objects.ButFly;
 	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
 	import com.makr.jumpnbump.objects.Spring;
 	import com.makr.jumpnbump.objects.Dust;
+	import com.makr.jumpnbump.objects.Bubble;
 	import com.makr.jumpnbump.objects.Scoreboard;
 	import flash.geom.Point;
 	import org.flixel.*;
@@ -14,10 +14,12 @@
 	{
 		FlxG.showCursor();
 
+		/// Assets independent from level selection
 		[Embed(source = '../../../../data/levels/common/tiles.png')] private var ImgTiles:Class;
+		[Embed(source = '../../../../data/levels/common/crown.png')] private var ImgCrown:Class;
 
 
-
+		/// Individual level assets
 		// green level		
 		[Embed(source = '../../../../data/levels/green/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapGreen:Class;
 		[Embed(source = '../../../../data/levels/green/level.png')] private var ImgBgGreen:Class;
@@ -55,61 +57,73 @@
 		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFlyOriginal:Class;
 		private var _bgMusicURLOriginal:String = "../data/levels/original/m_bump.mp3";
 		
+		// asset holders, the assets for the current level will be copied into these variables and then used
 		private var DataMap:Class;
 		private var ImgBg:Class;
 		private var ImgFg:Class;
 		private var SoundFly:Class;
 		private var _bgMusicURL:String;
 		
-		private var _player:Array = new Array();
-		private var _playerParticleTimer:Array = new Array();
-		private static const DUST_DELAY:Number = 0.1;
-		private static const BUBBLE_DELAY:Number = 0.3;
-		
-		private var _flyNoise:FlxSound;
-		private var _map:FlxTilemap;
-		private var _bg:FlxSprite;
-		private var _fg:FlxSprite;
-
-		private var _butflies:Array = new Array();
-		private static const NUM_BUTFLIES:uint = 4;
-		private var _flies:Array = new Array();
-		private static const NUM_FLIES:uint = 20;
-		private static const NUM_FLIES_LOTF:uint = 50;
-		private var _numFlies:uint;
-
+		// arrays and timers for players and things created by players (dust, bubbles)
+		private var _player:Array = new Array();				
+		private var _playerParticleTimer:Array = new Array();	// a particle timer for each player
+		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
+		private static const BUBBLE_DELAY:Number = 0.25;		// delay between creating a bubble particles
+		private var _bubbles:Array = new Array();
 		private var _springs:Array;
 		private var _gibs:Array;
 		
-		private var _respawnMap:Array;
-		
+		// other of the game
+		private var _map:FlxTilemap;
+		private var _respawnMap:Array;				// array that holds all positions where a player can spawn (VOID above SOLID)
 		private var _scoreboard:Scoreboard;
+
+		// the various layers
+		public static var lyrBG:FlxLayer;			// background layer
+		public static var lyrStage:FlxLayer;		// tilemap layer, always disabled
+		public static var lyrBGSprites:FlxLayer;	// sprites that should appear behind players (e.g. gibs)
+		public static var lyrSprites:FlxLayer;		// other sprites (e.g. players)
+		public static var lyrFG:FlxLayer;			// foreground layer
 		
-		public static var lyrBG:FlxLayer;
-		public static var lyrStage:FlxLayer;
-		public static var lyrBGSprites:FlxLayer;
-		public static var lyrSprites:FlxLayer;
-		public static var lyrFG:FlxLayer;
+		// "Lord of the Flies" game mode specific variables
+		private var _crown:FlxSprite;				// crown sprite, displayed above current Lord
+
+		// butterfly variables
+		private var _butflies:Array = new Array();
+		private static const NUM_BUTFLIES:uint = 4;
 		
+		// fly variables
+		private var _flyNoise:FlxSound;
+		private var _flies:Array = new Array();
+		private static const NUM_FLIES:uint = 20;
+		private static const NUM_FLIES_LOTF:uint = 50;	// "Lord of the Flies" game mode specific variable
+		private var _numFlies:uint;						// is set to either NUM_FLIES or NUM_FLIES_LOTF, depending on game mode
+
+		
+		
+		
+		
+		// returns absolute value, faster than Math.abs()	
 		private function getAbsValue(x:Number):Number
 		{
 			if (x < 0)
 				return -x;
 			else
 				return x;
-			// return (x ^ (x >> 31)) - (x >> 31);
 		}
 		
+		// returns distance between two Points a and b
 		private function getDistance(a:Point, b:Point):Number
 		{
 			var deltaX:Number = b.x-a.x;  
 			var deltaY:Number = b.y-a.y;  
 			return Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
 		}
-
 		
 		public function PlayState() 
 		{
+			
+			// Loading assets into variables
 			switch (FlxG.levels[1])
 			{
 				case "green":
@@ -197,13 +211,13 @@
             lyrFG = new FlxLayer;
 			
 			// creating the background
-			_bg = new FlxSprite;
+			var _bg:FlxSprite = new FlxSprite;
 			_bg.loadGraphic(ImgBg, false, false, 400, 256);
 			_bg.x = _bg.y = 0;
 			lyrBG.add(_bg);	
 			
 			// creating the foreground
-			_fg = new FlxSprite;
+			var _fg:FlxSprite = new FlxSprite;
 			_fg.loadGraphic(ImgFg, false, false, 400, 256);
 			_fg.x = _fg.y = 0;
 			lyrFG.add(_fg);
@@ -224,7 +238,7 @@
 			}
 
 			this.add(lyrBG);
-		//	this.add(lyrStage);
+		//	this.add(lyrStage);	// uncomment this to view the tilemap directly
 			this.add(lyrBGSprites);
 			this.add(lyrSprites);
 			this.add(lyrFG);
@@ -232,8 +246,10 @@
 			// creating the springs
 			createSprings();
 			
+			// setting up gib array
 			_gibs = new Array;
 			
+			// building respawn map
 			buildRespawnMap();
 
 			// creating the bunnies
@@ -259,13 +275,17 @@
 				_player.push(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
 			}
 			
-				
+			// adding bunnies to Sprite Layer
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				_playerParticleTimer[i] = 0;
 				lyrSprites.add(_player[i]);
 			}
-
+			
+			// creating the lotf crown
+			_crown = new FlxSprite(0, 0, ImgCrown);
+			_crown.visible = false;
+			lyrFG.add(_crown);
 			
 			// creating the flies
 			var flySpawnPoint:Point;
@@ -290,10 +310,11 @@
 			FlxG.flash(0xff000000, 0.4);
 		}
 		
+		// looks for tiles with value 4 (SPRING) and creates a Spring object at that position
 		private function createSprings():void
 		{
 			_springs = new Array;
-			// TileIndex for Spring is 4
+			// Tile for Spring is 4
 			for (var x:int = 0; x < 22; x++) 
 			{
 				for (var y:int = 0; y < 16; y++) 
@@ -307,11 +328,13 @@
 				}
 			}		}
 		
+		// returns the TileIndex for the tile at position (x,y), to be used with _map.getTileByIndex() to get tile value at pos(x,y)
 		private function getTileIndex(x:Number, y:Number):uint
 		{
 			return int(y / 16) * _map.widthInTiles + int(x / 16);
 		}
 		
+		// resolves all interactions between player and tilemap apart from basic collision
 		private function performTileLogic(playerid:uint):void
 		{
 			// Preparations:
@@ -418,6 +441,7 @@
 				tileBelow != 1)							// there is no water directly below it (so we can't be floating)
 			{
 				if (_player[playerid].isSwimming())		// but we're still swimming! must have fallen through or exited at an edge of the pool
+														// otherwise the float check above would have caught it!
 					_player[playerid].setSwimming(false);
 					
 				if (_player[playerid].isFloating())		// but we're stll floating! must have floated off the side
@@ -425,6 +449,8 @@
 			}
 		}
 		
+		// Flixel does not handle collisions with the edges of the tilemap, only the tiles within.
+		// Here we make sure no one can fall off the map.
 		private function collideMapBorders(playerid:uint):void
 		{
 			var minX:Number = 1;
@@ -434,7 +460,9 @@
 
 
 		
-			if (_player[playerid].y < minY)
+			if (_player[playerid].y < minY)		// bunny is above the map ceiling (this IS allowed)
+												// in this case we extend the walls in the first row infinitely upward
+												// (standing on top of the map was extremely problematic the last time I tried it)
 			{
 				var leftEdge:Number = _player[playerid].x; 
 				var rightEdge:Number = _player[playerid].x + _player[playerid].width - 1;
@@ -462,19 +490,19 @@
 			}
 			
 			
-			if (_player[playerid].x < minX)
+			if (_player[playerid].x < minX)		// falling off the map on the LEFT side (this is NOT allowed)
 			{
 				_player[playerid].velocity.x = 0;
 				_player[playerid].x = minX
 					trace("PlayState.collideMapBorders: Collision with left side of map");
 			}
-			if (_player[playerid].x > maxX)
+			if (_player[playerid].x > maxX)		// falling off the map on the RIGHT side (this is NOT allowed)
 			{
 				_player[playerid].velocity.x = 0;
 				_player[playerid].x = maxX
 					trace("PlayState.collideMapBorders: Collision with right side of map");
 			}
-			if (_player[playerid].y > maxY)
+			if (_player[playerid].y > maxY)		// falling out of the BOTTOm of the map (this is NOT allowed)
 			{
 				_player[playerid].velocity.y = 0;
 				_player[playerid].y = maxY
@@ -483,28 +511,32 @@
 			}
 		}
 		
+		// called when one player kills another
 		private function playerKill(killer:uint, killee:uint):void
 		{
-			_player[killer].velocity.y = -150;		
-			_player[killee].die();
-			gibPlayer(killee);
+			_player[killer].jump(false, true);		// killer bounces
+			_player[killee].die();					// killee dies
+			gibPlayer(killee);						// and gets gibbed
 			
-			var killerID:uint = _player[killer].rabbitIndex
-			var killeeID:uint = _player[killee].rabbitIndex
-			if (FlxG.levels[0] == "lotf")
+			
+			// FlxG.scores and FlxG.score work with the rabbitIndex, _player Array index is irrelevant!
+			var killerID:int = _player[killer].rabbitIndex;
+			var killeeID:int = _player[killee].rabbitIndex;
+			
+			if (FlxG.levels[0] == "lotf")	// if game mode is LOTF
 			{
-				if (FlxG.score == -1 || FlxG.score == killeeID);
-					FlxG.score = killerID;
+				if (FlxG.score == -1 || FlxG.score == killeeID)	// and either there is no lord OR the killer killed him
+					FlxG.score = killerID;						// there is a new lord!
 			}
-			else
+			else	// if game mode is standard DM
 			{
-				FlxG.scores[killerID]++;
-				_scoreboard.update();
+				FlxG.scores[killerID]++;	// increment killer score
+				_scoreboard.update();		// update the scoreboard
 			}
 
 		}
 		
-		
+		// resolves all interactions between all players (Flixel collision is completely useless for this purpose)
 		private function collidePlayers():void
 		{
 			var numPlayers:uint = _player.length;
@@ -599,6 +631,7 @@
 			}
 		}
 		
+		// determines the closest player to Point A, returns an array with PlayerID and distance to point
 		private function getClosestPlayerToPoint(A:Point):Array
 		{
 			var playerPosition:Point = new Point;
@@ -625,6 +658,7 @@
 			return new Array(closestPlayer, closestDistance);
 		}
 
+		// goes through tilemap, saving positions where VOID is above SOLID
 		private function buildRespawnMap():void
 		{
 			_respawnMap = new Array;
@@ -644,6 +678,7 @@
 			
 		}
 		
+		// chooses a random spawnpoint from the respawnMap and checks that no other player is near that point (prevents spawning inside another player)
 		private function getFreeSpawnPoint():Point
 		{
 			var spawnPoint:Point;
@@ -657,6 +692,7 @@
 			return spawnPoint;
 		}
 		
+		// respawns dead players
 		private function respawnPlayers():Boolean
 		{
 			var theDead:Array = new Array;
@@ -664,7 +700,10 @@
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				if (!_player[i].exists)
+				{
+					_player[i].visible = false;
 					theDead.push(i);
+				}
 			}
 
 			if (theDead.length == 0)
@@ -681,7 +720,7 @@
 			return true;
 		}
 		
-		
+		// creates a shower of blood and gore
 		private function gibPlayer(PlayerID:uint):void
 		{
 			var _gibKind:String;
@@ -715,9 +754,12 @@
 					indicesToDelete.push(i)
 			}
 
+			var currentIndex:int = 0;
 			for (var j:int = 0; j < indicesToDelete.length; j++) 
 			{
-				_gibs.splice(indicesToDelete.pop, 1);
+				currentIndex = indicesToDelete.pop();
+				_gibs[currentIndex].kill();
+				_gibs.splice(currentIndex, 1);
 			}
 			trace ("AFTER: " + _gibs.length.toString());
 			
@@ -727,31 +769,50 @@
 		
 		override public function update():void
         {
-			
+			// escape to PlayerSelectState
 			if (FlxG.keys.justPressed("ESC"))
 				FlxG.fade(0xff000000, 1, quit);
 
-			if (FlxG.keys.justPressed("X"))
-				FlxG.quake(0.1);
-				
-			if (FlxG.keys.justPressed("C"))
-				FlxG.showSupportPanel();
-			
+			// performing tile logic and collision with map borders for players
 			for (var i:int = 0; i < _player.length; i++) 
 			{
 				performTileLogic(i)
 				collideMapBorders(i);
 			}
 
-			// particle stuff
+			// creating particles
 			for (var h:int = 0; h < _player.length; h++) 
 			{
 				_playerParticleTimer[h] += FlxG.elapsed;
 				
-				if (_player[h].isGrounded() && 
+				if (_player[h].isSwimming() && 					// if the player is swimming AND
+					_playerParticleTimer[h] > BUBBLE_DELAY)		// a new bubble can be created
+				{
+					if ( _player[h].facing == 0)	// LEFT == 0, RIGHT == 1
+						_bubbles.push(new Bubble(
+												  _player[h].x + 3,
+												  _player[h].y + 7,
+												  _player[h].velocity.x,
+												  _player[h].velocity.y
+												  ));
+					else
+						_bubbles.push(new Bubble(
+												  _player[h].x + 10, 
+												  _player[h].y + 7,
+												  _player[h].velocity.x,
+												  _player[h].velocity.y
+												  ));
+												  
+					lyrBGSprites.add(_bubbles[_bubbles.length - 1]);
+					_playerParticleTimer[h] = 0;
+				}
+				
+				
+				if (_player[h].isGrounded() && 					// if the player is on the ground AND
 					(_player[h].movementX * _player[h].velocity.x < 0 || getAbsValue(_player[h].velocity.x) < 15) &&
-					_player[h].movementX != 0 &&
-					_playerParticleTimer[h] > DUST_DELAY)
+																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
+					_player[h].movementX != 0 &&				// a movement key is pressed AND
+					_playerParticleTimer[h] > DUST_DELAY)		// a new dust particle can be created
 				{
 					if ( _player[h].facing == 0)	// LEFT == 0, RIGHT == 1
 						lyrBGSprites.add(new Dust(
@@ -768,22 +829,40 @@
 					_playerParticleTimer[h] = 0;
 				}
 			}
+	
+			updateBubbles();			// kills bubbles that are not in water, performs collisions with tilemap
 			
-			// LOTF
+			/// LOTF GAME MODE
+			// getting the Lord's PlayerID
+			var lotfID:uint;
+			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
+				lotfID = getPlayerIDfromRabbitID(FlxG.score);
+		
+			
+			// putting a crown on the lord
 			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
 			{
+				_crown.visible = true;
+				if (_player[lotfID].facing == 0)		// player looking left
+					_crown.x = _player[lotfID].x + 2;
+				else										// player looking right
+					_crown.x = _player[lotfID].x + 5;
+				_crown.y = _player[lotfID].y - 9;
 				FlxG.scores[FlxG.score] += FlxG.elapsed;
 				_scoreboard.update();
 			}
-					
-			// fly stuff
-			var SwarmCenter:Point = new Point(0, 0);
-			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
-			{
-				SwarmCenter.x = _player[FlxG.score].x + 8;
-				SwarmCenter.y = _player[FlxG.score].y + 8;
-			}
 			else
+				_crown.visible = false;
+
+				
+			// handle flies
+			var SwarmCenter:Point = new Point(0, 0);
+			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)	// make flies swarm around the Lord if there is one
+			{
+				SwarmCenter.x = _player[lotfID].x + 8;
+				SwarmCenter.y = _player[lotfID].y + 8;
+			}
+			else												// otherwise calculate the swarm's center
 			{
 				for each (var thisFly:Fly in _flies) 
 				{
@@ -803,10 +882,11 @@
 				
 			_flyNoise.volume = FlyVolume;
 			
-			if (FlxG.levels[0] == "lotf")
+			if (FlxG.levels[0] == "lotf")				// flies are always near the Lord, let's make it half as annoying
 				_flyNoise.volume *= 0.5;
 			
 			
+			// make flies react to player and stay near the others
 			var closestPlayerToFly:Array = new Array;
 			var closestPlayerToFlyPosition:Point;
 			for (var j:int = 0; j < _numFlies; j++) 
@@ -820,18 +900,55 @@
 			
 			super.update();
 			
-			respawnPlayers();
 			
-			collidePlayers();
+			respawnPlayers();	// respawn dead players
+			
+			collidePlayers();	// handle player-player collisions
 
+			// collide gibs, players, butterflies and flies with the tilemap
 			_map.collideArray(_gibs);
 			_map.collideArray(_player);
 			_map.collideArray(_butflies);
-
-//			if (FlxG.levels[0] != "lotf")
-				_map.collideArray(_flies);
+			_map.collideArray(_flies);
 		}	
 
+		// returns the playerID of a certain rabbit
+		private function getPlayerIDfromRabbitID(RabbitID:uint):uint
+		{
+			var PlayerID:uint;
+			for (var i:int = 0; i < _player.length; i++) 
+			{
+				if (_player[i].rabbitIndex == RabbitID ) 
+					PlayerID = i;
+			}
+			
+			return PlayerID;
+		}
+		
+		// kills bubbles that are not in water
+		private function updateBubbles():void
+		{
+			_map.collideArray(_bubbles);
+
+			// Bubble destruction!
+			var bubblesToDelete:Array = new Array;
+			for (var i:int = 0; i < _bubbles.length; i++) 
+			{
+				// TileIndex 1 == WATER
+				if (_map.getTileByIndex(getTileIndex(_bubbles[i].x, _bubbles[i].y - 2)) != 1)
+					bubblesToDelete.push(i);
+			}
+			var currentIndex:int;
+			for (var j:int = 0; j < bubblesToDelete.length; j++) 
+			{
+				currentIndex = bubblesToDelete.pop();
+				_bubbles[currentIndex].kill();
+				_bubbles.splice(currentIndex, 1);
+			}
+			
+		}
+
+		// exits PlayState
         private function quit():void
         {
 			_flyNoise.stop();

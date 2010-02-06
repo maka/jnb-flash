@@ -2,11 +2,11 @@
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
-
 	
 	public class Spring	extends FlxSprite
 	{
 		
+		/// Individual level assets
 		// original level
 		[Embed(source = '../../../../../data/levels/original/spring.png')] private var ImgSpringOriginal:Class;
 		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Spring")] private var SoundSpringOriginal:Class;

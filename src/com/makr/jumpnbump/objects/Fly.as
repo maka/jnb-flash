@@ -3,7 +3,6 @@
 	import com.makr.jumpnbump.PlayState;
 	import flash.geom.Point;
 	import org.flixel.*;	
-
 	
 	public class Fly extends FlxSprite
 	{

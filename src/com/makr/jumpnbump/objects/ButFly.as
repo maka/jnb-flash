@@ -3,11 +3,11 @@
 	import com.makr.jumpnbump.PlayState;
 	import flash.geom.Point;
 	import org.flixel.*;	
-
 	
 	public class ButFly extends FlxSprite
 	{
 		
+		/// Individual level assets
 		// original level
 		[Embed(source = '../../../../../data/levels/original/butfly.png')] private var ImgButflyOriginal:Class;
 		

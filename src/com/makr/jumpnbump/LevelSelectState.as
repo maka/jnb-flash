@@ -8,6 +8,7 @@
 	public class LevelSelectState extends FlxState
 	{
 		
+		/// Individual level assets
 		[Embed(source = '../../../../data/levels/original/thumb.png')] 	private var ImgThumbOriginal:Class;
 		[Embed(source = '../../../../data/levels/topsy/thumb.png')]		private var ImgThumbTopsy:Class;
 		[Embed(source = '../../../../data/levels/jump2/thumb.png')] 	private var ImgThumbJump2:Class;

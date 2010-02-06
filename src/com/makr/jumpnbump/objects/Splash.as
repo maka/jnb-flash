@@ -2,11 +2,11 @@
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
-
 	
 	public class Splash	extends FlxSprite
 	{
 		
+		/// Individual level assets
 		// original level
 		[Embed(source = '../../../../../data/levels/original/splash.png')] private var ImgSplashOriginal:Class;
 		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Splash")] private var SoundSplashOriginal:Class;

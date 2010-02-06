@@ -2,7 +2,6 @@
 {
 	import flash.geom.Point;
 	import org.flixel.*;	
-
 	
 	public class Scoreboard
 	{

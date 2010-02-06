@@ -4,10 +4,10 @@
 	import flash.geom.Point;
 	import org.flixel.*;	
 
-	
 	public class Gib extends FlxSprite
 	{
 		
+		/// Individual level assets
 		// witch level
 		[Embed(source = '../../../../../data/levels/witch/gore.png')] private var ImgGibWitch:Class;
 

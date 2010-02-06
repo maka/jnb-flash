@@ -54,7 +54,7 @@
 		private var _floatJumpPower:int = 175;   // power of a normal jump (slightly more than 3 tiles)
 		private var _jumpPower:int = 245;   // power of a normal jump (slightly more than 3 tiles)
 		private var _springPower:int = 340;  // power of a spring jump (slightly more than 6 tiles)
-		private var _bouncePower:int = 150;   // power of the bounce off a killed bunny
+		private var _bouncePower:int = 170;   // power of the bounce off a killed bunny
 		
 		private var _max_health:int = 1;
 		
@@ -63,6 +63,9 @@
 		private var _isRunning:Boolean = false;
 		private var _isSwimming:Boolean = false;
 		private var _isFloating:Boolean = false;		
+		
+		private var _swimTimer:Number = 0;
+		private var _flashTimer:Number = 0;
 		
 		private var _disableControls:Boolean = false;
 		private var _controlOverride:String = "";
@@ -78,15 +81,21 @@
 		
 		public function jump(spring:Boolean = false, bounce:Boolean = false):void
 		{
-			trace("jump init");
+			if (bounce)				// bounce does not depend on anything, so it is being handled first
+			{
+			    velocity.y = -_bouncePower;
+				y -= 0.1;			// This is a hack to allow for the situation where a player is standing still and another jumps into him from below.
+									// Without this line, the player above does not bounce.
+									// Is Issue with Flixel hit detection? (HitFloor sets velocity.y=0)
+				return;
+			}
 			
+			trace("jump init");
 			if (!_isGrounded && !_isFloating/* && !_isSwimming */)	// return if already in the air
 				return;
 				
 			if (spring)				// spring jump (6 tiles)
 			    velocity.y += -_springPower;
-			else if (bounce)				// bounce
-			    velocity.y += -_bouncePower;
 			else if (_isFloating)	// jump out of water (1 tile)
 			{
 				velocity.y += -_floatJumpPower;
@@ -101,7 +110,7 @@
 				velocity.y += -_jumpPower;
 			}
 			
-			if (!spring)				// spring jump (6 tiles)
+			if (!spring && !bounce)				// spring jump (6 tiles)
 				FlxG.play(SoundJump);				
 		}
 		
@@ -195,8 +204,10 @@
 			else
 				facing = RIGHT;
 				
+			color = 0xffffff;
 			dead = false;
 			exists = true;
+			visible = true;
 			x = X;
 			y = Y;
 			acceleration.y = _DEFAULT_GRAVITY;
@@ -407,7 +418,57 @@
 					|| _controlOverride == "JUMP")
 				{
 					jump();
-				}						
+				}
+				
+				if (_isSwimming)
+				{
+					_swimTimer += FlxG.elapsed;
+					
+					if (_swimTimer > 7)
+					{
+						_flashTimer += FlxG.elapsed;
+						
+						while (_flashTimer >= 0.5) 
+						{
+							_flashTimer -= 0.5;
+						}
+						
+						if (_flashTimer <= 0.25)
+							color = 0x80C1F3;
+						if (_flashTimer > 0.25)
+							color = 0xffffff;
+					}
+					if (_swimTimer > 9)
+					{
+						_flashTimer += FlxG.elapsed;
+						
+						while (_flashTimer >= 0.25) 
+						{
+							_flashTimer -= 0.25;
+						}
+						
+						if (_flashTimer <= 0.125)
+							color = 0x80C1F3;
+						if (_flashTimer > 0.125)
+							color = 0xffffff;
+					}
+					if (_swimTimer > 10)
+					{
+						color = 0x80C1F3;
+						if (FlxG.levels[0] == "lotf" && FlxG.score == rabbitIndex)	// lose LOTF status when drowned
+							FlxG.score = -1;			
+						die();
+						
+					}
+
+				}
+				else
+				{
+					_swimTimer = 0;
+					if (color == 0x80C1F3)
+						color = 0xffffff;
+				}
+
 			}
 			
 			velocity.x += movementX;
