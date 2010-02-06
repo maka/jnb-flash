@@ -51,10 +51,11 @@
 
 		private var _moveSpeed:int = _GROUND_SPEED;
 		
-		private var _floatJumpPower:int = 175;   // power of a normal jump (slightly more than 3 tiles)
-		private var _jumpPower:int = 245;   // power of a normal jump (slightly more than 3 tiles)
-		private var _springPower:int = 340;  // power of a spring jump (slightly more than 6 tiles)
-		private var _bouncePower:int = 170;   // power of the bounce off a killed bunny
+		private var _floatJumpPower:Number = 175;   // power of a normal jump (slightly more than 3 tiles)
+		private var _jumpPower:Number = 245;   // power of a normal jump (slightly more than 3 tiles)
+		private var _springPower:Number = 340;  // power of a spring jump (slightly more than 6 tiles)
+		private var _bouncePower:Number = 160;   // power of the bounce off a killed bunny
+		private var _bounceAndJumpPower:Number = 245;   // power of the bounce AND jump off a killed bunny
 		
 		private var _max_health:int = 1;
 		
@@ -64,14 +65,42 @@
 		private var _isSwimming:Boolean = false;
 		private var _isFloating:Boolean = false;		
 		
+		private var _wantsToJump:Boolean = false;
+		
 		private var _swimTimer:Number = 0;
 		private var _flashTimer:Number = 0;
+		private var _respawnTimer:Number = 0;
+		private static const _RESPAWN_TIME:Number = 0.15;
 		
 		private var _disableControls:Boolean = false;
 		private var _controlOverride:String = "";
 		
-		public function die():void
+		public override function kill():void
 		{
+			/*
+			 * Explanation of the various values for death/existence:
+			 * 
+			 * visible: decides if the object is rendered.
+			 * 			the player should always be rendered
+			 * exists: "a kind of global on/off switch" (?)
+			 * 			see above, player is always on
+			 * dead:	general: skips collision detection if true.
+			 * 			in this class: dead players only play the death animation, they do not move at all and can not be controlled
+			 * 			we use this when a player has been killed.
+			 * 			SET TRUE TO PLAY DEATH ANIMATION AND START RESPAWN TIMER
+			 * 
+			 * active:	general: does not call update() if false
+			 * 			we use this to mark players for respawning
+			 * 			SET FALSE TO MARK PLAYER FOR RESPAWN!
+			 * 
+			 * 
+			 */
+			if (dead)
+			{
+				trace("Player:Kill()	player "+rabbitIndex+" is already dead !!!!!!!!!!!!!!!!!!!!");
+				return;
+			}
+			trace("Player:Kill()	player "+rabbitIndex+" is being killed");
 			dead = true;
 			velocity.x = 0;
 			velocity.y = 0;
@@ -83,7 +112,12 @@
 		{
 			if (bounce)				// bounce does not depend on anything, so it is being handled first
 			{
-			    velocity.y = -_bouncePower;
+				if (FlxG.keys.pressed(_KEY_JUMP[rabbitIndex]))
+				{
+					velocity.y = -_bounceAndJumpPower;
+				}
+				else
+					velocity.y = -_bouncePower;
 				y -= 0.1;			// This is a hack to allow for the situation where a player is standing still and another jumps into him from below.
 									// Without this line, the player above does not bounce.
 									// Is Issue with Flixel hit detection? (HitFloor sets velocity.y=0)
@@ -111,7 +145,9 @@
 			}
 			
 			if (!spring && !bounce)				// spring jump (6 tiles)
-				FlxG.play(SoundJump);				
+				FlxG.play(SoundJump);
+			
+			_wantsToJump = false;
 		}
 		
 		public function isGrounded():Boolean { return _isGrounded; }
@@ -199,18 +235,26 @@
 		
 		override public function reset(X:Number, Y:Number):void
 		{
+			trace("Player "+rabbitIndex+" is being reset!");
+			exists = true;
+			active = true;	// unmarks player for respawn
+			visible = true;
+			dead = false;	// lets player be controlled again.
+			
+			_respawnTimer = 0;
+			
+			last.x = x = X;
+			last.y = y = Y;
+
 			if (Math.random() > 0.5)
 				facing = LEFT;
 			else
 				facing = RIGHT;
 				
 			color = 0xffffff;
-			dead = false;
-			exists = true;
-			visible = true;
-			x = X;
-			y = Y;
 			acceleration.y = _DEFAULT_GRAVITY;
+
+		
 		}
 		
 		public function Player(newRabbitIndex:uint, X:Number, Y:Number):void
@@ -239,7 +283,7 @@
 			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
 			
 		    //Max speeds
-            maxVelocity.x = 75;
+            maxVelocity.x = 76;
             maxVelocity.y = 400;
             //Set the player health
             health = 1;
@@ -265,8 +309,6 @@
 			addAnimation("down", [6+aO]);
 			addAnimation("downfast", [6+aO, 7+aO], 10);
 			addAnimation("dead", [8+aO, 8+aO], 7);
-			
-			addAnimationCallback(animateCallback);
 			
 			// the sprites face right by default
 			facing = RIGHT;
@@ -321,21 +363,8 @@
 
 		}
 		
-		private function animateCallback(name:String, framenumber:uint, frameindex:uint):void
-		{
-//			trace("name:" + name + ", framenumber:" + framenumber.toString() + ", frameindex:" + frameindex.toString());
-			if (name == "dead" && framenumber == 1)
-				kill();
-		}
-		
 		private function animate():void
 		{
-			if (dead)
-			{
-				play("dead");
-				return;
-			}	
-			
 			// animate!
 			var _apexThreshold:int = 30;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
 			var _downfastThreshold:int = 100;	// the vertical downward velocity where the downfast animation is played ([value] - ∞)
@@ -384,8 +413,15 @@
 			
 			if (dead)
 			{
-				animate();
+				_respawnTimer += FlxG.elapsed;
+				play("dead");
 				super.update();
+				
+				if (_respawnTimer > _RESPAWN_TIME)
+				{
+					trace("Player "+rabbitIndex+": time to respawn!");
+					active = false;	// mark player for respawn
+				}
                 return;
 			}
 			
@@ -414,11 +450,15 @@
 				{
 					_isRunning = false
 				}
-				if (((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) ) && !_disableControls ) 
-					|| _controlOverride == "JUMP")
-				{
+				if ((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) && !_disableControls ) || _controlOverride == "JUMP")
+					_wantsToJump = true;
+				if ((FlxG.keys.justReleased(_KEY_JUMP[rabbitIndex]) && !_disableControls ) && _controlOverride != "JUMP")
+					_wantsToJump = false;
+					
+				if (_wantsToJump && (_isGrounded || _isFloating))
 					jump();
-				}
+					
+
 				
 				if (_isSwimming)
 				{
@@ -457,7 +497,7 @@
 						color = 0x80C1F3;
 						if (FlxG.levels[0] == "lotf" && FlxG.score == rabbitIndex)	// lose LOTF status when drowned
 							FlxG.score = -1;			
-						die();
+						kill();
 						
 					}
 
@@ -469,13 +509,13 @@
 						color = 0xffffff;
 				}
 
-			}
 			
 			velocity.x += movementX;
 			
 			animate();
 			
 			setMovementVariables();
+			}
 			
 			super.update();
 			

@@ -12,7 +12,7 @@
 		
 		
 		private var ImgBubble:Class;
-		
+		private var killTimer:Number = 0;
 		
 		public function Bubble(X:Number = 0, Y:Number = 0, Xvel:Number = 0, Yvel:Number = 0):void
 		{
@@ -25,7 +25,7 @@
 			}
 
 			super(X, Y);
-			loadGraphic(ImgBubble, true, false, 4, 4); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(ImgBubble, true, false, 4, 4); // load player sprite (is animated, is not reversible, is 4x4)
 			
 			alpha = Math.random() * 0.5 + 0.5;
 			
@@ -50,15 +50,44 @@
             offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
 
 			// set animations for everything the bunny can do
-			addAnimation("bubble", [0]);
+			addAnimation("bubble0", [0]);
+			addAnimation("bubble1", [1]);
+			addAnimation("bubble2", [2]);
+			addAnimation("bubble3", [3]);
 			
-			play("bubble");
+			switch (int(Math.random()*4)) 
+			{
+				case 0:
+					play("bubble0")
+					maxVelocity.y -= 9;
+					break;
+					
+				case 1:
+					play("bubble1")
+					maxVelocity.y -= 6;
+					break;
+					
+				case 2:
+					play("bubble2")
+					maxVelocity.y -= 3;
+					break;
+					
+				case 3:
+					play("bubble3")
+					break;
+			}
 			trace("com.makr.jumpnbump.objects.Bubble");
 			trace("	Initialized");
 		}
 		
 		public override function update():void
 		{
+			if (velocity.y == 0)
+				killTimer += FlxG.elapsed;
+			
+			if (killTimer > 1)
+				kill();
+			
 			// random factor
 			velocity.x += (int(Math.random() * 3) - 1) * 3;
 			super.update();

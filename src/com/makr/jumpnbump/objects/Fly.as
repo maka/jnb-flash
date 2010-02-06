@@ -44,7 +44,7 @@
             offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
 		}
 		
-		public function move(SwarmCenter:Point, ClosestPlayer:Point, ClosestPlayerDistance:Number):void
+		public function move(SwarmCenter:Point, ClosestPlayerPosition:Point, ClosestPlayerDistance:Number):void
 		{
 			var thisPosition:Point = new Point(x, y);
 			
@@ -64,7 +64,7 @@
 			if ((FlxG.levels[0] != "lotf" && ClosestPlayerDistance < 30) || 
 				(FlxG.levels[0] == "lotf" && ClosestPlayerDistance < 12))
 			{
-				var avoidanceDirection:Point = thisPosition.subtract(ClosestPlayer);
+				var avoidanceDirection:Point = thisPosition.subtract(ClosestPlayerPosition);
 				avoidanceDirection.normalize(1);
 				
 				var avoidanceVelocity:Number = (30 - ClosestPlayerDistance) * 4;
@@ -82,13 +82,13 @@
 			direction = direction.add(randomness);
 			
 			// boundary check
-			if (thisPosition.x + direction.x < 1)
+			if (thisPosition.x + direction.x < 0)
 				direction.x = 0;
-			if (thisPosition.x + direction.x> 351)
+			if (thisPosition.x + direction.x > 352)
 				direction.x = 0;
-			if (thisPosition.y + direction.y < 1)
+			if (thisPosition.y + direction.y < 0)
 				direction.y = 0;
-			if (thisPosition.y +direction.y > 255)
+			if (thisPosition.y + direction.y > 256)
 				direction.y = 0;
 
 			// go go go
