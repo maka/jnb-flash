@@ -847,7 +847,7 @@
 					_crown.x = _player[lotfID].x + 2;
 				else										// player looking right
 					_crown.x = _player[lotfID].x + 5;
-				_crown.y = _player[lotfID].y - 9;
+				_crown.y = _player[lotfID].y - 10;
 				FlxG.scores[FlxG.score] += FlxG.elapsed;
 				_scoreboard.update();
 			}
