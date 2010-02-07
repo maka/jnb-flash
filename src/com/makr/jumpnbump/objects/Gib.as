@@ -113,8 +113,6 @@
 			}
 			
 			play(animationName);
-			
-			trace("Gib:	Initialized");
 		}
 		
 		public function isSwimming():Boolean { return _isSwimming; }
@@ -127,12 +125,12 @@
 			
 			if (isSwimming)	
 			{
-				maxVelocity.x *= 0.25
+				maxVelocity.x *= 0.3
 				maxVelocity.y *= 0.2;
 			}
 			else
 			{
-				maxVelocity.x *= 4
+				maxVelocity.x *= 3.333
 				maxVelocity.y *= 5;
 			}
 		}
@@ -188,18 +186,11 @@
 				if (Math.random() * 100 < _STATIC_PERCENTAGE)	// [_STATIC_PERCENTAGE]% chance of becoming static
 				{
 					makeStatic();
-					trace("Gib:	Made Static");
+					trace("INFO: Gib: A gib was made static.");
 				}
 				else
-				{
 					kill();
-					trace("Gib:	Killed");
-				}
 			}
-
-			
-			
-			
 			
 			super.update();
 		

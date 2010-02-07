@@ -41,8 +41,6 @@
 			addAnimationCallback(animationCallback);
 			
 			play("dust");
-			trace("com.makr.jumpnbump.objects.Dust");
-			trace("	Initialized");
 		}
 		public override function reset(X:Number, Y:Number):void
 		{
@@ -53,13 +51,7 @@
 		private function animationCallback(name:String, frameNumber:uint, frameIndex:uint):void
 		{
 			if (frameNumber == 5)
-			{
-				trace("com.makr.jumpnbump.objects.Dust");
-				trace("	Animation finished");
-				trace("	Entity destroyed");
 				kill();
-			}
-
 		}
 	}
 }

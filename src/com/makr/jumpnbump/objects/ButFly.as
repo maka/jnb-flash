@@ -48,8 +48,6 @@
 			
 			
 			play("Fly");
-			
-			trace("Butfly:	Initialized at (" + x + ", " + y + ")");
 		}
 		
 		override public function update():void

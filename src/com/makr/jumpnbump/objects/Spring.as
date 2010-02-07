@@ -41,9 +41,6 @@
 			addAnimationCallback(CallbackTest);
 
 			play("idle");
-			
-			trace("com.makr.jumpnbump.objects.Spring");
-			trace("	Initialized");
 		}
 		
 		public function Activate():void
@@ -51,19 +48,12 @@
 			play("idle");
 			play("sproing");
 			FlxG.play(SoundSpring);
-		
-			trace("com.makr.jumpnbump.objects.Spring");
-			trace("	Activated");
-
 		}
 		
 		private function CallbackTest(name:String, frameNumber:uint, frameIndex:uint):void
 		{
 			if (name == "sproing" && frameNumber == 5)
-			{
 				play("idle");
-				trace("Spring: Animation finished, now idle")
-			}
 		}
 	}
 }

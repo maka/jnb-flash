@@ -1,7 +1,6 @@
 ﻿package com.makr.jumpnbump
 {
-	import com.makr.jumpnbump.objects.Gib;
-	import com.makr.jumpnbump.objects.Spring;
+	import com.makr.jumpnbump.objects.Dust;
 	import flash.geom.Point;
 	import org.flixel.*;
 
@@ -28,7 +27,9 @@
 		private var _bgMusicURL:String;
 
 		
-		private var _player:Array = new Array();
+		private var _players:Array = new Array();
+		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
+
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
 		private var _trunk:Array = new Array();
@@ -132,14 +133,15 @@
 			}
 
 			// creating a bunny
-			_player[0] = new Player(0, Math.random()*160, 170);			
-			_player[1] = new Player(1, Math.random()*160, 170);	
-			_player[2] = new Player(2, Math.random()*160, 170);			
-			_player[3] = new Player(3, Math.random()*160, 170);	
+			_players[0] = new Player(0, Math.random()*160, 170);	
+			_players[1] = new Player(1, Math.random()*160, 170);	
+			_players[2] = new Player(2, Math.random()*160, 170);			
+			_players[3] = new Player(3, Math.random()*160, 170);	
 			
-			for (var j:int = 0; j < _player.length; j++) 
+			for each (var currentPlayer:Player in _players) 
 			{
-				lyrPlayers.add(_player[j]);
+				currentPlayer.particleTimer = 0;
+				lyrPlayers.add(currentPlayer);
 			}
 			
 			this.add(lyrBG);
@@ -158,11 +160,11 @@
 		
 		private function performMenuCollisions(playerid:uint):void
 		{
-			var pHeight:Number = _player[playerid].height;
-			var pWidth:Number = _player[playerid].width;
+			var pHeight:Number = _players[playerid].height;
+			var pWidth:Number = _players[playerid].width;
 			
-			var pX:Number = _player[playerid].x;
-			var pY:Number = _player[playerid].y;
+			var pX:Number = _players[playerid].x;
+			var pY:Number = _players[playerid].y;
 			
 			var leftEdge:Number = 1;
 			var rightEdge:Number = 400;
@@ -171,8 +173,8 @@
 			// preventing exit left
 			if (pX < leftEdge)
 			{
-				_player[playerid].velocity.x = 0;
-				_player[playerid].x = leftEdge
+				_players[playerid].velocity.x = 0;
+				_players[playerid].x = leftEdge
 			}
 			
 			// triggering transition on right edge
@@ -183,38 +185,38 @@
 			
 			if (pY > floor - pHeight)
 			{
-				_player[playerid].velocity.y = 0;
-				_player[playerid].y = floor - pHeight;
-				_player[playerid].setGrounded(true);
+				_players[playerid].velocity.y = 0;
+				_players[playerid].y = floor - pHeight;
+				_players[playerid].setGrounded(true);
 			}
 			else
 			{
-				_player[playerid].setGrounded(false);
+				_players[playerid].setGrounded(false);
 			}
 			
-			_trunk[playerid].collide(_player[playerid]);
+			_trunk[playerid].collide(_players[playerid]);
 			
 			if (pX > _trunk[playerid].x - pWidth && pX < _trunk[playerid].x + _trunk[playerid].width && pY > _trunk[playerid].y - pHeight - 1)
-				_player[playerid].setGrounded(true);
+				_players[playerid].setGrounded(true);
 		}	
 		
 		private function transition():void
 		{
-				if (_player[0].x > _trunk[0].x - _player[0].width)
+				if (_players[0].x > _trunk[0].x - _players[0].width)
 					FlxG.levels[2] |= 1;
-				if (_player[1].x > _trunk[1].x - _player[1].width)
+				if (_players[1].x > _trunk[1].x - _players[1].width)
 					FlxG.levels[2] |= 2;
-				if (_player[2].x > _trunk[2].x - _player[2].width)
+				if (_players[2].x > _trunk[2].x - _players[2].width)
 					FlxG.levels[2] |= 4;
-				if (_player[3].x > _trunk[3].x - _player[3].width)
+				if (_players[3].x > _trunk[3].x - _players[3].width)
 					FlxG.levels[2] |= 8;
 					
-				for (var i:int = 0; i < _player.length; i++) 
+				for (var i:int = 0; i < _players.length; i++) 
 				{
-					if (_player[i].x > _trunk[i].x - _player[i].width)
+					if (_players[i].x > _trunk[i].x - _players[i].width)
 					{
-						_player[i].setControls(false);
-						_player[i].setControlOverride("RIGHT");
+						_players[i].setControls(false);
+						_players[i].setControlOverride("RIGHT");
 					}
 				}
 					
@@ -226,7 +228,9 @@
 			if (FlxG.keys.justPressed("ESC"))
 				FlxG.fade(0xff000000, 0.4, gotoMenu);
 
-			for (var i:int = 0; i < _player.length; i++) 
+			updateParticles();
+				
+			for (var i:int = 0; i < _players.length; i++) 
 			{
 				performMenuCollisions(i);
 			}
@@ -234,6 +238,45 @@
 			super.update();
 		}
 
+		// creates new particles, perform collisions, erase dead ones
+		private function updateParticles():void
+		{
+			// create new Particles
+			for each (var currentPlayer:Player in _players)
+			{
+				currentPlayer.particleTimer += FlxG.elapsed;
+				
+				// new Dust
+				if (currentPlayer.isGrounded() && 					// if the player is on the ground AND
+					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || getAbsValue(currentPlayer.velocity.x) < 15) &&
+																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
+					currentPlayer.movementX != 0 &&				// a movement key is pressed AND
+					currentPlayer.particleTimer > DUST_DELAY)		// a new dust particle can be created
+				{
+					var xDustOrigin:Number;
+					var yDustOrigin:Number;
+					var xDustDirection:int;
+					
+					if (currentPlayer.facing == 0)	// facing LEFT
+					{
+						xDustOrigin = currentPlayer.x + 14;
+						xDustDirection = 1;
+					}
+					else							// facing RIGHT
+					{
+						xDustOrigin = currentPlayer.x + 8;
+						xDustDirection = -1;
+					}
+					yDustOrigin = currentPlayer.y + currentPlayer.width
+					
+					lyrBGSprites.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
+					
+					currentPlayer.particleTimer = 0;
+				}
+			}
+		}
+
+		
         private function gotoMenu():void
         {
 			FlxG.switchState(LevelSelectState);

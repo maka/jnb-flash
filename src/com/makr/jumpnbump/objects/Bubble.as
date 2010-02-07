@@ -76,8 +76,6 @@
 					play("bubble3")
 					break;
 			}
-			trace("com.makr.jumpnbump.objects.Bubble");
-			trace("	Initialized");
 		}
 		
 		public override function update():void

@@ -65,8 +65,7 @@
 		private var _bgMusicURL:String;
 		
 		// arrays and timers for players and things created by players (dust, bubbles)
-		private var _player:Array = new Array();				
-		private var _playerParticleTimer:Array = new Array();	// a particle timer for each player
+		private var _players:Array = new Array();				
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
 		private static const BUBBLE_DELAY:Number = 0.2;		// delay between creating a bubble particles
 		private var _bubbles:Array = new Array();
@@ -257,30 +256,27 @@
 			if (FlxG.levels[2] & 1)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_player.push(new Player(0, bunnySpawnPoint.x, bunnySpawnPoint.y));			
+				_players.push(new Player(0, bunnySpawnPoint.x, bunnySpawnPoint.y));			
 			}
 			if (FlxG.levels[2] & 2)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_player.push(new Player(1, bunnySpawnPoint.x, bunnySpawnPoint.y));	
+				_players.push(new Player(1, bunnySpawnPoint.x, bunnySpawnPoint.y));	
 			}
 			if (FlxG.levels[2] & 4)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_player.push(new Player(2, bunnySpawnPoint.x, bunnySpawnPoint.y));			
+				_players.push(new Player(2, bunnySpawnPoint.x, bunnySpawnPoint.y));			
 			}
 			if (FlxG.levels[2] & 8)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_player.push(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
+				_players.push(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
 			}
 			
 			// adding bunnies to Sprite Layer
-			for (var i:int = 0; i < _player.length; i++) 
-			{
-				_playerParticleTimer[i] = 0;
-				lyrSprites.add(_player[i]);
-			}
+			for each (var currentPlayer:Player in _players) 
+				lyrSprites.add(currentPlayer);
 			
 			// creating the lotf crown
 			_crown = new FlxSprite(0, 0, ImgCrown);
@@ -320,13 +316,11 @@
 				for (var y:int = 0; y < 16; y++) 
 				{
 					if (_map.getTileByIndex(y * 22 + x) == 4)
-					{
-						trace("x:" + x + "; y:" + y);
 						_springs.push(lyrBGSprites.add(new Spring(x * 16, y * 16)));
-					}
 					
 				}
-			}		}
+			}
+		}
 		
 		// returns the TileIndex for the tile at position (x,y), to be used with _map.getTileByIndex() to get tile value at pos(x,y)
 		private function getTileIndex(x:Number, y:Number):uint
@@ -384,7 +378,6 @@
 							_springs[i].Activate();
 
 					}
-					trace("rabbit " + Rabbit.rabbitIndex + " is sprung");
 					
 					Rabbit.jump(true);	// bounce!
 				}
@@ -477,14 +470,12 @@
 				{
 					Sprite.velocity.x = 0;
 					Sprite.x = (leftTileIndex + 1) * 16;
-					trace("PlayState.collideMapBorders: Can't go further left!");
 				}
 				
 				if (rightTile >= _map.collideIndex)
 				{
 					Sprite.velocity.x = 0;
 					Sprite.x = rightTileIndex * 16 - Sprite.width;
-					trace("PlayState.collideMapBorders: Can't go further right!");
 				}
 
 			}
@@ -494,19 +485,16 @@
 			{
 				Sprite.velocity.x = 0;
 				Sprite.x = minX
-					trace("PlayState.collideMapBorders: Collision with left side of map");
 			}
 			if (Sprite.x > maxX)		// falling off the map on the RIGHT side (this is NOT allowed)
 			{
 				Sprite.velocity.x = 0;
 				Sprite.x = maxX
-					trace("PlayState.collideMapBorders: Collision with right side of map");
 			}
 			if (Sprite.y > maxY)		// falling out of the BOTTOM of the map (this is NOT allowed)
 			{
 				Sprite.velocity.y = 0;
 				Sprite.y = maxY
-					trace("PlayState.collideMapBorders: Collision with map floor");
 				Sprite.setGrounded(true);
 			}
 		}
@@ -535,7 +523,7 @@
 		// resolves all interactions between all players (Flixel collision is completely useless for this purpose)
 		private function collidePlayers():void
 		{
-			var numPlayers:uint = _player.length;
+			var numPlayers:uint = _players.length;
 			
 			var a:int = 0;
 			var b:int = 0;
@@ -545,29 +533,27 @@
 
 			var maxWidth:Number, maxHeight:Number;
 			
-			for (a = 0; a < _player.length - 1; a++) 
+			for (a = 0; a < _players.length - 1; a++) 
 			{
-				for (b = a + 1; b < _player.length; b++) 
+				for (b = a + 1; b < _players.length; b++) 
 				{
-					pA = _player[a];
-					pB = _player[b];
+					pA = _players[a];
+					pB = _players[b];
 					
-					//maxWidth = Math.max(_player[a].width, _player[b].width);
-					maxWidth = 12;
-					//maxHeight = Math.max(_player[a].height, _player[b].height);
-					maxHeight = 12;
+					maxWidth = maxHeight = 12;
 
 					if (!pA.dead && !pB.dead)						// check that both are alive
 					{
 						if (getAbsValue(pA.x - pB.x) < maxWidth && 
 							getAbsValue(pA.y - pB.y) < maxHeight)	// check that they intersect
 						{												
-							trace("players " + a.toString() + " and " + b.toString() + " intersect!");
+							trace("PlayState:collidePlayers()");
+							trace("	Players " + pA.rabbitIndex + " and " + pB.rabbitIndex + " intersect;");
 							
 							if ((pA.y - pB.y > 5 && pA.velocity.y < pB.velocity.y) ||
 								(pB.y - pA.y > 5 && pB.velocity.y < pA.velocity.y))
 							{
-								trace("	someones going to die.");
+								trace("	Resolution: Kill");
 
 								if (pA.y < pB.y)	// the one up top is faster than the one below
 									killPlayer(pA, pB);								// playerKill(killer, killee);
@@ -576,7 +562,7 @@
 							}
 							else
 							{
-								trace("	someones going to get pushed.");
+								trace("	Resolution: Push");
 
 								
 								if (pA.x < pB.x)
@@ -637,7 +623,7 @@
 			var closestDistance:Number = 10000;
 			var currentDistance:Number;
 			
-			for each (var currentPlayer:Player in _player) 
+			for each (var currentPlayer:Player in _players) 
 			{
 				playerPosition.x = currentPlayer.x + 8;
 				playerPosition.y = currentPlayer.y + 8;
@@ -682,10 +668,10 @@
 		{
 			var spawnPoint:Point;
 			var closestPlayerDistance:Number;
+			
 			do {
 				spawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
 				closestPlayerDistance = getClosestPlayerToPoint(spawnPoint)[1];
-				trace("getFreeSpawnPoint: Searching for spawn point...")
 			} while (closestPlayerDistance < 32);
 			
 			return spawnPoint;
@@ -697,11 +683,10 @@
 			var theDead:Array = new Array;
 			
 			
-			for each (var currentPlayer:Player in _player)
+			for each (var currentPlayer:Player in _players)
 			{
 				if (!currentPlayer.active)
 				{
-					trace("!!!!!! respawn: player " + currentPlayer.rabbitIndex + " is dead!");
 					currentPlayer.visible = false;
 					theDead.push(currentPlayer);
 				}
@@ -714,7 +699,7 @@
 			{
 				var respawnPoint:Point = getFreeSpawnPoint();	
 				ghost.reset(respawnPoint.x, respawnPoint.y);
-				trace("!!!!!! respawned player " + ghost.rabbitIndex);
+				ghost.particleTimer = 0;
 			}
 
 			return true;
@@ -744,8 +729,6 @@
 			}
 			
 			// cleanup gib array
-			trace ("BEFORE: " + _gibs.length.toString());
-			
 			var indicesToDelete:Array = new Array;
 			
 			for (var i:int = 0; i < _gibs.length; i++) 
@@ -761,11 +744,26 @@
 				_gibs[currentIndex].kill();
 				_gibs.splice(currentIndex, 1);
 			}
-			trace ("AFTER: " + _gibs.length.toString());
+			trace ("INFO: PlayState: " + (j + 1) + " dead gibs removed.");
 			
 		}
 		
-
+		// creates a shower of blood and gore
+		private function bubbleBurstPlayer(Burstee:Player):void
+		{
+			var bubbleIndex:uint;
+			
+			trace("Player " + Burstee.rabbitIndex + " just burst :o");
+			
+			for (var re:int = 0; re < int(Math.random() * 10 + 30 ); re++) 
+			{
+				bubbleIndex = _bubbles.push(new Bubble(Burstee.x + 8, Burstee.y + 8,
+														(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100));
+				lyrBGSprites.add(_bubbles[bubbleIndex - 1]);
+			}
+			
+			Burstee.particleTimer = -1;
+		}
 		
 		override public function update():void
         {
@@ -774,7 +772,7 @@
 				FlxG.fade(0xff000000, 1, quit);
 
 			// perform tile logic and collision with map borders for players
-			for each (var currentPlayer:Player in _player) 
+			for each (var currentPlayer:Player in _players) 
 			{
 				performTileLogic(currentPlayer)
 				collideMapBorders(currentPlayer);
@@ -788,7 +786,7 @@
 			// determine who is currently the Lord
 			var LoTF:Player;
 			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
-				LoTF = getPlayerfromRabbitIndex(FlxG.score);
+				LoTF = getPlayerFromRabbitIndex(FlxG.score)[1];
 		
 			// put a crown on the Lord
 			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
@@ -867,17 +865,18 @@
 
 			// collide gibs, players, butterflies and flies with the tilemap
 			_map.collideArray(_gibs);
-			_map.collideArray(_player);
+			_map.collideArray(_players);
 			_map.collideArray(_butflies);
 			_map.collideArray(_flies);
 		}	
 
-		// returns a Player that matches the given RabbitIndex
-		private function getPlayerfromRabbitIndex(RabbitIndex:uint):Player
+		// returns a Player that matches the given RabbitIndexPlayerArray
+		private function getPlayerFromRabbitIndex(RabbitIndex:uint):Player
 		{
+			var matchID:uint;
 			var match:Player;
 			
-			for each (var currentPlayer:Player in _player) 
+			for each (var currentPlayer:Player in _players)
 			{
 				if (currentPlayer.rabbitIndex == RabbitIndex)
 					match = currentPlayer;
@@ -890,14 +889,13 @@
 		private function updateParticles():void
 		{
 			// create new Particles
-			var currentPlayerIndex:int = -1;
-			for each (var currentPlayer:Player in _player)
+			for each (var currentPlayer:Player in _players)
 			{
-				_playerParticleTimer[++currentPlayerIndex] += FlxG.elapsed;
+				if (!currentPlayer.dead)
+					currentPlayer.particleTimer += FlxG.elapsed;
 				
 				// new Bubble
-				if (currentPlayer.isSwimming() && 					// if the player is swimming AND
-					_playerParticleTimer[currentPlayerIndex] > BUBBLE_DELAY)		// a new bubble can be created
+				if (currentPlayer.isSwimming() && currentPlayer.particleTimer > BUBBLE_DELAY && !currentPlayer.dead)
 				{
 					var xBubbleOrigin:Number;
 					var yBubbleOrigin:Number;
@@ -913,7 +911,12 @@
 					newBubbleIndex = _bubbles.push(new Bubble(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0)) - 1;
 					lyrBGSprites.add(_bubbles[newBubbleIndex]);
 					
-					_playerParticleTimer[currentPlayerIndex] = 0;
+					currentPlayer.particleTimer = 0;
+				}
+				else if (currentPlayer.isSwimming() && currentPlayer.particleTimer != -1 && currentPlayer.dead)
+				{
+					trace("Timer: " + currentPlayer.particleTimer);
+					bubbleBurstPlayer(currentPlayer);
 				}
 				
 				// new Dust
@@ -921,7 +924,7 @@
 					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || getAbsValue(currentPlayer.velocity.x) < 15) &&
 																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
 					currentPlayer.movementX != 0 &&				// a movement key is pressed AND
-					_playerParticleTimer[currentPlayerIndex] > DUST_DELAY)		// a new dust particle can be created
+					currentPlayer.particleTimer > DUST_DELAY)		// a new dust particle can be created
 				{
 					var xDustOrigin:Number;
 					var yDustOrigin:Number;
@@ -941,7 +944,7 @@
 					
 					lyrBGSprites.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
 					
-					_playerParticleTimer[currentPlayerIndex] = 0;
+					currentPlayer.particleTimer = 0;
 				}
 			}
 			

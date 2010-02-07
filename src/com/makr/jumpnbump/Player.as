@@ -34,6 +34,7 @@
 
 		// current x-movement force
 		public var movementX:Number = 0;
+		public var particleTimer:Number = 0;
 	
 		private static const _DEFAULT_GRAVITY:int = 560;
 		
@@ -44,10 +45,10 @@
 		private static const _ICE_SPEED:int = 50;
 		
 		// different friction as well
-		private static const _GROUND_FRICTION:int = 500;
-		private static const _WATER_FRICTION:int = 0;
-		private static const _AIR_FRICTION:int = 0;
-		private static const _ICE_FRICTION:int = 0;
+		private static const _GROUND_DRAG:int = 500;
+		private static const _WATER_DRAG:int = 10;
+		private static const _AIR_DRAG:int = 0;
+		private static const _ICE_DRAG:int = 0;
 
 		private var _moveSpeed:int = _GROUND_SPEED;
 		
@@ -97,10 +98,9 @@
 			 */
 			if (dead)
 			{
-				trace("Player:Kill()	player "+rabbitIndex+" is already dead !!!!!!!!!!!!!!!!!!!!");
+				trace("WARNING: Player: !!! kill() called on Player "+rabbitIndex+" who is already dead !!!");
 				return;
 			}
-			trace("Player:Kill()	player "+rabbitIndex+" is being killed");
 			dead = true;
 			velocity.x = 0;
 			velocity.y = 0;
@@ -113,9 +113,7 @@
 			if (bounce)				// bounce does not depend on anything, so it is being handled first
 			{
 				if (FlxG.keys.pressed(_KEY_JUMP[rabbitIndex]))	// bounce higher if jump button is pressed at the same time
-				{
 					velocity.y = -_bounceAndJumpPower;
-				}
 				else
 					velocity.y = -_bouncePower;
 				y -= 0.1;			// This is a hack to allow for the situation where a player is standing still and another jumps into him from below.
@@ -124,8 +122,7 @@
 				return;
 			}
 			
-			trace("jump init");
-			if (!_isGrounded && !_isFloating/* && !_isSwimming */)	// return if already in the air
+			if (!_isGrounded && !_isFloating/* && !_isSwimming */)	// other kinds of jump do depend on being grounded
 				return;
 				
 			if (spring)				// spring jump (6 tiles)
@@ -135,17 +132,11 @@
 				velocity.y += -_floatJumpPower;
 				setFloating(false);	// stop floating (restore gravity);
 			}
-	/*		else if (_isSwimming)	// jump out of water (1 tile)
-			{
-				velocity.y = -_floatJumpPower;
-			} */
 			else					// normal jump (3 tiles)
 			{
 				velocity.y += -_jumpPower;
-			}
-			
-			if (!spring && !bounce)				// spring jump (6 tiles)
 				FlxG.play(SoundJump);
+			}
 			
 			_wantsToJump = false;
 		}
@@ -155,12 +146,7 @@
 		{
 			if (_isGrounded == isGrounded)	// return if value is already set
 				return;
-/*			if (_isSwimming && isGrounded)	// can't walk in water
-			{
-				trace ("touchdown");
-				return;
-			}					
-*/			_isGrounded = isGrounded;		// set value
+			_isGrounded = isGrounded;		// set value
 			
 			if (!isGrounded)				// can only slide on the ground
 				setSliding(false);				
@@ -182,9 +168,6 @@
 
 				var topTileEdge:Number = y - (y % 16);
 				PlayState.lyrBGSprites.add(new Splash(x, topTileEdge));
-				
-			
-
 			}	
 		}
 
@@ -235,13 +218,13 @@
 		
 		override public function reset(X:Number, Y:Number):void
 		{
-			trace("Player "+rabbitIndex+" is being reset!");
 			exists = true;
 			active = true;	// unmarks player for respawn
 			visible = true;
 			dead = false;	// lets player be controlled again.
 			
 			_respawnTimer = 0;
+			particleTimer = 0;
 			
 			last.x = x = X;
 			last.y = y = Y;
@@ -282,15 +265,15 @@
 			
 			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
 			
-		    //Max speeds
-            maxVelocity.x = 76;
+		    // Max speeds
+            maxVelocity.x = 77;
             maxVelocity.y = 400;
-            //Set the player health
+            // Set the player health
             health = 1;
-            //Gravity
+            // Gravity
             acceleration.y = _DEFAULT_GRAVITY;            
-            //Friction
-            drag.x = _GROUND_FRICTION;
+            // Drag
+            drag.x = _GROUND_DRAG;
             // set bounding box
             width = 15;
             height = 15;
@@ -322,28 +305,28 @@
 			if (_isGrounded && !_isSliding)
 			{
 				_moveSpeed = _GROUND_SPEED;
-				drag.x = _GROUND_FRICTION;
+				drag.x = _GROUND_DRAG;
 			}
 				
 			// on ice
 			if (_isGrounded && _isSliding)
 			{
 				_moveSpeed = _ICE_SPEED;
-				drag.x = _ICE_FRICTION;
+				drag.x = _ICE_DRAG;
 			}
 			
 			// in the air
 			if (!_isGrounded && !_isFloating && !_isSwimming)
 			{
 				_moveSpeed = _AIR_SPEED;
-				drag.x = _AIR_FRICTION;
+				drag.x = _AIR_DRAG;
 			}
 
 			// swimming
 			if (_isSwimming && !_isFloating)
 			{
 				_moveSpeed = _WATER_SPEED;
-				drag.x = _WATER_FRICTION;
+				drag.x = _WATER_DRAG;
 				acceleration.y = -60;
 			}
 
@@ -351,7 +334,7 @@
 			if (!_isSwimming && _isFloating)
 			{
 				_moveSpeed = _WATER_SPEED;
-				drag.x = _WATER_FRICTION;
+				drag.x = _WATER_DRAG;
 				acceleration.y = 0;
 			}
 
@@ -374,36 +357,28 @@
 			{
 				// going up
 				if (velocity.y < _apexThreshold)
-				{
 					play("up");
-				}
+					
 				// at the apex of a jump or dive
 				if ((velocity.y < 0 ? -velocity.y : velocity.y) < _apexThreshold)
-				{
 					play("apex");
-				}
+					
 				// going down
 				if (velocity.y > _apexThreshold && velocity.y < _downfastThreshold)
-				{
 					play("down");
-				}
+					
 				// going down quickly
 				if (velocity.y >= _downfastThreshold)
-				{
 					play("downfast");
-				}
 			}
 			
 			// on the ground, running
 			else if (_isRunning == true)
-			{
 				play("normal");
-			}
 			
 			// on the ground, doing nothing
-			else			{
+			else
 				play("idle");
-			}			
 
 		}
 		
@@ -411,6 +386,7 @@
 		{
 			movementX = 0;
 			
+			// if dead, play death animation and count down to respawn
 			if (dead)
 			{
 				_respawnTimer += FlxG.elapsed;
@@ -418,117 +394,101 @@
 				super.update();
 				
 				if (_respawnTimer > _RESPAWN_TIME)
-				{
-					trace("Player "+rabbitIndex+": time to respawn!");
 					active = false;	// mark player for respawn
-				}
-                return;
+
+				return;
 			}
 			
 			// handle input
-			if (!dead)
+			
+			// if direction key is pressed
+			if ((( FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) || FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
+				_controlOverride == "LEFT" || _controlOverride == "RIGHT" )
 			{
-				if ((( FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) || FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
-					_controlOverride == "LEFT" || _controlOverride == "RIGHT" )
-				{
-					_isRunning = true;
-					
-					if (((FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) ) && !_disableControls ) || 
-						_controlOverride == "LEFT")
-					{
-						facing = LEFT;
-						movementX -= _moveSpeed * FlxG.elapsed;
-					}
-					else if (((FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
-						_controlOverride == "RIGHT")
-					{
-						facing = RIGHT;
-						movementX += _moveSpeed * FlxG.elapsed;                
-					}
-				}
-				else
-				{
-					_isRunning = false
-				}
-				if ((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) && !_disableControls ) || _controlOverride == "JUMP")
-					_wantsToJump = true;
-				if ((FlxG.keys.justReleased(_KEY_JUMP[rabbitIndex]) && !_disableControls ) && _controlOverride != "JUMP")
-					_wantsToJump = false;
-					
-				if (_wantsToJump && (_isGrounded || _isFloating))
-					jump();
-					
-
+				_isRunning = true;
 				
-				if (_isSwimming)
+				if (((FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) ) && !_disableControls ) || 
+					_controlOverride == "LEFT")
 				{
-					_swimTimer += FlxG.elapsed;
-					
-					if (_swimTimer > 7)
-					{
-						_flashTimer += FlxG.elapsed;
-						
-						while (_flashTimer >= 0.5) 
-						{
-							_flashTimer -= 0.5;
-						}
-						
-						if (_flashTimer <= 0.25)
-							color = 0x80C1F3;
-						if (_flashTimer > 0.25)
-							color = 0xffffff;
-					}
-					if (_swimTimer > 9)
-					{
-						_flashTimer += FlxG.elapsed;
-						
-						while (_flashTimer >= 0.25) 
-						{
-							_flashTimer -= 0.25;
-						}
-						
-						if (_flashTimer <= 0.125)
-							color = 0x80C1F3;
-						if (_flashTimer > 0.125)
-							color = 0xffffff;
-					}
-					if (_swimTimer > 10)
-					{
-						color = 0x80C1F3;
-						if (FlxG.levels[0] == "lotf" && FlxG.score == rabbitIndex)	// lose LOTF status when drowned
-							FlxG.score = -1;			
-						kill();
-						
-					}
-
+					facing = LEFT;
+					movementX -= _moveSpeed * FlxG.elapsed;
 				}
-				else
+				else if (((FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
+					_controlOverride == "RIGHT")
 				{
-					_swimTimer = 0;
-					if (color == 0x80C1F3)
+					facing = RIGHT;
+					movementX += _moveSpeed * FlxG.elapsed;                
+				}
+			}
+			else
+			{
+				_isRunning = false
+			}
+			if ((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) && !_disableControls ) || _controlOverride == "JUMP")
+				_wantsToJump = true;
+			if ((FlxG.keys.justReleased(_KEY_JUMP[rabbitIndex]) && !_disableControls ) && _controlOverride != "JUMP")
+				_wantsToJump = false;
+			
+			if (_wantsToJump && (_isGrounded || _isFloating))
+				jump();
+				
+			
+			// handle drowning
+			if (_isSwimming)
+			{
+				_swimTimer += FlxG.elapsed;
+				
+				if (_swimTimer > 6.5)		// 6.5 seconds underwater, start flashing at 2 Hertz
+				{
+					_flashTimer += FlxG.elapsed;
+					
+					while (_flashTimer >= 0.5) 
+						_flashTimer -= 0.5;
+					
+					if (_flashTimer <= 0.25)
+						color = 0x80C1F3;
+					if (_flashTimer > 0.25)
 						color = 0xffffff;
 				}
+				if (_swimTimer > 8.5)	// 8.5 seconds underwater, flash at 4 Hertz
+				{
+					_flashTimer += FlxG.elapsed;
+					
+					while (_flashTimer >= 0.25) 
+					{
+						_flashTimer -= 0.25;
+					}
+						
+					if (_flashTimer <= 0.125)
+						color = 0x80C1F3;
+					if (_flashTimer > 0.125)
+						color = 0xffffff;
+				}
+				if (_swimTimer > 10)	// 10 seconds underwater, drown.
+				{
+					color = 0x80C1F3;
+					if (FlxG.levels[0] == "lotf" && FlxG.score == rabbitIndex)	// lose LOTF status when drowned
+						FlxG.score = -1;			
+					kill();
+				}
+
+			}
+			else
+			{
+				_swimTimer = 0;
+				if (color == 0x80C1F3)
+					color = 0xffffff;
+			}
 
 			
+			// apply movement to velocity
 			velocity.x += movementX;
 			
 			animate();
 			
 			setMovementVariables();
-			}
 			
 			super.update();
-			
-/*			trace  ("DRAG:" + drag.x.toString() + "; " + 
-					"MOVE_SPEED:" + _moveSpeed.toString() + "; " + 
-					"GRAVITY:" + acceleration.y.toString() + ";; " + 
-					"IS_GROUNDED: " + _isGrounded + "; " + 
-					"IS_SLIDING: " + _isSliding + "; " + 
-					"IS_RUNNING: " + _isRunning + "; " + 
-					"IS_SWIMMING: " + _isSwimming + "; " + 
-					"IS_FLOATING: " + _isFloating
-				   );
-*/
 		}
 	}
 

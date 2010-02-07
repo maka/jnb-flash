@@ -27,8 +27,6 @@
 					Tiles[y * 2 + x] = new ScoreboardTile(360 + x * 16, 34 + y * 64);
 				}
 			}
-			
-			trace("Scoreboard:	Initialized");
 		}
 		
 		public function update():void

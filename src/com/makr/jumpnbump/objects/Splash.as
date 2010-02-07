@@ -42,21 +42,12 @@
 			addAnimationCallback(animationCallback);
 			FlxG.play(SoundSplash);		// make some noise
 			play("splish");
-			
-			trace("com.makr.jumpnbump.objects.Splash");
-			trace("	Initialized");
 		}
 		
 		private function animationCallback(name:String, frameNumber:uint, frameIndex:uint):void
 		{
 			if (frameNumber == 9)
-			{
-				trace("com.makr.jumpnbump.objects.Splash");
-				trace("	Animation finished");
-				trace("	Entity destroyed");
 				kill();
-			}
-
 		}
 	}
 }
