@@ -203,6 +203,7 @@
 			_disableControls = !enabled;			// set value
 		}
 
+		public function getControlOverride():String { return _controlOverride; }
 		public function setControlOverride(Override:String):void
 		{
 			if (Override == _controlOverride)	// return if value is already set
@@ -424,12 +425,12 @@
 			{
 				_isRunning = false
 			}
-			if ((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) && !_disableControls ) || _controlOverride == "JUMP")
+			if ((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) && !_disableControls ))
 				_wantsToJump = true;
 			if ((FlxG.keys.justReleased(_KEY_JUMP[rabbitIndex]) && !_disableControls ) && _controlOverride != "JUMP")
 				_wantsToJump = false;
 			
-			if (_wantsToJump && (_isGrounded || _isFloating))
+			if ((_wantsToJump && (_isGrounded || _isFloating)) ||_controlOverride == "JUMP")
 				jump();
 				
 			

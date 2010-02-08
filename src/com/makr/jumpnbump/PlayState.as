@@ -1,5 +1,6 @@
 ﻿package com.makr.jumpnbump
 {
+	import flash.display.BitmapData;
 	import com.makr.jumpnbump.objects.ButFly;
 	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
@@ -12,8 +13,6 @@
 
 	public class PlayState extends FlxState
 	{
-		FlxG.showCursor();
-
 		/// Assets independent from level selection
 		[Embed(source = '../../../../data/levels/common/tiles.png')] private var ImgTiles:Class;
 		[Embed(source = '../../../../data/levels/common/crown.png')] private var ImgCrown:Class;
@@ -98,18 +97,14 @@
 		private static const NUM_FLIES_LOTF:uint = 50;	// "Lord of the Flies" game mode specific variable
 		private var _numFlies:uint;						// is set to either NUM_FLIES or NUM_FLIES_LOTF, depending on game mode
 
+		// AI stuff
+		private var _AIs:Array;
 		
 		
 		
 		
 		// returns absolute value, faster than Math.abs()	
-		private function getAbsValue(x:Number):Number
-		{
-			if (x < 0)
-				return -x;
-			else
-				return x;
-		}
+		private function getAbsValue(x:Number):Number { return (x < 0) ? -x : x; }
 		
 		// returns distance between two Points a and b
 		private function getDistance(A:Point, B:Point):Number
@@ -121,6 +116,7 @@
 		
 		public function PlayState() 
 		{
+			FlxG.showCursor();
 			
 			// Loading assets into variables
 			switch (FlxG.levels[1])
@@ -274,6 +270,15 @@
 				_players.push(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
 			}
 			
+			/// for AI testing purposes only now! REMOVE WHEN DONE
+			bunnySpawnPoint = getFreeSpawnPoint();
+			_players.push(new Player(0, bunnySpawnPoint.x, bunnySpawnPoint.y));		
+			
+			_AIs = new Array();
+			_AIs.push(new AI(0, _map));
+			/// for AI testing purposes only now! REMOVE WHEN DONE
+
+			
 			// adding bunnies to Sprite Layer
 			for each (var currentPlayer:Player in _players) 
 				lyrSprites.add(currentPlayer);
@@ -288,7 +293,7 @@
 			flySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
 			for (var j:int = 0; j < _numFlies; j++) 
 			{
-				_flies.push(new Fly(flySpawnPoint.x + Math.random() * 32 - 16, flySpawnPoint.y + Math.random() * 32 - 16));
+				_flies.push(new Fly((flySpawnPoint.x * 16) + Math.random() * 32 - 16, (flySpawnPoint.y * 16) + Math.random() * 32 - 16));
 				lyrBGSprites.add(_flies[j]);
 			}
 			
@@ -298,7 +303,7 @@
 			for (var k:int = 0; k < NUM_BUTFLIES; k++) 
 			{
 				butflySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
-				_butflies.push(new ButFly(butflySpawnPoint.x, butflySpawnPoint.y));
+				_butflies.push(new ButFly(butflySpawnPoint.x * 16, butflySpawnPoint.y * 16));
 				lyrBGSprites.add(_butflies[k]);
 			}
 			
@@ -648,14 +653,11 @@
 			
 			for (var x:int = 0; x < 22; x++) 
 			{
-				for (var y:int = 1; y < 15; y++) 
+				for (var y:int = 0; y < 15; y++) 
 				{
-					if (_map.getTileByIndex(y * 22 + x) == 0 &&					// if current tile  is VOID
-						_map.getTileByIndex((y + 1) * 22 + x) == 2)				// and tile below is SOLID
-					{
-						respawnMap.push(new Point(x * 16, y * 16 + 1));		// add current tile to respawnMap
-
-					}
+					if (_map.getTileByIndex(y * 22 + x) == 0 &&						// if current tile  is VOID
+						_map.getTileByIndex((y + 1) * 22 + x) >= _map.collideIndex)	// and tile below is Ground
+						respawnMap.push(new Point(x, y));		// add current tile to respawnMap
 				}
 			}
 			
@@ -671,6 +673,8 @@
 			
 			do {
 				spawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+				spawnPoint.x = spawnPoint.x * 16
+				spawnPoint.y = spawnPoint.y * 16 + 1
 				closestPlayerDistance = getClosestPlayerToPoint(spawnPoint)[1];
 			} while (closestPlayerDistance < 32);
 			
@@ -763,6 +767,41 @@
 			}
 			
 			Burstee.particleTimer = -1;
+		}
+		
+		private function updateAI(ThisAI:AI):void
+		{
+			var controlledPlayer:Player = getPlayerFromRabbitIndex(ThisAI.rabbitIndex);
+
+			// get target (Mouse Cursor for now), later closest player
+			var target:Point = new Point(FlxG.mouse.x, FlxG.mouse.y);
+			var targetTile:Point = new Point(int(target.x / 16), int(target.y / 16));
+			var playerTile:Point = new Point(int((controlledPlayer.x + 8) / 16), int((controlledPlayer.y + 9) / 16));
+			
+			
+			var path:Array = ThisAI.update(playerTile, targetTile);
+
+			/// START moving the player where he needs to go
+			// reset any overrides from previous update
+			if (controlledPlayer.getControlOverride() == "JUMP")
+				controlledPlayer.resetControlOverride();
+
+			if (path[0].x < playerTile.x || controlledPlayer.x - targetTile.x * 16 > 0)
+				controlledPlayer.setControlOverride("LEFT");
+			if (path[0].x > playerTile.x || path[0].x * 16 - controlledPlayer.x > 0)
+				controlledPlayer.setControlOverride("RIGHT");
+			if (path[0].y < playerTile.y && (controlledPlayer.isGrounded() || controlledPlayer.isFloating()))
+				controlledPlayer.setControlOverride("JUMP");
+			/// END moving the player where he needs to go
+
+			
+		}
+		
+		override public function render():void
+		{
+			super.render();
+			
+			_AIs[0].drawDebugImage();
 		}
 		
 		override public function update():void
@@ -858,6 +897,7 @@
 			
 			super.update();
 			
+			updateAI(_AIs[0]);
 			
 			respawnPlayers();	// respawn dead players
 			
