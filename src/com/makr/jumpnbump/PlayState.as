@@ -3,6 +3,7 @@
 	import com.makr.jumpnbump.objects.ButFly;
 	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
+	import com.makr.jumpnbump.objects.PopupText;
 	import com.makr.jumpnbump.objects.Spring;
 	import com.makr.jumpnbump.objects.Dust;
 	import com.makr.jumpnbump.objects.Bubble;
@@ -49,6 +50,7 @@
 		[Embed(source = '../../../../data/levels/witch/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapWitch:Class;
 		[Embed(source = '../../../../data/levels/witch/level.png')] private var ImgBgWitch:Class;
 		[Embed(source = '../../../../data/levels/witch/leveloverlay.png')] private var ImgFgWitch:Class;
+		private var _rabbitColorsWitch:Array = new Array(0x7CA824, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 
 		// original level		
 		[Embed(source = '../../../../data/levels/original/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapOriginal:Class;
@@ -56,6 +58,7 @@
 		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgOriginal:Class;
 		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFlyOriginal:Class;
 		private var _bgMusicURLOriginal:String = "../data/levels/original/m_bump.mp3";
+		private var _rabbitColorsOriginal:Array = new Array(0xDBDBDB, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 		
 		// asset holders, the assets for the current level will be copied into these variables and then used
 		private var DataMap:Class;
@@ -63,16 +66,18 @@
 		private var ImgFg:Class;
 		private var SoundFly:Class;
 		private var _bgMusicURL:String;
+		private var _rabbitColors:Array;
 		
 		// arrays and timers for players and things created by players (dust, bubbles)
-		private var _players:Array = new Array();				
+		private var _players:Array = new Array();	
+		
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
 		private static const BUBBLE_DELAY:Number = 0.2;		// delay between creating a bubble particles
 		private var _bubbles:Array = new Array();
 		private var _springs:Array;
 		private var _gibs:Array;
 		
-		// other of the game
+		// other parts of the game
 		private var _map:FlxTilemap;
 		private var _respawnMap:Array;				// array that holds all positions where a player can spawn (VOID above SOLID)
 		private var _scoreboard:Scoreboard;
@@ -98,9 +103,8 @@
 		private static const NUM_FLIES_LOTF:uint = 50;	// "Lord of the Flies" game mode specific variable
 		private var _numFlies:uint;						// is set to either NUM_FLIES or NUM_FLIES_LOTF, depending on game mode
 
-		
-		
-		
+		// popup texts
+		private var _popupTexts:Array = new Array();
 		
 		// returns absolute value, faster than Math.abs()	
 		private function getAbsValue(x:Number):Number
@@ -131,6 +135,7 @@
 					ImgFg = ImgFgGreen;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsOriginal;
 					break;
 				
 				case "topsy":
@@ -139,6 +144,7 @@
 					ImgFg = ImgFgTopsy;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsOriginal;
 					break;
 				
 				case "rabtown":
@@ -147,6 +153,7 @@
 					ImgFg = ImgFgRabtown;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsOriginal;
 					break;
 				
 				case "jump2":
@@ -155,6 +162,7 @@
 					ImgFg = ImgFgJump2;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsOriginal;
 					break;
 
 				case "crystal2":
@@ -163,6 +171,7 @@
 					ImgFg = ImgFgCrystal2;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsOriginal;
 					break;
 
 				case "witch":
@@ -171,6 +180,7 @@
 					ImgFg = ImgFgWitch;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsWitch;
 					break;
 
 				case "original":
@@ -180,6 +190,7 @@
 					ImgFg = ImgFgOriginal;
 					SoundFly = SoundFlyOriginal;
 					_bgMusicURL = _bgMusicURLOriginal;
+					_rabbitColors = _rabbitColorsOriginal;
 					break;
 			}
 
@@ -357,7 +368,10 @@
 			if (Math.max(tileBelowLeft, tileBelow, tileBelowRight) < _map.collideIndex)	// the bunny's feet are touching a non-solid tile (air, water)
 				Rabbit.setGrounded(false);
 			else
+			{
+				Rabbit.killCount = 0;	// resets killCounter to zero
 				Rabbit.setGrounded(true);
+			}
 
 			
 			// SPRING: should propel the bunny upwards if:
@@ -514,7 +528,20 @@
 			}
 			else	// if game mode is standard DM
 			{
-				FlxG.scores[Killer.rabbitIndex]++;	// increment killer score
+				Killer.killCount++;
+				FlxG.scores[Killer.rabbitIndex] += Killer.killCount;	// increment killer score
+
+				if (Killer.killCount > 1)
+				{
+					var newPopupText:PopupText = new PopupText(Killer.x + 8, Killer.y, 16, "+" + Killer.killCount.toString());
+					newPopupText.color = _rabbitColors[Killer.rabbitIndex];
+				
+					var popupTextIndex:uint = _popupTexts.push(newPopupText);
+					lyrBGSprites.add(_popupTexts[popupTextIndex - 1]);
+					
+					cleanupArray(_popupTexts);
+				}				
+				
 				_scoreboard.update();		// update the scoreboard
 			}
 
@@ -729,11 +756,19 @@
 			}
 			
 			// cleanup gib array
-			var indicesToDelete:Array = new Array;
+			trace("BEFORE: " + _gibs.length);
+			cleanupArray(_gibs);
+			trace("AFTER:  " + _gibs.length);
 			
-			for (var i:int = 0; i < _gibs.length; i++) 
+		}
+		
+		private function cleanupArray(thisArray:Array):void
+		{
+			var indicesToDelete:Array = new Array;
+
+			for (var i:int = 0; i < thisArray.length; i++) 
 			{
-				if (_gibs[i].dead)
+				if (thisArray[i].dead)
 					indicesToDelete.push(i)
 			}
 
@@ -741,11 +776,12 @@
 			for (var j:int = 0; j < indicesToDelete.length; j++) 
 			{
 				currentIndex = indicesToDelete.pop();
-				_gibs[currentIndex].kill();
-				_gibs.splice(currentIndex, 1);
+				thisArray[currentIndex].kill();
+				thisArray.splice(currentIndex, 1);
 			}
-			trace ("INFO: PlayState: " + (j + 1) + " dead gibs removed.");
 			
+			trace ("INFO: PlayState: " + (j) + " dead items removed.");
+
 		}
 		
 		// creates a shower of blood and gore
@@ -855,6 +891,9 @@
 				else 
 					gib.setSwimming(false);
 			}
+			
+			for each (var text:PopupText in _popupTexts)
+				text.update();
 			
 			super.update();
 			

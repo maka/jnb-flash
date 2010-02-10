@@ -28,6 +28,7 @@
 
 		
 		private var _players:Array = new Array();
+		
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
 
 		private var _bg:FlxSprite;

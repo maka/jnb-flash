@@ -31,6 +31,9 @@
 		
 		// current rabbit id [0-3]
 		public var rabbitIndex:uint;
+		
+		// current killCount (for doublekill, etc.)
+		public var killCount:int = 0;
 
 		// current x-movement force
 		public var movementX:Number = 0;
@@ -55,8 +58,8 @@
 		private var _floatJumpPower:Number = 175;   // power of a normal jump (slightly more than 3 tiles)
 		private var _jumpPower:Number = 245;   // power of a normal jump (slightly more than 3 tiles)
 		private var _springPower:Number = 340;  // power of a spring jump (slightly more than 6 tiles)
-		private var _bouncePower:Number = 160;   // power of the bounce off a killed bunny
-		private var _bounceAndJumpPower:Number = 245;   // power of the bounce AND jump off a killed bunny
+		private var _bouncePower:Number = 165;   // power of the bounce off a killed bunny
+		private var _bounceAndJumpPower:Number = 225;  // power of the bounce AND jump off a killed bunny
 		
 		private var _max_health:int = 1;
 		
