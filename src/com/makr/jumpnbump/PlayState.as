@@ -782,15 +782,18 @@
 			var path:Array = ThisAI.update(playerTile, targetTile);
 
 			/// START moving the player where he needs to go
+			
+			var targetPoint:Point = path[0];
+			
 			// reset any overrides from previous update
 			if (controlledPlayer.getControlOverride() == "JUMP")
 				controlledPlayer.resetControlOverride();
 
-			if (path[0].x < playerTile.x || controlledPlayer.x - targetTile.x * 16 > 0)
+			if (controlledPlayer.x - targetPoint.x * 16 > 1)
 				controlledPlayer.setControlOverride("LEFT");
-			if (path[0].x > playerTile.x || path[0].x * 16 - controlledPlayer.x > 0)
+			if (controlledPlayer.x -  targetPoint.x * 16 < 1)
 				controlledPlayer.setControlOverride("RIGHT");
-			if (path[0].y < playerTile.y && (controlledPlayer.isGrounded() || controlledPlayer.isFloating()))
+			if (controlledPlayer.y - targetPoint.y * 16 > 4 && (controlledPlayer.isGrounded() || controlledPlayer.isFloating()))
 				controlledPlayer.setControlOverride("JUMP");
 			/// END moving the player where he needs to go
 
