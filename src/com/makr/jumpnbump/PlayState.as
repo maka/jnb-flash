@@ -786,7 +786,7 @@
 			// determine who is currently the Lord
 			var LoTF:Player;
 			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
-				LoTF = getPlayerFromRabbitIndex(FlxG.score)[1];
+				LoTF = getPlayerFromRabbitIndex(FlxG.score);
 		
 			// put a crown on the Lord
 			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
