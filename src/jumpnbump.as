@@ -32,6 +32,8 @@
 			}
 			FlxG.score = -1;		// lotf uses this variable to store the lord's rabbitIndex
 			
+			FlxG.music = new FlxSound;
+			
 			showLogo = false;
 			//setLogoFX(0xff930000)
 		}

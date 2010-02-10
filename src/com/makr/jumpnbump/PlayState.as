@@ -197,8 +197,8 @@
 			
 			
 			
-			FlxG.music = new FlxSound;
 			FlxG.music.loadStream(_bgMusicURL, true);
+			FlxG.music.survive = true;
 			FlxG.music.play();
 			
 			_flyNoise = new FlxSound;

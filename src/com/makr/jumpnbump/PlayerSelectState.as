@@ -91,10 +91,12 @@
 					break;
 			}
 
-			FlxG.music = new FlxSound;
-			FlxG.music.loadStream(_bgMusicURL, true);
-			FlxG.music.play();
-
+			if (!FlxG.music.active)
+			{
+				FlxG.music.loadStream(_bgMusicURL, true);
+				FlxG.music.survive = true;
+				FlxG.music.play();
+			}
 			
 			// fade in
 			FlxG.flash(0xff000000, 0.4);
