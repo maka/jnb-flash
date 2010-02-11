@@ -176,6 +176,8 @@
 		
 		private function changeState():void
 		{
+			var gamePrefs:FlxSave;
+			
 			switch (_currentMode)
 			{
 				case 0:
@@ -218,6 +220,16 @@
 					break;
 			}
 
+			// Save game preferences
+			gamePrefs = new FlxSave();
+			if(gamePrefs.bind("jnb-flash"))
+			{
+				gamePrefs.data.gamemode = FlxG.levels[0];
+				gamePrefs.data.levelname = FlxG.levels[1];
+				gamePrefs.forceSave();
+			}
+			
+			
 			FlxG.state = new PlayerSelectState();
 		}
 	}

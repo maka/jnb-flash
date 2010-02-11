@@ -13,6 +13,8 @@
 		public function jumpnbump() 
 		{
 			super(400, 256, PlayerSelectState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
+		
+			var gamePrefs:FlxSave;
 			
 			if (FlxG.levels.length == 0)
 			{
@@ -34,6 +36,16 @@
 			
 			FlxG.music = new FlxSound;
 			
+			// Load saved game data
+			gamePrefs = new FlxSave();
+			if(gamePrefs.bind("jnb-flash"))
+			{
+				if(gamePrefs.data.gamemode != null)
+					FlxG.levels[0] = gamePrefs.data.gamemode;
+				if(gamePrefs.data.levelname != null)
+					FlxG.levels[1] = gamePrefs.data.levelname;
+			}
+
 			showLogo = false;
 			//setLogoFX(0xff930000)
 		}
