@@ -57,7 +57,7 @@
 		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBgOriginal:Class;
 		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgOriginal:Class;
 		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFlyOriginal:Class;
-		private var _bgMusicURLOriginal:String = "../data/levels/original/m_bump.mp3";
+		private var _bgMusicURLOriginal:String = "music/original/m_bump.mp3";
 		private var _rabbitColorsOriginal:Array = new Array(0xDBDBDB, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 		
 		// asset holders, the assets for the current level will be copied into these variables and then used
@@ -106,7 +106,7 @@
 		// popup texts
 		private var _popupTexts:Array = new Array();
 		
-		// returns absolute value, faster than Math.abs()	
+		// returns absolute value, faster than Math.abs()
 		private function getAbsValue(x:Number):Number
 		{
 			if (x < 0)
@@ -203,6 +203,8 @@
 			
 			_flyNoise = new FlxSound;
 			_flyNoise.loadEmbedded(SoundFly, true);
+			_flyNoise.survive = false;
+			FlxG.sounds.push(_flyNoise);
 			_flyNoise.volume = 0;
 			_flyNoise.play();
 			
@@ -829,10 +831,10 @@
 			{
 				_crown.visible = true;
 				if (LoTF.facing == 0)		// facing LEFT
-					_crown.x = LoTF.x + 2;
+					_crown.x = LoTF.x + 2 + LoTF.velocity.x * FlxG.elapsed;
 				else						// facing RIGHT
-					_crown.x = LoTF.x + 5;
-				_crown.y = LoTF.y - 10;
+					_crown.x = LoTF.x + 4 + LoTF.velocity.x * FlxG.elapsed;
+				_crown.y = LoTF.y - 11 + LoTF.velocity.y * FlxG.elapsed;
 				FlxG.scores[FlxG.score] += FlxG.elapsed;
 				_scoreboard.update();
 			}
@@ -860,15 +862,15 @@
 
 			
 			// fly noise volume control
-			var PlayerToSwarmDistance:Number = getClosestPlayerToPoint(SwarmCenter)[1];
-			var FlyVolume:Number = 0.6 - PlayerToSwarmDistance / 200;
-			if (FlyVolume < 0)
-				FlyVolume = 0;
-				
-			_flyNoise.volume = FlyVolume;
-			
+			var closestPlayerToSwarm:Player = getClosestPlayerToPoint(SwarmCenter)[0];
+
 			if (FlxG.levels[0] == "lotf")				// in LoTF, flies are always near the Lord, so the _flyNoise is always heard
-				_flyNoise.volume *= 0.5;				// make the experience less annoying by lowering the volume
+				_flyNoise.volume = 0.4;				// make the experience less annoying by lowering the volume
+			else
+				_flyNoise.volume = 0.7;
+
+			_flyNoise.proximity(SwarmCenter.x, SwarmCenter.y, closestPlayerToSwarm, 80, true);
+			_flyNoise.update();
 			
 			
 			// make flies avoid player and stay in the swarm

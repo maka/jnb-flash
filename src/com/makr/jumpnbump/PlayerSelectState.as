@@ -19,7 +19,7 @@
 		// original level		
 		[Embed(source = '../../../../data/levels/original/menu.png')] private var ImgBgOriginal:Class;
 		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var ImgFgOriginal:Class;
-		private var _bgMusicURLOriginal:String = "../data/levels/original/m_jump.mp3";
+		private var _bgMusicURLOriginal:String = "music/original/m_jump.mp3";
 		
 	
 		private var ImgBg:Class;
