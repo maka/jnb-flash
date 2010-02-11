@@ -27,28 +27,16 @@
 		private var _bgMusicURL:String;
 
 		
-		private var _players:Array = new Array();
-		
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
 
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
 		private var _trunk:Array = new Array();
 		
-		public static var lyrBG:FlxLayer;
-		public static var lyrStage:FlxLayer;
-		public static var lyrBGSprites:FlxLayer;
-		public static var lyrPlayers:FlxLayer;
-		public static var lyrFG:FlxLayer;
-		
-		private function getAbsValue(x:Number):Number
-		{
-			if (x < 0)
-				return -x;
-			else
-				return x;
-			// return (x ^ (x >> 31)) - (x >> 31);
-		}
+		public static var gBackground:FlxGroup;
+		public static var gParticles:FlxGroup;
+		public static var gPlayers:FlxGroup;
+		public static var gForeground:FlxGroup;
 		
 		private function getDistance(a:Point, b:Point):Number
 		{
@@ -57,10 +45,11 @@
 			return Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
 		}
 
+
 		
-		public function PlayerSelectState() 
+		public override function create():void
 		{
-			FlxG.hideCursor();
+			FlxG.mouse.show();
 
 			switch (FlxG.levels[1])
 			{
@@ -98,86 +87,73 @@
 				FlxG.music.play();
 			}
 			
-			// fade in
-			FlxG.flash(0xff000000, 0.4);
-
 			FlxG.levels[2] = FlxG.scores[0] = FlxG.scores[1] = FlxG.scores[2] = FlxG.scores[3] = 0;
 			FlxG.score = -1;
 
-			
-			super();
-			
-			
-
-			
 			// creating new layers
-            lyrBG = new FlxLayer;
-            lyrBGSprites = new FlxLayer;
-            lyrPlayers = new FlxLayer;
-            lyrFG = new FlxLayer;
+			gBackground = new FlxGroup();
+			gParticles = new FlxGroup();
+			gPlayers = new FlxGroup();
+			gForeground = new FlxGroup();
 			
 			// creating the background
 			_bg = new FlxSprite;
 			_bg.loadGraphic(ImgBg, false, false, 400, 256);
 			_bg.x = _bg.y = 0;
-			lyrBG.add(_bg);	
+			gBackground.add(_bg);	
 			
 			// creating the foreground
 			_fg = new FlxSprite;
 			_fg.loadGraphic(ImgFg, false, false, 400, 256);
 			_fg.x = _fg.y = 0;
-			lyrFG.add(_fg);
+			gForeground.add(_fg);
 			
 
 			
 			for (var i:int = 0; i < 4; i++) 
 			{
-				_trunk[i] = new FlxBlock(179 + i * 2, 153 + i * 2, 30, 22);
+				_trunk[i] = new FlxTileblock(179 + i * 2, 153 + i * 2, 30, 22);
 			}
 
 			// creating a bunny
-			_players[0] = new Player(0, Math.random()*160, 170);	
-			_players[1] = new Player(1, Math.random()*160, 170);	
-			_players[2] = new Player(2, Math.random()*160, 170);			
-			_players[3] = new Player(3, Math.random()*160, 170);	
-			
-			for each (var currentPlayer:Player in _players) 
-			{
-				currentPlayer.particleTimer = 0;
-				lyrPlayers.add(currentPlayer);
-			}
-			
-			this.add(lyrBG);
-			this.add(lyrBGSprites);
-			this.add(lyrPlayers);
-			this.add(lyrFG);
+			gPlayers.add(new Player(0, Math.random()*160, 170));
+			gPlayers.add(new Player(1, Math.random()*160, 170));
+			gPlayers.add(new Player(2, Math.random()*160, 170));
+			gPlayers.add(new Player(3, Math.random()*160, 170));
+
+			this.add(gBackground);
+			this.add(gParticles);
+			this.add(gPlayers);
+			this.add(gForeground);
 
 			var statusText:FlxText = new FlxText(10, 236, 380, "Press ESC for options.		 (level: " + FlxG.levels[0] + "_" + FlxG.levels[1] + ")");
 			statusText.color = 0xff333333;
 			this.add(statusText);
 			
+			// fade in
+			FlxG.flash.start(0xff000000, 0.4);
 		
 		}
 
 		
 		
-		private function performMenuCollisions(playerid:uint):void
+		private function performMenuCollisions(Collidee:Player):void
 		{
-			var pHeight:Number = _players[playerid].height;
-			var pWidth:Number = _players[playerid].width;
+			var pHeight:Number = Collidee.height;
+			var pWidth:Number = Collidee.width;
 			
-			var pX:Number = _players[playerid].x;
-			var pY:Number = _players[playerid].y;
+			var pX:Number = Collidee.x;
+			var pY:Number = Collidee.y;
 			
 			var leftEdge:Number = 1;
 			var rightEdge:Number = 400;
-			var floor:Number = 175 + playerid * 2;	
+			var floor:Number = 175 + Collidee.rabbitIndex * 2;	
 			
 			// preventing exit left
 			if (pX < leftEdge)
 			{
-				_players[playerid].velocity.x = 0;
-				_players[playerid].x = leftEdge
+				Collidee.velocity.x = 0;
+				Collidee.x = leftEdge
 			}
 			
 			// triggering transition on right edge
@@ -188,54 +164,63 @@
 			
 			if (pY > floor - pHeight)
 			{
-				_players[playerid].velocity.y = 0;
-				_players[playerid].y = floor - pHeight;
-				_players[playerid].setGrounded(true);
+				Collidee.velocity.y = 0;
+				Collidee.y = floor - pHeight;
+				Collidee.setGrounded(true);
 			}
 			else
 			{
-				_players[playerid].setGrounded(false);
+				Collidee.setGrounded(false);
 			}
 			
-			_trunk[playerid].collide(_players[playerid]);
+			_trunk[Collidee.rabbitIndex].collide(Collidee);
 			
-			if (pX > _trunk[playerid].x - pWidth && pX < _trunk[playerid].x + _trunk[playerid].width && pY > _trunk[playerid].y - pHeight - 1)
-				_players[playerid].setGrounded(true);
+			if (pX > _trunk[Collidee.rabbitIndex].x - pWidth && pX < _trunk[Collidee.rabbitIndex].x + _trunk[Collidee.rabbitIndex].width && 
+				pY > _trunk[Collidee.rabbitIndex].y - pHeight - 1)
+				Collidee.setGrounded(true);
 		}	
 		
 		private function transition():void
 		{
-				if (_players[0].x > _trunk[0].x - _players[0].width)
-					FlxG.levels[2] |= 1;
-				if (_players[1].x > _trunk[1].x - _players[1].width)
-					FlxG.levels[2] |= 2;
-				if (_players[2].x > _trunk[2].x - _players[2].width)
-					FlxG.levels[2] |= 4;
-				if (_players[3].x > _trunk[3].x - _players[3].width)
-					FlxG.levels[2] |= 8;
-					
-				for (var i:int = 0; i < _players.length; i++) 
+			for each (var currentPlayer:Player in gPlayers.members) 
+			{
+				if (currentPlayer.x > _trunk[currentPlayer.rabbitIndex].x - currentPlayer.width)
 				{
-					if (_players[i].x > _trunk[i].x - _players[i].width)
+					currentPlayer.setControls(false);
+					currentPlayer.setControlOverride("RIGHT");
+					
+					
+					switch (currentPlayer.rabbitIndex) 
 					{
-						_players[i].setControls(false);
-						_players[i].setControlOverride("RIGHT");
+						case 0:
+							FlxG.levels[2] |= 1;
+							break;
+						case 1:
+							FlxG.levels[2] |= 2;
+							break;
+						case 2:
+							FlxG.levels[2] |= 4;
+							break;
+						case 3:
+							FlxG.levels[2] |= 8;
+							break;
 					}
 				}
+			}
 					
-				FlxG.fade(0xff000000, 1, startGame);
+			FlxG.fade.start(0xff000000, 1, startGame);
 		}
 		
-		override public function update():void
+		public override function update():void
         {
-			if (FlxG.keys.justPressed("ESC"))
-				FlxG.fade(0xff000000, 0.4, gotoMenu);
+			if (FlxG.keys.justPressed("ESCAPE"))
+				FlxG.fade.start(0xff000000, 0.4, gotoMenu);
 
 			updateParticles();
 				
-			for (var i:int = 0; i < _players.length; i++) 
+			for each (var Collidee:Player in gPlayers.members) 
 			{
-				performMenuCollisions(i);
+				performMenuCollisions(Collidee);
 			}
 			
 			super.update();
@@ -245,13 +230,13 @@
 		private function updateParticles():void
 		{
 			// create new Particles
-			for each (var currentPlayer:Player in _players)
+			for each (var currentPlayer:Player in gPlayers.members)
 			{
 				currentPlayer.particleTimer += FlxG.elapsed;
 				
 				// new Dust
 				if (currentPlayer.isGrounded() && 					// if the player is on the ground AND
-					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || getAbsValue(currentPlayer.velocity.x) < 15) &&
+					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || FlxU.abs(currentPlayer.velocity.x) < 15) &&
 																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
 					currentPlayer.movementX != 0 &&				// a movement key is pressed AND
 					currentPlayer.particleTimer > DUST_DELAY)		// a new dust particle can be created
@@ -272,7 +257,7 @@
 					}
 					yDustOrigin = currentPlayer.y + currentPlayer.width
 					
-					lyrBGSprites.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
+					gParticles.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
 					
 					currentPlayer.particleTimer = 0;
 				}
@@ -282,14 +267,14 @@
 		
         private function gotoMenu():void
         {
-			FlxG.switchState(LevelSelectState);
+			FlxG.state = new LevelSelectState();
         }
 		
 		private function startGame():void
         {
-			FlxG.hideCursor();
+			FlxG.mouse.cursor.visible = false;
 			FlxG.music.stop();
-			FlxG.switchState(PlayState);
+			FlxG.state = new PlayState();
         }
 	}
 }

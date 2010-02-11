@@ -27,9 +27,9 @@
 			super(X, Y);
 			loadGraphic(ImgBubble, true, false, 4, 4); // load player sprite (is animated, is not reversible, is 4x4)
 			
-			alpha = Math.random() * 0.5 + 0.5;
+			alpha = Math.random() * 0.5;
 			
-			color = 0x80C1F3;
+		//	color = 0x80C1F3;
 			
 			velocity.x = Xvel;
 			velocity.y = Yvel;
@@ -55,7 +55,7 @@
 			addAnimation("bubble2", [2]);
 			addAnimation("bubble3", [3]);
 			
-			switch (int(Math.random()*4)) 
+			switch (FlxU.floor(Math.random()*4)) 
 			{
 				case 0:
 					play("bubble0")

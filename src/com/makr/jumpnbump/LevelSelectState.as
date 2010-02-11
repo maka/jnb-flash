@@ -4,6 +4,7 @@
 	import com.makr.jumpnbump.objects.RadioButton;
 	import flash.geom.Point;
 	import org.flixel.*;
+	import org.flixel.data.FlxFlash;
 
 	public class LevelSelectState extends FlxState
 	{
@@ -23,9 +24,9 @@
 		private var _modeButtons:Array = new Array;
 		private var _currentMode:int = -1;
 
-		public function LevelSelectState() 
+		public override function create():void
 		{
-			FlxG.showCursor(null);
+			FlxG.mouse.cursor.visible = true;
 
 			switch (FlxG.levels[0])
 			{
@@ -71,12 +72,6 @@
 					break;
 			}
 
-			
-			// fade in
-			FlxG.flash(0xff000000, 0.4);
-		
-			super();
-			
 			var titleText:FlxText = new FlxText(12, 14, 112, "Options");
 			titleText.color = 0xffffff
 			titleText.size = 16;
@@ -92,11 +87,11 @@
 			_levelButtons.push(new ImgButton(levelBox.x + 96 * 1, levelBox.y + 64 * 1, 	ImgThumbCrystal2, 	handleButtonCrystal2,	"Crystal 2"));
 			_levelButtons.push(new ImgButton(levelBox.x + 96 * 2, levelBox.y + 64 * 1, 	ImgThumbWitch, 		handleButtonWitch,		"Witch"));
 			
-			var exitButtonText:FlxText = new FlxText(5, 1, 50, "done");
+			var exitButtonText:FlxText = new FlxText(5, 1, 52, "done");
 			exitButtonText.color = 0x000000
 			exitButtonText.size = 16;
 
-			var exitButtonTextAlt:FlxText = new FlxText(5, 1, 50, "done");
+			var exitButtonTextAlt:FlxText = new FlxText(5, 1, 52, "done");
 			exitButtonTextAlt.color = 0x001020
 			exitButtonTextAlt.size = 16;
 			
@@ -114,7 +109,7 @@
 				this.add(button);
 			}
 			
-			_levelButtons[_currentLevel].switchOn();
+			_levelButtons[_currentLevel].on = true;
 			
 			var modeBox:Point = new Point(12, 185);
 			var modeText:FlxText = new FlxText(modeBox.x, modeBox.y, 112, "Gamemode:");
@@ -128,13 +123,15 @@
 				this.add(radioButton);
 			}
 
-			_modeButtons[_currentMode].switchOn();
+			_modeButtons[_currentMode].on = true;
 			
+			// fade in
+			FlxG.flash.start(0xff000000, 0.4);
 		}
 
 		
 		
-		override public function update():void
+		public override function update():void
         {
 			
 			super.update();
@@ -151,9 +148,9 @@
 		{
 			for each (var button:ImgButton in _levelButtons)
 			{
-				button.switchOff();
+				button.on = false;
 			}
-			_levelButtons[buttonID].switchOn();
+			_levelButtons[buttonID].on = true;
 			_currentLevel = buttonID;
 
 		}
@@ -164,9 +161,9 @@
 		{
 			for each (var radiobutton:RadioButton in _modeButtons)
 			{
-				radiobutton.switchOff();
+				radiobutton.on = false;
 			}
-			_modeButtons[radioButtonID].switchOn();
+			_modeButtons[radioButtonID].on = true;
 			_currentMode = radioButtonID;
 
 		}
@@ -174,7 +171,7 @@
 		
         private function exitMenu():void
         {
-			FlxG.fade(0xff000000, 0.4, changeState);
+			FlxG.fade.start(0xff000000, 0.4, changeState);
         }
 		
 		private function changeState():void
@@ -221,7 +218,7 @@
 					break;
 			}
 
-			FlxG.switchState(PlayerSelectState);
+			FlxG.state = new PlayerSelectState();
 		}
 	}
 }

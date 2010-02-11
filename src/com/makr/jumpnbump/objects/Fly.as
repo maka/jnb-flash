@@ -77,8 +77,8 @@
 			
 			// random factor
 			var randomness:Point = new Point(0, 0);
-			randomness.x += (int(Math.random() * 3) - 1) * 30
-			randomness.y += (int(Math.random() * 3) - 1) * 30
+			randomness.x += (FlxU.floor(Math.random() * 3) - 1) * 30;
+			randomness.y += (FlxU.floor(Math.random() * 3) - 1) * 30;
 			direction = direction.add(randomness);
 			
 			// boundary check
@@ -91,11 +91,13 @@
 			if (thisPosition.y + direction.y > 256)
 				direction.y = 0;
 
+
 			// go go go
-			velocity = velocity.add(direction);
+			velocity.x += direction.x;
+			velocity.y += direction.y;
 		}
 
-		override public function update():void
+		public override function update():void
 		{
 			super.update();
 		}

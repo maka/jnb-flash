@@ -1,6 +1,7 @@
 ﻿package com.makr.jumpnbump.objects 
 {
 	import flash.geom.Point;
+	import flash.text.TextFormat;
 	import org.flixel.*;
 	/**
 	 * ...
@@ -10,25 +11,29 @@
 	public class PopupText extends FlxText
 	{
 		
-		private static const _VELOCITY:Point = new Point(0, -20);
 		private var _lifeTime:Number;
 	
 		private var _fadeTimer:Number = 0;
 		
 		public function PopupText(X:Number, Y:Number, Width:uint, Text:String, LifeTime:Number = 2):void
 		{
+			var xPos:Number = X - Width * 0.5;
+			if (xPos < 0)
+				xPos = 0;
+			else if (xPos > 352 - Width)
+				xPos = 352 - Width;
+			var yPos:Number = Math.max(0, Y);
+			
+			super(xPos, yPos, Width, Text);
+
 			_lifeTime = LifeTime;
 			
-			trace("popupText init(" + X + ", " + Y + ", " + Width + ", " + Text + ")");
+			_shadow = 0x434343;
 			
-			super(X - Width * 0.5, Y, Width, Text);
-			
-			velocity.y = _VELOCITY.y / _lifeTime;
-			velocity.x = _VELOCITY.x / _lifeTime;
+
 		}
 		public override function kill():void
 		{
-			trace("popupText kill");
 			active = false;
 			super.kill();
 		}
@@ -38,6 +43,8 @@
 			if (!active)
 				return;
 				
+			y -= 20 * FlxG.elapsed / _lifeTime;
+
 			_fadeTimer += FlxG.elapsed;
 			
 			alpha = 1 - (_fadeTimer / _lifeTime) * (_fadeTimer / _lifeTime);

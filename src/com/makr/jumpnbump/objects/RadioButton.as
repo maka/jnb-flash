@@ -34,26 +34,26 @@
 			_text = new FlxText(x+18, y, Width - 18, Text);
 		}
 
-		override public function update():void
+		public override function update():void
 		{
 			super.update();
 			
 			// i don't know why this is so ridiculously complicated in FlxButton,
 			// here's the simpe version of what I want to do:
 			
-			if (on() && !this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
+			if (_onToggle && !this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
 			{
 				_radioButton.play("checked");
 			}
-			if (on() && this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
+			if (_onToggle && this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
 			{
 				_radioButton.play("checked_hover");
 			}
-			if (!on() && !this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y))
+			if (!_onToggle && !this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y))
 			{
 				_radioButton.play("unchecked");
 			}
-			if (!on() && this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
+			if (!_onToggle && this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
 			{
 				_radioButton.play("unchecked_hover");
 			}
@@ -66,7 +66,7 @@
 		}
 
 		
-		override public function render():void
+		public override function render():void
 		{
 			_radioButton.render();
 			

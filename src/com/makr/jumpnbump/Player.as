@@ -170,7 +170,7 @@
 				velocity.y *= 0.35;
 
 				var topTileEdge:Number = y - (y % 16);
-				PlayState.lyrBGSprites.add(new Splash(x, topTileEdge));
+				PlayState.gParticles.add(new Splash(x, topTileEdge));
 			}	
 		}
 
@@ -219,8 +219,11 @@
 			_controlOverride = "";	// reset value
 		}
 		
-		override public function reset(X:Number, Y:Number):void
+		public override function reset(X:Number, Y:Number):void
 		{
+			x = X;
+			y = Y;
+			
 			exists = true;
 			active = true;	// unmarks player for respawn
 			visible = true;
@@ -229,9 +232,6 @@
 			_respawnTimer = 0;
 			particleTimer = 0;
 			
-			last.x = x = X;
-			last.y = y = Y;
-
 			if (Math.random() > 0.5)
 				facing = LEFT;
 			else
@@ -385,7 +385,7 @@
 
 		}
 		
-		override public function update():void
+		public override function update():void
 		{
 			movementX = 0;
 			

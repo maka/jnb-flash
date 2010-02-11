@@ -40,27 +40,27 @@
 			_on.scrollFactor = scrollFactor;
 		}
 
-		override public function update():void
+		public override function update():void
 		{
 			super.update();
 			
 			// i don't know why this is so ridiculously complicated in FlxButton,
 			// here's the simpe version of what I want to do:
 			
-			if (on()) 
+			if (_onToggle) 
 			{
 				_text.color = 0xff006FD7;
 				_hover.visible = false;
 				_on.visible = true;
 				_off.visible = false;
 			}
-			if (!on() && !_off.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y))
+			if (!_onToggle && !_off.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y))
 			{
 				_hover.visible = false;
 				_on.visible = false
 				_off.visible = true;
 			}
-			if (!on() && _off.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
+			if (!_onToggle && _off.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
 			{
 				_text.color = 0x666666;
 				_hover.visible = true;
@@ -70,7 +70,7 @@
 		}
 
 		
-		override public function render():void
+		public override function render():void
 		{
 			if (_hover.visible) 
 				_hover.render();

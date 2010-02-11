@@ -50,7 +50,7 @@
 			play("Fly");
 		}
 		
-		override public function update():void
+		public override function update():void
 		{
 			velocity.x += Math.random() * 8 - 4;
 			velocity.y += Math.random() * 8 - 4;
@@ -71,29 +71,6 @@
 			
 			super.update();
 		
-		}
-		
-		override public function hitWall(Contact:FlxCore = null):Boolean
-		{
-			velocity.x *= -0.5;
-			velocity.x = 0;
-			return true;
-		}
-
-		override public function hitFloor(Contact:FlxCore = null):Boolean
-		{
-			velocity.y *= -0.5;
-			velocity.y = 0;
-			
-			return true;
-		}
-
-		override public function hitCeiling(Contact:FlxCore = null):Boolean
-		{
-			velocity.y *= -0.5;
-			velocity.y = 0;
-			
-			return true;
 		}
 	}
 }

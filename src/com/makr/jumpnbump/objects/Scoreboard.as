@@ -11,7 +11,7 @@
 		{  
 			var i:Array = [];  
 			var j:uint = 0;  
-			var text:String = "0" + int(x).toString();
+			var text:String = "0" + FlxU.floor(x).toString();
 			while (j < text.length) {  
 				i.push(text.charAt(j++));  
 			}  

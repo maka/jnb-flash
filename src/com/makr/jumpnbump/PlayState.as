@@ -13,8 +13,6 @@
 
 	public class PlayState extends FlxState
 	{
-		FlxG.showCursor();
-
 		/// Assets independent from level selection
 		[Embed(source = '../../../../data/levels/common/tiles.png')] private var ImgTiles:Class;
 		[Embed(source = '../../../../data/levels/common/crown.png')] private var ImgCrown:Class;
@@ -68,53 +66,41 @@
 		private var _bgMusicURL:String;
 		private var _rabbitColors:Array;
 		
-		// arrays and timers for players and things created by players (dust, bubbles)
-		private var _players:Array = new Array();	
-		
+		// timers for objects created by players (dust, bubbles)
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
 		private static const BUBBLE_DELAY:Number = 0.2;		// delay between creating a bubble particles
-		private var _bubbles:Array = new Array();
-		private var _springs:Array;
-		private var _gibs:Array;
 		
 		// other parts of the game
 		private var _map:FlxTilemap;
 		private var _respawnMap:Array;				// array that holds all positions where a player can spawn (VOID above SOLID)
 		private var _scoreboard:Scoreboard;
 
-		// the various layers
-		public static var lyrBG:FlxLayer;			// background layer
-		public static var lyrStage:FlxLayer;		// tilemap layer, always disabled
-		public static var lyrBGSprites:FlxLayer;	// sprites that should appear behind players (e.g. gibs)
-		public static var lyrSprites:FlxLayer;		// other sprites (e.g. players)
-		public static var lyrFG:FlxLayer;			// foreground layer
+		//the various groups
+		public static var gBackground:FlxGroup;		// holds the background image
+		public static var gMap:FlxGroup;			//   "    "  tilemap view for debugging
+		public static var gParticles:FlxGroup;		//   "    "  simple particles (dust, splashes)
+		public static var gBubbles:FlxGroup;		//   "    "  bubble particles
+		public static var gGibs:FlxGroup;			//   "    "  gibs
+		public static var gSprings:FlxGroup;		//   "    "  springs
+		public static var gButflies:FlxGroup;		//   "    "  butterflies
+		public static var gFlies:FlxGroup;			//   "    "  flies
+		public static var gPlayers:FlxGroup;		//   "    "  players
+		public static var gForeground:FlxGroup;		//   "    "  foreground image
+		public static var gPopupTexts:FlxGroup;		//   "    "  Popup Texts
+		public static var gUI:FlxGroup;				//   "    "  unique UI elements (icons (crown), buttons, scoreboard)
 		
 		// "Lord of the Flies" game mode specific variables
 		private var _crown:FlxSprite;				// crown sprite, displayed above current Lord
 
 		// butterfly variables
-		private var _butflies:Array = new Array();
 		private static const NUM_BUTFLIES:uint = 4;
 		
 		// fly variables
 		private var _flyNoise:FlxSound;
-		private var _flies:Array = new Array();
 		private static const NUM_FLIES:uint = 20;
 		private static const NUM_FLIES_LOTF:uint = 50;	// "Lord of the Flies" game mode specific variable
 		private var _numFlies:uint;						// is set to either NUM_FLIES or NUM_FLIES_LOTF, depending on game mode
 
-		// popup texts
-		private var _popupTexts:Array = new Array();
-		
-		// returns absolute value, faster than Math.abs()
-		private function getAbsValue(x:Number):Number
-		{
-			if (x < 0)
-				return -x;
-			else
-				return x;
-		}
-		
 		// returns distance between two Points a and b
 		private function getDistance(A:Point, B:Point):Number
 		{
@@ -123,7 +109,7 @@
 			return Math.sqrt(deltaX * deltaX + deltaY * deltaY); 
 		}
 		
-		public function PlayState() 
+		public override function create():void
 		{
 			
 			// Loading assets into variables
@@ -208,31 +194,32 @@
 			_flyNoise.volume = 0;
 			_flyNoise.play();
 			
-			super();
-			
 			if (FlxG.levels[0] == "lotf")
 				_numFlies = NUM_FLIES_LOTF;
 			else
 				_numFlies = NUM_FLIES;
 			
-			// creating new layers
-            lyrBG = new FlxLayer;
-			lyrStage = new FlxLayer;
-            lyrBGSprites = new FlxLayer;
-            lyrSprites = new FlxLayer;
-            lyrFG = new FlxLayer;
-			
+			// creating new groups
+			gBackground = new FlxGroup();
+			gMap = new FlxGroup();
+			gParticles = new FlxGroup();
+			gBubbles = new FlxGroup();
+			gGibs = new FlxGroup();
+			gSprings = new FlxGroup();
+			gButflies = new FlxGroup();
+			gFlies = new FlxGroup();
+			gPlayers = new FlxGroup();
+			gForeground = new FlxGroup();
+			gPopupTexts = new FlxGroup();
+			gUI = new FlxGroup()				// unique UI elements (icons (crown), buttons, scoreboard)
+				
 			// creating the background
-			var _bg:FlxSprite = new FlxSprite;
-			_bg.loadGraphic(ImgBg, false, false, 400, 256);
-			_bg.x = _bg.y = 0;
-			lyrBG.add(_bg);	
+			var _bg:FlxSprite = new FlxSprite(0, 0, ImgBg);
+			gBackground.add(_bg);	
 			
 			// creating the foreground
-			var _fg:FlxSprite = new FlxSprite;
-			_fg.loadGraphic(ImgFg, false, false, 400, 256);
-			_fg.x = _fg.y = 0;
-			lyrFG.add(_fg);
+			var _fg:FlxSprite = new FlxSprite(0, 0, ImgFg);
+			gForeground.add(_fg);
 
 			// creating the map
 			_map = new FlxTilemap;
@@ -240,26 +227,23 @@
             _map.drawIndex = 0;
             _map.collideIndex = 2;
             _map.follow();
-           lyrStage.add(_map);
+			gMap.add(_map);
 			
 			// creating the scoreboard
 			_scoreboard = new Scoreboard();
 			for each (var tile:FlxSprite in _scoreboard.Tiles) 
-			{
-				lyrBG.add(tile);
-			}
-
-			this.add(lyrBG);
-		//	this.add(lyrStage);	// uncomment this to view the tilemap directly
-			this.add(lyrBGSprites);
-			this.add(lyrSprites);
-			this.add(lyrFG);
+				gUI.add(tile);
 			
 			// creating the springs
-			createSprings();
-			
-			// setting up gib array
-			_gibs = new Array;
+			// looks for tiles with value 4 (SPRING) and creates a Spring object at that position
+			for (var x:int = 0; x < 22; x++) 
+			{
+				for (var y:int = 0; y < 16; y++) 
+				{
+					if (_map.getTileByIndex(y * 22 + x) == 4)
+						gSprings.add(new Spring(x * 16, y * 16));
+				}
+			}
 			
 			// building respawn map
 			_respawnMap = buildRespawnMap();
@@ -269,40 +253,35 @@
 			if (FlxG.levels[2] & 1)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_players.push(new Player(0, bunnySpawnPoint.x, bunnySpawnPoint.y));			
+				gPlayers.add(new Player(0, bunnySpawnPoint.x, bunnySpawnPoint.y));			
 			}
 			if (FlxG.levels[2] & 2)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_players.push(new Player(1, bunnySpawnPoint.x, bunnySpawnPoint.y));	
+				gPlayers.add(new Player(1, bunnySpawnPoint.x, bunnySpawnPoint.y));	
 			}
 			if (FlxG.levels[2] & 4)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_players.push(new Player(2, bunnySpawnPoint.x, bunnySpawnPoint.y));			
+				gPlayers.add(new Player(2, bunnySpawnPoint.x, bunnySpawnPoint.y));			
 			}
 			if (FlxG.levels[2] & 8)
 			{
 				bunnySpawnPoint = getFreeSpawnPoint();
-				_players.push(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
+				gPlayers.add(new Player(3, bunnySpawnPoint.x, bunnySpawnPoint.y));	
 			}
-			
-			// adding bunnies to Sprite Layer
-			for each (var currentPlayer:Player in _players) 
-				lyrSprites.add(currentPlayer);
 			
 			// creating the lotf crown
 			_crown = new FlxSprite(0, 0, ImgCrown);
 			_crown.visible = false;
-			lyrFG.add(_crown);
+			gUI.add(_crown);
 			
 			// creating the flies
 			var flySpawnPoint:Point;
-			flySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+			flySpawnPoint = _respawnMap[FlxU.floor(Math.random() * _respawnMap.length)];
 			for (var j:int = 0; j < _numFlies; j++) 
 			{
-				_flies.push(new Fly(flySpawnPoint.x + Math.random() * 32 - 16, flySpawnPoint.y + Math.random() * 32 - 16));
-				lyrBGSprites.add(_flies[j]);
+				gFlies.add(new Fly(flySpawnPoint.x + Math.random() * 32 - 16, flySpawnPoint.y + Math.random() * 32 - 16));
 			}
 			
 			
@@ -310,35 +289,34 @@
 			var butflySpawnPoint:Point;
 			for (var k:int = 0; k < NUM_BUTFLIES; k++) 
 			{
-				butflySpawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
-				_butflies.push(new ButFly(butflySpawnPoint.x, butflySpawnPoint.y));
-				lyrBGSprites.add(_butflies[k]);
+				butflySpawnPoint = _respawnMap[FlxU.floor(Math.random() * _respawnMap.length)];
+				gButflies.add(new ButFly(butflySpawnPoint.x, butflySpawnPoint.y));
 			}
 			
+			
+			// adds all the groups to this state (they are rendered in this order)
+			this.add(gBackground);
+//			this.add(gMap);
+			this.add(gParticles);
+			this.add(gBubbles);
+			this.add(gGibs);
+			this.add(gSprings);
+			this.add(gButflies);
+			this.add(gFlies);
+			this.add(gPlayers);
+			this.add(gForeground);
+			this.add(gPopupTexts);
+			this.add(gUI);
+
+			
 			// fade in
-			FlxG.flash(0xff000000, 0.4);
-		}
-		
-		// looks for tiles with value 4 (SPRING) and creates a Spring object at that position
-		private function createSprings():void
-		{
-			_springs = new Array;
-			// Tile for Spring is 4
-			for (var x:int = 0; x < 22; x++) 
-			{
-				for (var y:int = 0; y < 16; y++) 
-				{
-					if (_map.getTileByIndex(y * 22 + x) == 4)
-						_springs.push(lyrBGSprites.add(new Spring(x * 16, y * 16)));
-					
-				}
-			}
+			FlxG.flash.start(0xff000000, 0.4);
 		}
 		
 		// returns the TileIndex for the tile at position (x,y), to be used with _map.getTileByIndex() to get tile value at pos(x,y)
 		private function getTileIndex(x:Number, y:Number):uint
 		{
-			return int(y / 16) * _map.widthInTiles + int(x / 16);
+			return FlxU.floor(y / 16) * _map.widthInTiles + FlxU.floor(x / 16);
 		}
 		
 		// resolves all interactions between player and tilemap apart from basic collision
@@ -367,13 +345,14 @@
 			// 4 = Spring
 
 			// SOLID: determining if the bunny is on solid ground
-			if (Math.max(tileBelowLeft, tileBelow, tileBelowRight) < _map.collideIndex)	// the bunny's feet are touching a non-solid tile (air, water)
-				Rabbit.setGrounded(false);
-			else
+			//if (Math.max(tileBelowLeft, tileBelow, tileBelowRight) < _map.collideIndex)	// the bunny's feet are touching a non-solid tile (air, water)
+			if (Rabbit.onFloor)
 			{
 				Rabbit.killCount = 0;	// resets killCounter to zero
 				Rabbit.setGrounded(true);
 			}
+			else
+				Rabbit.setGrounded(false);
 
 			
 			// SPRING: should propel the bunny upwards if:
@@ -384,14 +363,14 @@
 				if (tileBelow < _map.collideIndex || tileBelow == 4) 	// and the center does too (most of the bunny is on the spring)
 																		// OR the tile directly underneath is not solid (the bunny is touching nothing else)
 				{				
-					var leftCorner:Point = new Point(int(leftEdge / 16) * 16, int(below / 16) * 16);
-					var rightCorner:Point = new Point(int(rightEdge / 16) * 16, int(below / 16) * 16);
+					var leftCorner:Point = new Point(FlxU.floor(leftEdge / 16) * 16, FlxU.floor(below / 16) * 16);
+					var rightCorner:Point = new Point(FlxU.floor(rightEdge / 16) * 16, FlxU.floor(below / 16) * 16);
 					
-					for (var i:int = 0; i < _springs.length; i++) 
+					for each (var currentSpring:Spring in gSprings.members) 
 					{
-						if ((_springs[i].x == leftCorner.x && _springs[i].y == leftCorner.y) || 
-							(_springs[i].x == rightCorner.x && _springs[i].y == rightCorner.y))
-							_springs[i].Activate();
+						if ((currentSpring.x == leftCorner.x && currentSpring.y == leftCorner.y) || 
+							(currentSpring.x == rightCorner.x &&currentSpring.y == rightCorner.y))
+							currentSpring.Activate();
 
 					}
 					
@@ -530,19 +509,30 @@
 			}
 			else	// if game mode is standard DM
 			{
-				Killer.killCount++;
+				if (Killer.killCount < 9)
+					Killer.killCount++;
 				FlxG.scores[Killer.rabbitIndex] += Killer.killCount;	// increment killer score
 
-				if (Killer.killCount > 1)
+				
+				
+				if (Killer.killCount > 1 && Killer.killCount != 4)
 				{
 					var newPopupText:PopupText = new PopupText(Killer.x + 8, Killer.y, 16, "+" + Killer.killCount.toString());
 					newPopupText.color = _rabbitColors[Killer.rabbitIndex];
 				
-					var popupTextIndex:uint = _popupTexts.push(newPopupText);
-					lyrBGSprites.add(_popupTexts[popupTextIndex - 1]);
+					gPopupTexts.add(newPopupText);
 					
-					cleanupArray(_popupTexts);
-				}				
+		// FIXME:			cleanupArray(_popupTexts);
+				}
+				else if (Killer.killCount == 4)
+				{
+					newPopupText = new PopupText(Killer.x + 8, Killer.y, 126, "M-M-M-M-MONSTERKILL!", 3);
+					newPopupText.color = 0xB70000;
+				
+					gPopupTexts.add(newPopupText);
+					
+		// FIXME:			cleanupArray(_popupTexts);
+				}
 				
 				_scoreboard.update();		// update the scoreboard
 			}
@@ -552,7 +542,7 @@
 		// resolves all interactions between all players (Flixel collision is completely useless for this purpose)
 		private function collidePlayers():void
 		{
-			var numPlayers:uint = _players.length;
+			var numPlayers:uint = gPlayers.members.length;
 			
 			var a:int = 0;
 			var b:int = 0;
@@ -562,19 +552,19 @@
 
 			var maxWidth:Number, maxHeight:Number;
 			
-			for (a = 0; a < _players.length - 1; a++) 
+			for (a = 0; a < numPlayers - 1; a++) 
 			{
-				for (b = a + 1; b < _players.length; b++) 
+				for (b = a + 1; b < numPlayers; b++) 
 				{
-					pA = _players[a];
-					pB = _players[b];
+					pA = gPlayers.members[a];
+					pB = gPlayers.members[b];
 					
 					maxWidth = maxHeight = 12;
 
 					if (!pA.dead && !pB.dead)						// check that both are alive
 					{
-						if (getAbsValue(pA.x - pB.x) < maxWidth && 
-							getAbsValue(pA.y - pB.y) < maxHeight)	// check that they intersect
+						if (FlxU.abs(pA.x - pB.x) < maxWidth && 
+							FlxU.abs(pA.y - pB.y) < maxHeight)	// check that they intersect
 						{												
 							trace("PlayState:collidePlayers()");
 							trace("	Players " + pA.rabbitIndex + " and " + pB.rabbitIndex + " intersect;");
@@ -652,7 +642,7 @@
 			var closestDistance:Number = 10000;
 			var currentDistance:Number;
 			
-			for each (var currentPlayer:Player in _players) 
+			for each (var currentPlayer:Player in gPlayers.members) 
 			{
 				playerPosition.x = currentPlayer.x + 8;
 				playerPosition.y = currentPlayer.y + 8;
@@ -699,7 +689,7 @@
 			var closestPlayerDistance:Number;
 			
 			do {
-				spawnPoint = _respawnMap[int(Math.random() * _respawnMap.length)];
+				spawnPoint = _respawnMap[FlxU.floor(Math.random() * _respawnMap.length)];
 				closestPlayerDistance = getClosestPlayerToPoint(spawnPoint)[1];
 			} while (closestPlayerDistance < 32);
 			
@@ -712,7 +702,7 @@
 			var theDead:Array = new Array;
 			
 			
-			for each (var currentPlayer:Player in _players)
+			for each (var currentPlayer:Player in gPlayers.members)
 			{
 				if (!currentPlayer.active)
 				{
@@ -723,10 +713,13 @@
 
 			if (theDead.length == 0)
 				return false;
+			else
+				trace(theDead.length + " rabbits are dead!");
 				
 			for each (var ghost:Player in theDead)
 			{
 				var respawnPoint:Point = getFreeSpawnPoint();	
+				trace("respawning player R#" + ghost.rabbitIndex + "(" + ghost.x + "," + ghost.y+") at new location (" + respawnPoint.x + "," + respawnPoint.y+")");
 				ghost.reset(respawnPoint.x, respawnPoint.y);
 				ghost.particleTimer = 0;
 			}
@@ -740,7 +733,7 @@
 			var gibKind:String;
 			var gibIndex:uint;
 			
-			for (var re:int = 0; re < int(Math.random() * 6 + 9 ); re++) 
+			for (var re:int = 0; re < FlxU.floor(Math.random() * 6 + 9 ); re++) 
 			{
 				if (Math.random() * 10 < 4)
 				{
@@ -751,16 +744,13 @@
 					gibKind = "Flesh";
 				}
 					
-				gibIndex = _gibs.push(new Gib(	Gibbee.rabbitIndex, 
-												gibKind, Gibbee.x + Gibbee.width / 2, 
-												Gibbee.y + Gibbee.height / 2));
-				lyrBGSprites.add(_gibs[gibIndex - 1]);
+				gGibs.add(new Gib(	Gibbee.rabbitIndex, 
+									gibKind, Gibbee.x + Gibbee.width / 2, 
+									Gibbee.y + Gibbee.height / 2));
 			}
 			
 			// cleanup gib array
-			trace("BEFORE: " + _gibs.length);
-			cleanupArray(_gibs);
-			trace("AFTER:  " + _gibs.length);
+	// FIXME:		cleanupArray(_gibs);
 			
 		}
 		
@@ -793,33 +783,28 @@
 			
 			trace("Player " + Burstee.rabbitIndex + " just burst :o");
 			
-			for (var re:int = 0; re < int(Math.random() * 10 + 30 ); re++) 
+			for (var re:int = 0; re < FlxU.floor(Math.random() * 10 + 30 ); re++) 
 			{
-				bubbleIndex = _bubbles.push(new Bubble(Burstee.x + 8, Burstee.y + 8,
-														(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100));
-				lyrBGSprites.add(_bubbles[bubbleIndex - 1]);
+				gBubbles.add(new Bubble(Burstee.x + 8, Burstee.y + 8,
+							(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100));
 			}
 			
 			Burstee.particleTimer = -1;
 		}
 		
-		override public function update():void
+		public override function update():void
         {
 			// check if ESCAPE has been pressed and if so, exit PlayState
-			if (FlxG.keys.justPressed("ESC"))
-				FlxG.fade(0xff000000, 1, quit);
+			if (FlxG.keys.justPressed("ESCAPE"))
+				FlxG.fade.start(0xff000000, 1, quit);
 
 			// perform tile logic and collision with map borders for players
-			for each (var currentPlayer:Player in _players) 
+			for each (var currentPlayer:Player in gPlayers.members) 
 			{
 				performTileLogic(currentPlayer)
 				collideMapBorders(currentPlayer);
 			}
 	
-			// create new particles, perform collisions, erase dead ones
-			updateParticles();			
-			
-			
 			/// LOTF GAME MODE
 			// determine who is currently the Lord
 			var LoTF:Player;
@@ -851,7 +836,7 @@
 			}
 			else												// otherwise use the average position of all flies as the swarm's center
 			{
-				for each (var thisFly:Fly in _flies) 
+				for each (var thisFly:Fly in gFlies.members) 
 				{
 					SwarmCenter.x += thisFly.x;
 					SwarmCenter.y += thisFly.y;
@@ -876,39 +861,42 @@
 			// make flies avoid player and stay in the swarm
 			var closestPlayerToFly:Array = new Array;
 			var closestPlayerToFlyPosition:Point;
-			for (var j:int = 0; j < _numFlies; j++) 
+			for each (var currentFly:Fly in gFlies.members) 
 			{
-				closestPlayerToFly = getClosestPlayerToPoint(new Point(_flies[j].x, _flies[j].y));
+				closestPlayerToFly = getClosestPlayerToPoint(new Point(currentFly.x, currentFly.y));
 				closestPlayerToFlyPosition = new Point(closestPlayerToFly[0].x + 8, closestPlayerToFly[0].y + 8);
-				_flies[j].move(	SwarmCenter, 
+				currentFly.move(	SwarmCenter, 
 								closestPlayerToFlyPosition, 
 								closestPlayerToFly[1]);
 			}
 			
 			// handle gibs underwater
-			for each (var gib:Gib in _gibs) 
+			for each (var currentGib:Gib in gGibs.members) 
 			{
-				if (_map.getTileByIndex(getTileIndex(gib.x, gib.y)) == 1)
-					gib.setSwimming(true);
+				if (_map.getTileByIndex(getTileIndex(currentGib.x, currentGib.y)) == 1)
+					currentGib.setSwimming(true);
 				else 
-					gib.setSwimming(false);
+					currentGib.setSwimming(false);
 			}
 			
-			for each (var text:PopupText in _popupTexts)
-				text.update();
+			for each (var currentText:PopupText in gPopupTexts.members)
+				currentText.update();
+			
+			// create new particles, perform collisions, erase dead ones
+			updateParticles();			
 			
 			super.update();
-			
 			
 			respawnPlayers();	// respawn dead players
 			
 			collidePlayers();	// handle player-player collisions
 
 			// collide gibs, players, butterflies and flies with the tilemap
-			_map.collideArray(_gibs);
-			_map.collideArray(_players);
-			_map.collideArray(_butflies);
-			_map.collideArray(_flies);
+			FlxU.collide(_map, gGibs);
+			FlxU.collide(_map, gPlayers);
+			FlxU.collide(_map, gButflies);
+			FlxU.collide(_map, gFlies);
+			FlxU.collide(_map, gBubbles);
 		}	
 
 		// returns a Player that matches the given RabbitIndexPlayerArray
@@ -917,7 +905,7 @@
 			var matchID:uint;
 			var match:Player;
 			
-			for each (var currentPlayer:Player in _players)
+			for each (var currentPlayer:Player in gPlayers.members)
 			{
 				if (currentPlayer.rabbitIndex == RabbitIndex)
 					match = currentPlayer;
@@ -930,7 +918,7 @@
 		private function updateParticles():void
 		{
 			// create new Particles
-			for each (var currentPlayer:Player in _players)
+			for each (var currentPlayer:Player in gPlayers.members)
 			{
 				if (!currentPlayer.dead)
 					currentPlayer.particleTimer += FlxG.elapsed;
@@ -949,8 +937,7 @@
 						
 					yBubbleOrigin = currentPlayer.y + 7;
 					
-					newBubbleIndex = _bubbles.push(new Bubble(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0)) - 1;
-					lyrBGSprites.add(_bubbles[newBubbleIndex]);
+					gBubbles.add(new Bubble(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0));
 					
 					currentPlayer.particleTimer = 0;
 				}
@@ -962,7 +949,7 @@
 				
 				// new Dust
 				if (currentPlayer.isGrounded() && 					// if the player is on the ground AND
-					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || getAbsValue(currentPlayer.velocity.x) < 15) &&
+					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || FlxU.abs(currentPlayer.velocity.x) < 15) &&
 																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
 					currentPlayer.movementX != 0 &&				// a movement key is pressed AND
 					currentPlayer.particleTimer > DUST_DELAY)		// a new dust particle can be created
@@ -983,31 +970,18 @@
 					}
 					yDustOrigin = currentPlayer.y + currentPlayer.width
 					
-					lyrBGSprites.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
+					gParticles.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
 					
 					currentPlayer.particleTimer = 0;
 				}
 			}
 			
-			// perform bubble-tilemap collisions
-			_map.collideArray(_bubbles);
-
-			// erase dead bubbles from array
-			var bubblesToDelete:Array = new Array;
-			for (var i:int = 0; i < _bubbles.length; i++) 
+			// kill particles
+			for each (var currentBubble:Bubble in gBubbles.members) 
 			{
-				// TileIndex 1 == WATER
-				if (_map.getTileByIndex(getTileIndex(_bubbles[i].x, _bubbles[i].y)) != 1)
-					bubblesToDelete.push(i);
+				if (_map.getTileByIndex(getTileIndex(currentBubble.x, currentBubble.y)) != 1)
+					currentBubble.kill()
 			}
-			var currentIndex:int;
-			for (var j:int = 0; j < bubblesToDelete.length; j++) 
-			{
-				currentIndex = bubblesToDelete.pop();
-				_bubbles[currentIndex].kill();
-				_bubbles.splice(currentIndex, 1);
-			}
-			
 		}
 
 		// exits PlayState
@@ -1015,7 +989,7 @@
         {
 			_flyNoise.stop();
 			FlxG.music.stop();
-			FlxG.switchState(PlayerSelectState);
+			FlxG.state = new PlayerSelectState();
         }
 	
 	}

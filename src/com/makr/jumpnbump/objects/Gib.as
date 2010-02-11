@@ -79,10 +79,11 @@
 			
 			if (_bleeding)
 			{
-				_blood = FlxG.state.add(new FlxEmitter (X, Y, 0.05)) as FlxEmitter;
-				_blood.createSprites(ImgBlood, _numBloodSprites, true, PlayState.lyrBGSprites);
+				_blood = PlayState.gParticles.add(new FlxEmitter (X, Y)) as FlxEmitter;
+				_blood.createSprites(ImgBlood, _numBloodSprites, 0, true);
 				_blood.gravity = 0;
 				_blood.setRotation( -30, 30);
+				_blood.start(false, 0, 0.05);
 			}
 
 			
@@ -104,7 +105,7 @@
 			switch (Kind) 
 			{
 				case "Fur":
-					animationName = "Fur" + int(Math.random()*8).toString();
+					animationName = "Fur" + FlxU.floor(Math.random()*8).toString();
 					break;
 					
 				case "Flesh":
@@ -146,12 +147,12 @@
 				_blood.kill();
 		}
 		
-		override public function update():void
+		public override function update():void
 		{
 			if (_static)
 				return;
 				
-			angularVelocity = velocity.x * 22.9183118;	// value is degrees per pixel of circumference of an object with 5 pixels diameter
+			angularVelocity = velocity.x * 22.9183118;	// degrees/sec
 			
 			// Velocity.x in pixels/sec * 360 degrees / (5 pixels diameter * PI) == Velocity.x in pixels/sec * 22.9183118 degrees/pixel
 
@@ -160,8 +161,9 @@
 				_blood.x = x + 2;
 				_blood.y = y + 2;
 				
-				_blood.setXVelocity(velocity.x * 0.2, velocity.x*0.6);
-				_blood.setYVelocity(velocity.y * 0.2, velocity.y*0.6);
+				
+				_blood.setXSpeed(velocity.x * 0.2, velocity.x*0.6);
+				_blood.setYSpeed(velocity.y * 0.2, velocity.y*0.6);
 			}
 			
 			if (x < 0 || x > 352)
@@ -190,30 +192,26 @@
 				}
 				else
 					kill();
-			}
 			
+			}
+						
 			super.update();
-		
 		}
 		
-		override public function hitWall(Contact:FlxCore = null):Boolean
+		public override function hitLeft(Contact:FlxObject,Velocity:Number):void
 		{
 			velocity.x *= -Math.random();
-			
-			return true;
 		}
 
-		override public function hitFloor(Contact:FlxCore = null):Boolean
+		public override function hitBottom(Contact:FlxObject,Velocity:Number):void
 		{
 			if (velocity.y > 10)
 				velocity.y *= -0.25;
 			else
 				velocity.y = 0;
-			
-			return true;
 		}
 
-		override public function kill():void
+		public override function kill():void
 		{
 			if (_bleeding)
 				_blood.kill();
