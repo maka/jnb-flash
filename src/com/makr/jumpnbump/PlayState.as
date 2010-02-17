@@ -347,13 +347,10 @@
 			// SOLID: determining if the bunny is on solid ground
 			//if (Math.max(tileBelowLeft, tileBelow, tileBelowRight) < _map.collideIndex)	// the bunny's feet are touching a non-solid tile (air, water)
 			if (Rabbit.onFloor)
-			{
-				Rabbit.killCount = 0;	// resets killCounter to zero
 				Rabbit.setGrounded(true);
-			}
 			else
 				Rabbit.setGrounded(false);
-
+				
 			
 			// SPRING: should propel the bunny upwards if:
 			// most of the bunny is on it OR the spring is the only thing underneath the bunny
@@ -435,6 +432,9 @@
 				if (Rabbit.isFloating())		// but we're stll floating! must have floated off the side
 					Rabbit.setFloating(false);
 			}
+
+			if (Rabbit.onFloor || Rabbit.isSwimming() || Rabbit.isFloating())
+				Rabbit.killCount = 0;	// resets killCounter to zero
 		}
 		
 		// Flixel does not handle collisions with the edges of the tilemap, only the tiles within.
@@ -526,7 +526,7 @@
 				}
 				else if (Killer.killCount == 4)
 				{
-					newPopupText = new PopupText(Killer.x + 8, Killer.y, 126, "M-M-M-M-MONSTERKILL!", 3);
+					newPopupText = new PopupText(Killer.x + 8, Killer.y, 126, "M-M-M-M-MONSTERKILL!", 3.5);
 					newPopupText.color = 0xB70000;
 				
 					gPopupTexts.add(newPopupText);
