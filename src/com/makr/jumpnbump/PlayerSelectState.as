@@ -175,7 +175,7 @@
 			
 			_trunk[Collidee.rabbitIndex].collide(Collidee);
 			
-			if (pX > _trunk[Collidee.rabbitIndex].x - pWidth && pX < _trunk[Collidee.rabbitIndex].x + _trunk[Collidee.rabbitIndex].width && 
+			if (pX > _trunk[Collidee.rabbitIndex].x - pWidth + 1 && pX < _trunk[Collidee.rabbitIndex].x + _trunk[Collidee.rabbitIndex].width - 1 && 
 				pY > _trunk[Collidee.rabbitIndex].y - pHeight - 1)
 				Collidee.setGrounded(true);
 		}	
@@ -235,27 +235,21 @@
 				currentPlayer.particleTimer += FlxG.elapsed;
 				
 				// new Dust
-				if (currentPlayer.isGrounded() && 					// if the player is on the ground AND
-					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || FlxU.abs(currentPlayer.velocity.x) < 15) &&
-																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
-					currentPlayer.movementX != 0 &&				// a movement key is pressed AND
-					currentPlayer.particleTimer > DUST_DELAY)		// a new dust particle can be created
+				if (currentPlayer.isGrounded() && !currentPlayer.isSliding() 
+					&& ((currentPlayer.isRunning() && FlxU.abs(currentPlayer.velocity.x) < 96) || (!currentPlayer.isRunning() && currentPlayer.velocity.x != 0))
+					&& currentPlayer.particleTimer > DUST_DELAY)
 				{
 					var xDustOrigin:Number;
 					var yDustOrigin:Number;
 					var xDustDirection:int;
 					
 					if (currentPlayer.facing == 0)	// facing LEFT
-					{
-						xDustOrigin = currentPlayer.x + 14;
 						xDustDirection = 1;
-					}
 					else							// facing RIGHT
-					{
-						xDustOrigin = currentPlayer.x + 8;
 						xDustDirection = -1;
-					}
-					yDustOrigin = currentPlayer.y + currentPlayer.width
+
+					xDustOrigin = currentPlayer.x + 2 + Math.random() * 9;
+					yDustOrigin = currentPlayer.y + 13 + Math.random() * 5;
 					
 					gParticles.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
 					

@@ -1,7 +1,7 @@
 ﻿package
 {
-	import org.flixel.data.FlxFactory;
-	public class Preloader extends FlxFactory
+	import org.flixel.FlxPreloader;
+	public class Preloader extends FlxPreloader
 	{
 		public function Preloader():void
 		{

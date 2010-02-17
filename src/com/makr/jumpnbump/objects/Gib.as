@@ -83,7 +83,7 @@
 				_blood.createSprites(ImgBlood, _numBloodSprites, 0, true);
 				_blood.gravity = 0;
 				_blood.setRotation( -30, 30);
-				_blood.start(false, 0, 0.05);
+				_blood.start(false, 0.05, 0)
 			}
 
 			
@@ -126,13 +126,13 @@
 			
 			if (isSwimming)	
 			{
-				maxVelocity.x *= 0.3
-				maxVelocity.y *= 0.2;
+				maxVelocity.x = 30;
+				maxVelocity.y = 60;
 			}
 			else
 			{
-				maxVelocity.x *= 3.333
-				maxVelocity.y *= 5;
+				maxVelocity.x = 100;
+				maxVelocity.y = 200;
 			}
 		}
 

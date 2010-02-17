@@ -42,9 +42,9 @@
 			
 			// set sprites
 			if (Math.random() > 0.5)
-				addAnimation("Fly", 	[0, 1, 2, 3, 4, 5, 4, 3, 2, 1], 20); // Yellow Butfly
+				addAnimation("Fly", 	[0, 1, 2, 3, 4, 5, 4, 3, 2, 1], 30); // Yellow Butfly
 			else
-				addAnimation("Fly", 	[6, 7, 8, 9, 10, 11, 10, 9, 8, 7], 20);	// Pink Butfly
+				addAnimation("Fly", 	[6, 7, 8, 9, 10, 11, 10, 9, 8, 7], 30);	// Pink Butfly
 			
 			
 			play("Fly");
@@ -66,7 +66,7 @@
 				velocity.x = 0;
 			if (y + velocity.y < 0)
 				velocity.y = 0;
-			if (y +velocity.y > 239)
+			if (y + velocity.y > 239)
 				velocity.y = 0;
 			
 			super.update();

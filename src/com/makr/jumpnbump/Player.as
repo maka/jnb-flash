@@ -39,29 +39,8 @@
 		public var movementX:Number = 0;
 		public var particleTimer:Number = 0;
 	
-		private static const _DEFAULT_GRAVITY:int = 560;
-		
-		// different speeds for different tiles
-		private static const _GROUND_SPEED:int = 750;
-		private static const _WATER_SPEED:int = _GROUND_SPEED;
-		private static const _AIR_SPEED:int = _GROUND_SPEED;
-		private static const _ICE_SPEED:int = 50;
-		
-		// different friction as well
-		private static const _GROUND_DRAG:int = 500;
-		private static const _WATER_DRAG:int = 10;
-		private static const _AIR_DRAG:int = 0;
-		private static const _ICE_DRAG:int = 0;
-
-		private var _moveSpeed:int = _GROUND_SPEED;
-		
-		private var _floatJumpPower:Number = 175;   // power of a normal jump (slightly more than 3 tiles)
-		private var _jumpPower:Number = 245;   // power of a normal jump (slightly more than 3 tiles)
-		private var _springPower:Number = 340;  // power of a spring jump (slightly more than 6 tiles)
-		private var _bouncePower:Number = 165;   // power of the bounce off a killed bunny
-		private var _bounceAndJumpPower:Number = 225;  // power of the bounce AND jump off a killed bunny
-		
-		private var _max_health:int = 1;
+		private var _jumpReady:Boolean = false;
+		private var _jumpAbort:Boolean = false;
 		
 		private var _isGrounded:Boolean = false;
 		private var _isSliding:Boolean = false;
@@ -69,11 +48,10 @@
 		private var _isSwimming:Boolean = false;
 		private var _isFloating:Boolean = false;		
 		
-		private var _wantsToJump:Boolean = false;
-		
 		private var _swimTimer:Number = 0;
 		private var _flashTimer:Number = 0;
 		private var _respawnTimer:Number = 0;
+		
 		private static const _RESPAWN_TIME:Number = 0.15;
 		
 		private var _disableControls:Boolean = false;
@@ -111,38 +89,24 @@
 			FlxG.play(SoundDeath);				
 		}
 		
-		public function jump(spring:Boolean = false, bounce:Boolean = false):void
+		public function springJump():void
 		{
-			if (bounce)				// bounce does not depend on anything, so it is being handled first
-			{
-				if (FlxG.keys.pressed(_KEY_JUMP[rabbitIndex]))	// bounce higher if jump button is pressed at the same time
-					velocity.y = -_bounceAndJumpPower;
-				else
-					velocity.y = -_bouncePower;
-				y -= 0.1;			// This is a hack to allow for the situation where a player is standing still and another jumps into him from below.
-									// Without this line, the player above does not bounce.
-									// Is Issue with Flixel hit detection? (HitFloor sets velocity.y=0)
-				return;
-			}
-			
-			if (!_isGrounded && !_isFloating/* && !_isSwimming */)	// other kinds of jump do depend on being grounded
-				return;
-				
-			if (spring)				// spring jump (6 tiles)
-			    velocity.y += -_springPower;
-			else if (_isFloating)	// jump out of water (1 tile)
-			{
-				velocity.y += -_floatJumpPower;
-				setFloating(false);	// stop floating (restore gravity);
-			}
-			else					// normal jump (3 tiles)
-			{
-				velocity.y += -_jumpPower;
-				FlxG.play(SoundJump);
-			}
-			
-			_wantsToJump = false;
+			velocity.y = -390.625;
+			_jumpReady = false;
+			_jumpAbort = false;
 		}
+		
+		public function bounceJump():void
+		{
+			velocity.y = -velocity.y;
+			if (velocity.y > -256)
+				velocity.y = -256;
+			y -= 0.1;			// This is a hack to allow for the situation where a player is standing still and another jumps into him from below.
+			
+			_jumpAbort = true;
+		}
+
+		public function isRunning():Boolean { return _isRunning; }
 		
 		public function isGrounded():Boolean { return _isGrounded; }
 		public function setGrounded(isGrounded:Boolean):void
@@ -167,8 +131,6 @@
 			{
 				setGrounded(false);			// not on the ground anymore
 			
-				velocity.y *= 0.35;
-
 				var topTileEdge:Number = y - (y % 16);
 				PlayState.gParticles.add(new Splash(x, topTileEdge));
 			}	
@@ -238,9 +200,7 @@
 				facing = RIGHT;
 				
 			color = 0xffffff;
-			acceleration.y = _DEFAULT_GRAVITY;
-
-		
+			_jumpReady = true;
 		}
 		
 		public function Player(newRabbitIndex:uint, X:Number, Y:Number):void
@@ -269,14 +229,10 @@
 			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
 			
 		    // Max speeds
-            maxVelocity.x = 77;
-            maxVelocity.y = 400;
+            maxVelocity.x = 1000;
+            maxVelocity.y = 1000;
             // Set the player health
             health = 1;
-            // Gravity
-            acceleration.y = _DEFAULT_GRAVITY;            
-            // Drag
-            drag.x = _GROUND_DRAG;
             // set bounding box
             width = 15;
             height = 15;
@@ -300,59 +256,129 @@
 			facing = RIGHT;
 		}
 		
-		private function setMovementVariables():void
+		private function move(Facing:uint):void
 		{
-			// Sets the movement variables (speed of movement, drag, vertical acceleration) according to the Player's state (_isGrounded, _isSwimming, etc.)
+			facing = Facing;
+			var S:int;
 			
-			// on solid ground (non ice)
-			if (_isGrounded && !_isSliding)
-			{
-				_moveSpeed = _GROUND_SPEED;
-				drag.x = _GROUND_DRAG;
+			if (facing == LEFT)
+				S = -1;
+			else if (facing == RIGHT)
+				S = 1;
+			
+			if (_isSliding) 
+			{ // if below is ice,
+				if (velocity.x*S < 0)
+					velocity.x += 1*S;
+				else
+					velocity.x += 0.75*S; // otherwise, apply 0.01171875px force left
+			} 
+			else 
+			{	// NOT ON ICE:
+				if (velocity.x*S < 0)
+					velocity.x += 16*S;
+				else
+					velocity.x += 12*S;
 			}
+			
+			if (velocity.x*S > 96)	// max x velocity is 1.5px per frame
+				velocity.x = 96*S;
 				
-			// on ice
-			if (_isGrounded && _isSliding)
+			_isRunning = true;
+		}
+		
+		private function steer(ActionLeft:Boolean, ActionRight:Boolean, ActionUp:Boolean):void
+		{
+			if (ActionLeft && ActionRight)	// if both movement keys are pressed, continue going in the current direction
 			{
-				_moveSpeed = _ICE_SPEED;
-				drag.x = _ICE_DRAG;
+				if (facing == RIGHT && ActionRight) 
+					move(RIGHT);
+				else if (facing == LEFT && ActionLeft) 
+					move(LEFT);
+			} 
+			else if (ActionLeft) 
+				move(LEFT);
+			else if (ActionRight) 
+				move(RIGHT);
+			else if (!ActionLeft && !ActionRight)
+			{	// no movement keys pressed
+				_isRunning = false;
+
+			
+				if (_isGrounded && !_isSliding)
+				{
+					// slow the player down if he isn't holding a movement key
+					if (velocity.x < 0) 
+					{
+						velocity.x += 16;
+						if (velocity.x > 0)
+							velocity.x = 0;
+					} 
+					else 
+					{
+						velocity.x -= 16;
+						if (velocity.x < 0)
+							velocity.x = 0;
+					}
+				}
 			}
 			
-			// in the air
-			if (!_isGrounded && !_isFloating && !_isSwimming)
+			// Jumping!
+			if (_jumpReady && ActionUp) 
 			{
-				_moveSpeed = _AIR_SPEED;
-				drag.x = _AIR_DRAG;
+				if (_isGrounded) 
+				{
+					velocity.y = -273.4375;
+					_jumpReady = false;
+					_jumpAbort = true;
+					FlxG.play(SoundJump);
+				}
+				/* jump out of water */
+				if (_isFloating) 
+				{
+					velocity.y = -192;
+					setFloating(false);
+					_jumpReady = false;
+					_jumpAbort = true;
+					FlxG.play(SoundJump);
+				}
 			}
-
-			// swimming
-			if (_isSwimming && !_isFloating)
+			/* fall down by gravity */
+			if (!ActionUp) 
 			{
-				_moveSpeed = _WATER_SPEED;
-				drag.x = _WATER_DRAG;
-				acceleration.y = -60;
+				_jumpReady = true;
+				if (!_isFloating && !_isSwimming && velocity.y < 0 && _jumpAbort == 1) 
+				{
+					velocity.y += 32;
+					if (velocity.y > 0)
+						velocity.y = 0;
+				}
 			}
-
-			// floating
-			if (!_isSwimming && _isFloating)
+			
+			// if most if the player is underwater
+			if (_isSwimming) 
 			{
-				_moveSpeed = _WATER_SPEED;
-				drag.x = _WATER_DRAG;
-				acceleration.y = 0;
-			}
-
-			// out of water
-			if (!_isSwimming && !_isFloating)
+				/* slowly move up to water surface */
+				velocity.y -= 1.5;
+				
+				// limit max y-velocity to 64
+				if (velocity.y < -64)
+					velocity.y = -64;
+				if (velocity.y > 64)
+					velocity.y = 64;
+			} 
+			else if (!_isFloating) 
 			{
-				acceleration.y = _DEFAULT_GRAVITY;
+					velocity.y += 12; // add normal gravity
+					if (velocity.y > 320)	// max downward velocity is 320
+						velocity.y = 320;
 			}
-
 		}
 		
 		private function animate():void
 		{
 			// animate!
-			var _apexThreshold:int = 30;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
+			var _apexThreshold:int = 36;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
 			var _downfastThreshold:int = 100;	// the vertical downward velocity where the downfast animation is played ([value] - ∞)
 
 			 // not on the ground (in air or water)
@@ -404,37 +430,33 @@
 			
 			// handle input
 			
-			// if direction key is pressed
-			if ((( FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) || FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
-				_controlOverride == "LEFT" || _controlOverride == "RIGHT" )
-			{
-				_isRunning = true;
-				
-				if (((FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]) ) && !_disableControls ) || 
-					_controlOverride == "LEFT")
-				{
-					facing = LEFT;
-					movementX -= _moveSpeed * FlxG.elapsed;
-				}
-				else if (((FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]) ) && !_disableControls ) || 
-					_controlOverride == "RIGHT")
-				{
-					facing = RIGHT;
-					movementX += _moveSpeed * FlxG.elapsed;                
-				}
-			}
-			else
-			{
-				_isRunning = false
-			}
-			if ((FlxG.keys.justPressed(_KEY_JUMP[rabbitIndex]) && !_disableControls ) || _controlOverride == "JUMP")
-				_wantsToJump = true;
-			if ((FlxG.keys.justReleased(_KEY_JUMP[rabbitIndex]) && !_disableControls ) && _controlOverride != "JUMP")
-				_wantsToJump = false;
+			var actionLeft:Boolean = false;
+			var actionRight:Boolean = false;
+			var actionUp:Boolean = false;
 			
-			if (_wantsToJump && (_isGrounded || _isFloating))
-				jump();
+			if (!_disableControls)
+			{
+				actionLeft = FlxG.keys.pressed(_KEY_LEFT[rabbitIndex]);
+				actionRight = FlxG.keys.pressed(_KEY_RIGHT[rabbitIndex]);
+				actionUp = FlxG.keys.pressed(_KEY_JUMP[rabbitIndex]);
+			}
+			
+			if (_controlOverride)
+			{
+				actionLeft = (_controlOverride == "LEFT");
+				actionRight = (_controlOverride == "RIGHT");
+				actionUp = (_controlOverride == "JUMP");
+			}
+
+			
+			// if direction key is pressed
+			if (actionLeft || actionRight)
+				_isRunning = true;
+			else
+				_isRunning = false;
+
 				
+			steer(actionLeft, actionRight, actionUp);
 			
 			// handle drowning
 			if (_isSwimming)
@@ -489,10 +511,9 @@
 			
 			animate();
 			
-			setMovementVariables();
-			
 			super.update();
+			
+			
 		}
 	}
-
 }

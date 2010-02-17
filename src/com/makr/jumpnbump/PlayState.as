@@ -374,7 +374,7 @@
 
 					}
 					
-					Rabbit.jump(true);	// bounce!
+					Rabbit.springJump();	// sproing!
 				}
 			}
 			
@@ -497,7 +497,7 @@
 		// called when one player kills another
 		private function killPlayer(Killer:Player, Killee:Player):void
 		{
-			Killer.jump(false, true);		// killer bounces
+			Killer.bounceJump();		// killer bounces
 			Killee.kill();					// killee dies
 			gibPlayer(Killee);						// and gets gibbed
 			
@@ -669,8 +669,8 @@
 			{
 				for (var y:int = 1; y < 15; y++) 
 				{
-					if (_map.getTileByIndex(y * 22 + x) == 0 &&					// if current tile  is VOID
-						_map.getTileByIndex((y + 1) * 22 + x) == 2)				// and tile below is SOLID
+					if (_map.getTileByIndex(y * 22 + x) == 0 &&					// if current tile  is VOID and tile below is SOLID or ICE
+						(_map.getTileByIndex((y + 1) * 22 + x) == 2 || _map.getTileByIndex((y + 1) * 22 + x) == 3))
 					{
 						respawnMap.push(new Point(x * 16, y * 16 + 1));		// add current tile to respawnMap
 
@@ -948,27 +948,23 @@
 				}
 				
 				// new Dust
-				if (currentPlayer.isGrounded() && 					// if the player is on the ground AND
-					(currentPlayer.movementX * currentPlayer.velocity.x < 0 || FlxU.abs(currentPlayer.velocity.x) < 15) &&
-																// (is either moving in the opposite direction than the desired direction OR is moving quite slowly) AND
-					currentPlayer.movementX != 0 &&				// a movement key is pressed AND
-					currentPlayer.particleTimer > DUST_DELAY)		// a new dust particle can be created
+				if (currentPlayer.isGrounded() && currentPlayer.isRunning() && !currentPlayer.isSliding() 
+					&& FlxU.abs(currentPlayer.velocity.x) < 96	// player is running slower than max speed
+					&& currentPlayer.particleTimer > DUST_DELAY)
 				{
 					var xDustOrigin:Number;
 					var yDustOrigin:Number;
 					var xDustDirection:int;
 					
 					if (currentPlayer.facing == 0)	// facing LEFT
-					{
-						xDustOrigin = currentPlayer.x + 14;
 						xDustDirection = 1;
-					}
 					else							// facing RIGHT
-					{
-						xDustOrigin = currentPlayer.x + 8;
 						xDustDirection = -1;
-					}
-					yDustOrigin = currentPlayer.y + currentPlayer.width
+					if (!currentPlayer.isRunning())
+						xDustDirection = 0;
+
+					xDustOrigin = currentPlayer.x + 2 + Math.random() * 9;
+					yDustOrigin = currentPlayer.y + 13 + Math.random() * 5;
 					
 					gParticles.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
 					

@@ -46,8 +46,6 @@
 					FlxG.levels[1] = gamePrefs.data.levelname;
 			}
 
-			showLogo = false;
-			//setLogoFX(0xff930000)
 		}
 		
 	}
