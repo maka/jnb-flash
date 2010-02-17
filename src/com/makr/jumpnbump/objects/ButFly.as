@@ -40,12 +40,49 @@
             offset.y = 3;  //Where in the sprite the bounding box starts on the Y axis
 
 			
-			// set sprites
-			if (Math.random() > 0.5)
-				addAnimation("Fly", 	[0, 1, 2, 3, 4, 5, 4, 3, 2, 1], 30); // Yellow Butfly
-			else
-				addAnimation("Fly", 	[6, 7, 8, 9, 10, 11, 10, 9, 8, 7], 30);	// Pink Butfly
+			/// set sprites
+			var frames:Array = new Array();
 			
+			// this is a hack to make the animation start on a random frame
+			switch (FlxU.floor(Math.random()*10)) 
+			{
+				case 0:
+					frames = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1];
+					break;
+				case 1:
+					frames = [1, 2, 3, 4, 5, 4, 3, 2, 1, 0];
+					break;
+				case 2:
+					frames = [2, 3, 4, 5, 4, 3, 2, 1, 0, 1];
+					break;
+				case 3:
+					frames = [3, 4, 5, 4, 3, 2, 1, 0, 1, 2];
+					break;
+				case 4:
+					frames = [4, 5, 4, 3, 2, 1, 0, 1, 2, 3];
+					break;
+				case 5:
+					frames = [5, 4, 3, 2, 1, 0, 1, 2, 3, 4];
+					break;
+				case 6:
+					frames = [4, 3, 2, 1, 0, 1, 2, 3, 4, 5];
+					break;
+				case 7:
+					frames = [3, 2, 1, 0, 1, 2, 3, 4, 5, 4];
+					break;
+				case 8:
+					frames = [2, 1, 0, 1, 2, 3, 4, 5, 4, 3];
+					break;
+				case 9:
+					frames = [1, 0, 1, 2, 3, 4, 5, 4, 3, 2];
+					break;
+			}
+			
+			if (Math.random() < 0.5)
+				for (var i:int = 0; i < frames.length; i++) 
+					frames[i] += 6;	// pink butterfly
+			
+			addAnimation("Fly", frames, 30);
 			
 			play("Fly");
 		}

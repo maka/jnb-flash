@@ -64,60 +64,49 @@
 			<a href="http://github.com/maka/jnb-flash">GitHub / jnb-flash</a>. 
 			Original DOS game by <a href="http://brainchilddesign.com/">Brainchild Design</a>. 
 			A <a href="http://icculus.org/jumpnbump/">Win32 port</a> is available.
-			<em>Last update was <strong><script type="text/JavaScript" language="JavaScript">
-			<!-- 
+			<?php
+			/*
+			Last modified: xx ago script
+			- http://korn19.ch/coding/last_modified.php
+			- Contact: http://korn19.ch/misc/contact.php
 
-			function lastMod()
-			{
-				var x = new Date (document.lastModified);
-				Modif = new Date(x.toGMTString());
-				Year = takeYear(Modif);
-				Month = Modif.getMonth();
-				Day = Modif.getDate();
-				Mod = (Date.UTC(Year,Month,Day,0,0,0))/86400000;
-				x = new Date();
-				today = new Date(x.toGMTString());
-				Year2 = takeYear(today);
-				Month2 = today.getMonth();
-				Day2 = today.getDate();
-				now = (Date.UTC(Year2,Month2,Day2,0,0,0))/86400000;
-				daysago = now - Mod;
-				if (daysago < 0) return '';
-				unit = 'days';
-				if (daysago > 730)
-				{
-					daysago = Math.round(daysago/365);
-					unit = 'years';
+			Do whatever you want with this code
+			*/
+			// get how many seconds ago the file got modified.
+			$last_modified = time() - filemtime("jumpnbump.swf");
+
+			if(round($last_modified/(24*60*60)) >= 1){ // has it been over a day?
+				$last_modified /= (24*3600);
+				if(round($last_modified/7) > 0){ // at least one week?
+					$last_modified /= 7;
+					if(round($last_modified/4) > 0){ // .. months?
+						$last_modified /= 4;
+						$output = '~'.round($last_modified).' months';
+					}
+					else{
+						$output = round($last_modified).' weeks';
+					}
 				}
-				else if (daysago > 60)
-				{
-					daysago = Math.round(daysago/30);
-					unit = 'months';
+				else{
+					$output = round($last_modified).' days';
 				}
-				else if (daysago > 14)
-				{
-					daysago = Math.round(daysago/7);
-					unit = 'weeks'
-				}
-				towrite = '';
-				if (daysago == 0) towrite += 'today';
-				else if (daysago == 1) towrite += 'yesterday';
-				else towrite += daysago + ' ' + unit + ' ago';
-				return towrite;
 			}
-
-			  function takeYear(theDate)
-			  {
-			  x = theDate.getYear();
-			  var y = x % 100;
-			  y += (y < 38) ? 2000 : 1900;
-			  return y;
-			  }
-
-			document.write(lastMod())
-
-			// -->
-			</script></strong>.</em>
+			else if(round($last_modified/3600) >= 1){ // At least one hour ago
+				$output = round($last_modified/3600).' hours';
+			}
+			else{
+				if($last_modified/60 < 1){ // barely a few secs ago
+					$output = $last_modified.' seconds';
+				}
+				else{
+					$output = round($last_modified/60).' minutes';
+				}
+			}
+			if(substr($output, 0, 2) == "1 "){
+				$output = substr($output, 0, -1);
+			}
+			echo '<em>Last update was <strong>'.$output.' ago</strong>.</em>';
+			?> 
 		</p>
 	</div>
 </body>
