@@ -8,8 +8,12 @@
 	import com.makr.jumpnbump.objects.Dust;
 	import com.makr.jumpnbump.objects.Bubble;
 	import com.makr.jumpnbump.objects.Scoreboard;
+	import flash.display.BitmapData;
+	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import org.flixel.*;
+//	import flash.utils.getTimer;
+//	import net.hires.debug.Stats;
 
 	public class PlayState extends FlxState
 	{
@@ -72,30 +76,44 @@
 		
 		// other parts of the game
 		private var _map:FlxTilemap;
-		private var _respawnMap:Array;				// array that holds all positions where a player can spawn (VOID above SOLID)
+		private var _respawnMap:Array;				// array that holds all positions where a player can spawn (VOID above SOLID or ICE)
 		private var _scoreboard:Scoreboard;
 
+		public static var staticGibLayer:FlxSprite;	// the image onto which static gibs are rendered before they are reused.
 		//the various groups
-		public static var gBackground:FlxGroup;		// holds the background image
+		public static var gBackground:FlxGroup;		// group for background image
 		public static var gMap:FlxGroup;			//   "    "  tilemap view for debugging
 		public static var gParticles:FlxGroup;		//   "    "  simple particles (dust, splashes)
-		public static var gBubbles:FlxGroup;		//   "    "  bubble particles
-		public static var gGibs:FlxGroup;			//   "    "  gibs
+		public static var opBubbles:FlxGroup;		//   "    "  bubble particles (is Object Pool)
+		public static var opGibs:FlxGroup;			//   "    "  gibs (is Object Pool)
 		public static var gSprings:FlxGroup;		//   "    "  springs
 		public static var gButflies:FlxGroup;		//   "    "  butterflies
 		public static var gFlies:FlxGroup;			//   "    "  flies
 		public static var gPlayers:FlxGroup;		//   "    "  players
 		public static var gForeground:FlxGroup;		//   "    "  foreground image
-		public static var gPopupTexts:FlxGroup;		//   "    "  Popup Texts
+		public static var opPopupTexts:FlxGroup;	//   "    "  Popup Texts (is Object Pool)
 		public static var gUI:FlxGroup;				//   "    "  unique UI elements (icons (crown), buttons, scoreboard)
 		
 		// "Lord of the Flies" game mode specific variables
 		private var _crown:FlxSprite;				// crown sprite, displayed above current Lord
 
-		// butterfly variables
+		// gibs (number of gibs is NUM_GIBS ± random() * NUM_GIBS_VARIATION
+		private static const NUM_GIBS:uint = 15;
+		private static const NUM_GIBS_VARIATION:uint = 3;
+		private static const GIBS_POOLSIZE:uint = (NUM_GIBS + NUM_GIBS_VARIATION) * 4;
+		
+		// bubbles (bubble burst num see above)
+		private static const NUM_BUBBLES:uint = 35;
+		private static const NUM_BUBBLES_VARIATION:uint = 5;
+		private static const BUBBLES_POOLSIZE:uint = (NUM_BUBBLES + NUM_BUBBLES_VARIATION) * 4;
+		
+		// popuptext 
+		private static const POPUPTEXT_POOLSIZE:uint = 4;
+		
+		// butterflies
 		private static const NUM_BUTFLIES:uint = 4;
 		
-		// fly variables
+		// flies
 		private var _flyNoise:FlxSound;
 		private static const NUM_FLIES:uint = 20;
 		private static const NUM_FLIES_LOTF:uint = 50;	// "Lord of the Flies" game mode specific variable
@@ -111,72 +129,56 @@
 		
 		public override function create():void
 		{
+			// Display Statistics
+//			addChild( new Stats() );
 			
 			// Loading assets into variables
+			// defaults
+			DataMap = DataMapOriginal;
+			ImgBg = ImgBgOriginal;
+			ImgFg = ImgFgOriginal;
+			SoundFly = SoundFlyOriginal;
+			_bgMusicURL = _bgMusicURLOriginal;
+			_rabbitColors = _rabbitColorsOriginal;
+
+			// overrides by specific levels
 			switch (FlxG.levels[1])
 			{
 				case "green":
 					DataMap = DataMapGreen;
 					ImgBg = ImgBgGreen;
 					ImgFg = ImgFgGreen;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
-					_rabbitColors = _rabbitColorsOriginal;
 					break;
 				
 				case "topsy":
 					DataMap = DataMapTopsy;
 					ImgBg = ImgBgTopsy;
 					ImgFg = ImgFgTopsy;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
-					_rabbitColors = _rabbitColorsOriginal;
 					break;
 				
 				case "rabtown":
 					DataMap = DataMapRabtown;
 					ImgBg = ImgBgRabtown;
 					ImgFg = ImgFgRabtown;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
-					_rabbitColors = _rabbitColorsOriginal;
 					break;
 				
 				case "jump2":
 					DataMap = DataMapJump2;
 					ImgBg = ImgBgJump2;
 					ImgFg = ImgFgJump2;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
-					_rabbitColors = _rabbitColorsOriginal;
 					break;
 
 				case "crystal2":
 					DataMap = DataMapCrystal2;
 					ImgBg = ImgBgCrystal2;
 					ImgFg = ImgFgCrystal2;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
-					_rabbitColors = _rabbitColorsOriginal;
 					break;
 
 				case "witch":
 					DataMap = DataMapWitch;
 					ImgBg = ImgBgWitch;
 					ImgFg = ImgFgWitch;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
 					_rabbitColors = _rabbitColorsWitch;
-					break;
-
-				case "original":
-				default:
-					DataMap = DataMapOriginal;
-					ImgBg = ImgBgOriginal;
-					ImgFg = ImgFgOriginal;
-					SoundFly = SoundFlyOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
-					_rabbitColors = _rabbitColorsOriginal;
 					break;
 			}
 
@@ -203,14 +205,14 @@
 			gBackground = new FlxGroup();
 			gMap = new FlxGroup();
 			gParticles = new FlxGroup();
-			gBubbles = new FlxGroup();
-			gGibs = new FlxGroup();
+			opBubbles = new FlxGroup();
+			opGibs = new FlxGroup();
 			gSprings = new FlxGroup();
 			gButflies = new FlxGroup();
 			gFlies = new FlxGroup();
 			gPlayers = new FlxGroup();
 			gForeground = new FlxGroup();
-			gPopupTexts = new FlxGroup();
+			opPopupTexts = new FlxGroup();
 			gUI = new FlxGroup()				// unique UI elements (icons (crown), buttons, scoreboard)
 				
 			// creating the background
@@ -293,19 +295,36 @@
 				gButflies.add(new ButFly(butflySpawnPoint.x, butflySpawnPoint.y));
 			}
 			
+			// creating the layer for static gibs
+			staticGibLayer = new FlxSprite(0, 0);
+			staticGibLayer.createGraphic(FlxG.width, FlxG.height, 0x00ffffff, true);
 			
+			/// initializing object pools
+			// filling the gib pool with free gibs
+			for (var l:int = 0; l < GIBS_POOLSIZE; l++) 
+				opGibs.add(new Gib());
+			
+			// filling the bubble pool with free bubbles
+			for (var m:int = 0; m < BUBBLES_POOLSIZE; m++) 
+				opBubbles.add(new Bubble());
+
+			// filling the bubble pool with free bubbles
+			for (var n:int = 0; n < POPUPTEXT_POOLSIZE; n++) 
+				opPopupTexts.add(new PopupText());
+
 			// adds all the groups to this state (they are rendered in this order)
 			this.add(gBackground);
+			this.add(staticGibLayer);
 //			this.add(gMap);
 			this.add(gParticles);
-			this.add(gBubbles);
-			this.add(gGibs);
+			this.add(opBubbles);
+			this.add(opGibs);
 			this.add(gSprings);
 			this.add(gButflies);
 			this.add(gFlies);
 			this.add(gPlayers);
 			this.add(gForeground);
-			this.add(gPopupTexts);
+			this.add(opPopupTexts);
 			this.add(gUI);
 
 			
@@ -509,29 +528,27 @@
 			}
 			else	// if game mode is standard DM
 			{
-				if (Killer.killCount < 9)
+				if (Killer.killCount < 5)
 					Killer.killCount++;
 				FlxG.scores[Killer.rabbitIndex] += Killer.killCount;	// increment killer score
 
 				
-				
-				if (Killer.killCount > 1 && Killer.killCount != 4)
+				if (Killer.killCount > 1)
 				{
-					var newPopupText:PopupText = new PopupText(Killer.x + 8, Killer.y, 16, "+" + Killer.killCount.toString());
-					newPopupText.color = _rabbitColors[Killer.rabbitIndex];
-				
-					gPopupTexts.add(newPopupText);
-					
-		// FIXME:			cleanupArray(_popupTexts);
-				}
-				else if (Killer.killCount == 4)
-				{
-					newPopupText = new PopupText(Killer.x + 8, Killer.y, 126, "M-M-M-M-MONSTERKILL!", 3.5);
-					newPopupText.color = 0xB70000;
-				
-					gPopupTexts.add(newPopupText);
-					
-		// FIXME:			cleanupArray(_popupTexts);
+					var newPopupText:PopupText = getObjectFromPool(opPopupTexts, PopupText, -1, POPUPTEXT_POOLSIZE);
+
+					if (Killer.killCount < 4)
+					{
+						newPopupText.activate(Killer.x + 8, Killer.y, 16, "+" + Killer.killCount.toString(), 2, _rabbitColors[Killer.rabbitIndex]);
+					}
+					else if (Killer.killCount == 4)
+					{
+						newPopupText.activate(Killer.x + 8, Killer.y, 56, "MULTIKILL!", 2, _rabbitColors[Killer.rabbitIndex]);
+					}
+					else if (Killer.killCount == 5)
+					{
+						newPopupText.activate(Killer.x + 8, Killer.y, 100, "M-M-MONSTERKILL!", 3.5, 0xB70000);
+					}
 				}
 				
 				_scoreboard.update();		// update the scoreboard
@@ -566,13 +583,13 @@
 						if (FlxU.abs(pA.x - pB.x) < maxWidth && 
 							FlxU.abs(pA.y - pB.y) < maxHeight)	// check that they intersect
 						{												
-							trace("PlayState:collidePlayers()");
-							trace("	Players " + pA.rabbitIndex + " and " + pB.rabbitIndex + " intersect;");
+							//trace("PlayState:collidePlayers()");
+							//trace("	Players " + pA.rabbitIndex + " and " + pB.rabbitIndex + " intersect;");
 							
 							if ((pA.y - pB.y > 5 && pA.velocity.y < pB.velocity.y) ||
 								(pB.y - pA.y > 5 && pB.velocity.y < pA.velocity.y))
 							{
-								trace("	Resolution: Kill");
+								//trace("	Resolution: Kill");
 
 								if (pA.y < pB.y)	// the one up top is faster than the one below
 									killPlayer(pA, pB);								// playerKill(killer, killee);
@@ -581,7 +598,7 @@
 							}
 							else
 							{
-								trace("	Resolution: Push");
+								//trace("	Resolution: Push");
 
 								
 								if (pA.x < pB.x)
@@ -713,82 +730,118 @@
 
 			if (theDead.length == 0)
 				return false;
-			else
-				trace(theDead.length + " rabbits are dead!");
 				
 			for each (var ghost:Player in theDead)
 			{
 				var respawnPoint:Point = getFreeSpawnPoint();	
-				trace("respawning player R#" + ghost.rabbitIndex + "(" + ghost.x + "," + ghost.y+") at new location (" + respawnPoint.x + "," + respawnPoint.y+")");
+//				trace("respawning player R#" + ghost.rabbitIndex + "(" + ghost.x + "," + ghost.y+") at new location (" + respawnPoint.x + "," + respawnPoint.y+")");
 				ghost.reset(respawnPoint.x, respawnPoint.y);
 				ghost.particleTimer = 0;
 			}
 
 			return true;
 		}
+
+		private function cleanupObjectPool(Group:FlxGroup, Poolsize:Number):uint
+		{
+//			var time:Number = getTimer();
+			var activeObjs:Array = new Array();
+			var freeObjs:Array = new Array();
+			
+			for each (var currentObj:FlxObject in Group.members) 
+			{
+				if (currentObj.exists == true && currentObj.visible == true)
+					activeObjs.push(currentObj);
+				else if (currentObj.exists == false && currentObj.visible == false)
+					freeObjs.push(currentObj);
+				else
+					trace("ERROR!");
+			}
+			
+			// shrinking the pool
+			var sizeAdjustment:Number = FlxU.floor((freeObjs.length / Poolsize) - 0.5) * Poolsize;
+			if (sizeAdjustment > 0)
+				freeObjs = freeObjs.slice(0, freeObjs.length - sizeAdjustment);
+			
+			trace ("TotalObjects: " + (activeObjs.length + freeObjs.length) + "; Active: " + activeObjs.length + "; Free: " + freeObjs.length );
+			
+			Group.members = activeObjs.concat(freeObjs);
+
+//			trace("cleanupObjectPool done; total time: "+(getTimer()-time)+"ms.");
+			return activeObjs.length;
+		}
 		
+		private function getObjectFromPool(Group:FlxGroup, ObjectClass:Class, startingIndex:int, resizeAmount:uint):*
+		{
+			var searchResult:FlxObject = null;
+			if (startingIndex == -1)
+			{
+				searchResult = Group.getFirstAvail();
+				if (searchResult != null)
+					return searchResult;
+				else
+					startingIndex = Group.members.length;
+			}	
+			
+			if (startingIndex == Group.members.length)
+			{
+				for (var i:int = 0; i < resizeAmount; i++) 
+				{
+					Group.add(new ObjectClass());
+				}
+			}
+			
+			return Group.members[startingIndex];
+		}
+
 		// creates a shower of blood and gore
 		private function gibPlayer(Gibbee:Player):void
 		{
+//			var totalTime:Number = getTimer();
 			var gibKind:String;
 			var gibIndex:uint;
 			
-			for (var re:int = 0; re < FlxU.floor(Math.random() * 6 + 9 ); re++) 
+			var gibStartIndex:uint = cleanupObjectPool(opGibs, GIBS_POOLSIZE);	// sort gib pool, returns index of first free gib
+			var currentObject:Gib;
+			
+			for (var re:int = 0; re < FlxU.floor((Math.random() * NUM_GIBS_VARIATION * 2) + (NUM_GIBS - NUM_GIBS_VARIATION)); re++) 
 			{
-				if (Math.random() * 10 < 4)
-				{
+				if (Math.random() < 0.33)
 					gibKind = "Fur";
-				}
 				else
-				{
 					gibKind = "Flesh";
-				}
-					
-				gGibs.add(new Gib(	Gibbee.rabbitIndex, 
-									gibKind, Gibbee.x + Gibbee.width / 2, 
-									Gibbee.y + Gibbee.height / 2));
+				
+				currentObject = getObjectFromPool(opGibs, Gib, gibStartIndex, GIBS_POOLSIZE);
+				currentObject.activate(
+					Gibbee.rabbitIndex, 
+					gibKind, Gibbee.x + Gibbee.width / 2, 
+					Gibbee.y + Gibbee.height / 2
+				);
+				gibStartIndex++;
 			}
-			
-			// cleanup gib array
-	// FIXME:		cleanupArray(_gibs);
-			
+//			trace("Total Time: " + (getTimer() - totalTime) + "ms");
 		}
 		
-		private function cleanupArray(thisArray:Array):void
-		{
-			var indicesToDelete:Array = new Array;
-
-			for (var i:int = 0; i < thisArray.length; i++) 
-			{
-				if (thisArray[i].dead)
-					indicesToDelete.push(i)
-			}
-
-			var currentIndex:int = 0;
-			for (var j:int = 0; j < indicesToDelete.length; j++) 
-			{
-				currentIndex = indicesToDelete.pop();
-				thisArray[currentIndex].kill();
-				thisArray.splice(currentIndex, 1);
-			}
-			
-			trace ("INFO: PlayState: " + (j) + " dead items removed.");
-
-		}
-		
-		// creates a shower of blood and gore
+	
+		// creates a shower of lovely bubbles
 		private function bubbleBurstPlayer(Burstee:Player):void
 		{
 			var bubbleIndex:uint;
 			
 			trace("Player " + Burstee.rabbitIndex + " just burst :o");
 			
-			for (var re:int = 0; re < FlxU.floor(Math.random() * 10 + 30 ); re++) 
-			{
-				gBubbles.add(new Bubble(Burstee.x + 8, Burstee.y + 8,
-							(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100));
-			}
+			var bubbleStartIndex:uint = cleanupObjectPool(opBubbles, BUBBLES_POOLSIZE);	// sort gib pool, returns index of first free gib
 			
+			for (var re:int = 0; re < FlxU.floor((Math.random() * NUM_BUBBLES_VARIATION * 2) + (NUM_BUBBLES - NUM_BUBBLES_VARIATION)); re++) 
+			{
+				var currentObject:Bubble = getObjectFromPool(opBubbles, Bubble, bubbleStartIndex, BUBBLES_POOLSIZE);
+				currentObject.activate(
+					Burstee.x + 8, Burstee.y + 8,
+					(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100
+				);
+				bubbleStartIndex++;
+			}
+
 			Burstee.particleTimer = -1;
 		}
 		
@@ -865,21 +918,31 @@
 			{
 				closestPlayerToFly = getClosestPlayerToPoint(new Point(currentFly.x, currentFly.y));
 				closestPlayerToFlyPosition = new Point(closestPlayerToFly[0].x + 8, closestPlayerToFly[0].y + 8);
-				currentFly.move(	SwarmCenter, 
+				currentFly.move(SwarmCenter, 
 								closestPlayerToFlyPosition, 
 								closestPlayerToFly[1]);
 			}
 			
-			// handle gibs underwater
-			for each (var currentGib:Gib in gGibs.members) 
+			// handle gibs
+			for each (var currentGib:Gib in opGibs.members) 
 			{
+				// set swimming flag
 				if (_map.getTileByIndex(getTileIndex(currentGib.x, currentGib.y)) == 1)
 					currentGib.setSwimming(true);
 				else 
 					currentGib.setSwimming(false);
+				
+				// render static gibs onto the background
+				if (currentGib.exists == true && currentGib.active == false && currentGib.visible == true)
+				{
+					staticGibLayer.draw(currentGib, currentGib.x - currentGib.offset.x, currentGib.y - currentGib.offset.y);
+					currentGib.kill();
+				}
 			}
+
 			
-			for each (var currentText:PopupText in gPopupTexts.members)
+			// handle popuptexts
+			for each (var currentText:PopupText in opPopupTexts.members)
 				currentText.update();
 			
 			// create new particles, perform collisions, erase dead ones
@@ -889,17 +952,18 @@
 			
 			respawnPlayers();	// respawn dead players
 			
-			collidePlayers();	// handle player-player collisions
 
 			// collide gibs, players, butterflies and flies with the tilemap
-			FlxU.collide(_map, gGibs);
+			FlxU.collide(_map, opGibs);
 			FlxU.collide(_map, gPlayers);
 			FlxU.collide(_map, gButflies);
 			FlxU.collide(_map, gFlies);
-			FlxU.collide(_map, gBubbles);
+			FlxU.collide(_map, opBubbles);
+
+			collidePlayers();	// handle player-player collisions
 		}	
 
-		// returns a Player that matches the given RabbitIndexPlayerArray
+		// redturns a Player that matches the given RabbitIndexPlayerArray
 		private function getPlayerFromRabbitIndex(RabbitIndex:uint):Player
 		{
 			var matchID:uint;
@@ -937,11 +1001,12 @@
 						
 					yBubbleOrigin = currentPlayer.y + 7;
 					
-					gBubbles.add(new Bubble(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0));
-					
+					var currentObject:Bubble = getObjectFromPool(opBubbles, Bubble, -1, BUBBLES_POOLSIZE);
+					currentObject.activate(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0);
+
 					currentPlayer.particleTimer = 0;
 				}
-				else if (currentPlayer.isSwimming() && currentPlayer.particleTimer != -1 && currentPlayer.dead)
+				else if (currentPlayer.isSwimming() && currentPlayer.particleTimer != -1 && currentPlayer.dead && currentPlayer.hasDrowned)
 				{
 					trace("Timer: " + currentPlayer.particleTimer);
 					bubbleBurstPlayer(currentPlayer);
@@ -973,7 +1038,7 @@
 			}
 			
 			// kill particles
-			for each (var currentBubble:Bubble in gBubbles.members) 
+			for each (var currentBubble:Bubble in opBubbles.members) 
 			{
 				if (_map.getTileByIndex(getTileIndex(currentBubble.x, currentBubble.y)) != 1)
 					currentBubble.kill()

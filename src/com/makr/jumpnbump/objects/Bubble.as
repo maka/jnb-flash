@@ -12,9 +12,9 @@
 		
 		
 		private var ImgBubble:Class;
-		private var killTimer:Number = 0;
+		private var killTimer:Number;
 		
-		public function Bubble(X:Number = 0, Y:Number = 0, Xvel:Number = 0, Yvel:Number = 0):void
+		public function Bubble():void
 		{
 			switch (FlxG.levels[1])
 			{
@@ -24,20 +24,15 @@
 					break;
 			}
 
-			super(X, Y);
+			super(0, 0);
 			loadGraphic(ImgBubble, true, false, 4, 4); // load player sprite (is animated, is not reversible, is 4x4)
 			
 			alpha = Math.random() * 0.5;
 			
 		//	color = 0x80C1F3;
 			
-			velocity.x = Xvel;
-			velocity.y = Yvel;
-			
 			maxVelocity.x = 40;
 			maxVelocity.y = 40;
-			
-			acceleration.y = -30;
 			
             // set bounding box
             width = 4;
@@ -49,37 +44,62 @@
             offset.x = 0;  //Where in the sprite the bounding box starts on the X axis
             offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
 
-			// set animations for everything the bunny can do
-			addAnimation("bubble0", [0]);
-			addAnimation("bubble1", [1]);
-			addAnimation("bubble2", [2]);
-			addAnimation("bubble3", [3]);
+			exists = false;
+			active = false;
+			visible = false;
+		}
+
+		public function activate(X:Number = 0, Y:Number = 0, Xvel:Number = 0, Yvel:Number = 0):void
+		{
+			x = X;
+			y = Y;
+			exists = true;
+			active = true;
+			visible = true;
+
+			acceleration.y = -30;
+
+			velocity.x = Xvel;
+			velocity.y = Yvel;
 			
+			killTimer = 0;
+
 			switch (FlxU.floor(Math.random()*4)) 
 			{
 				case 0:
-					play("bubble0")
-					maxVelocity.y -= 9;
+					frame = 0;
+					maxVelocity.y = 31;
 					break;
 					
 				case 1:
-					play("bubble1")
-					maxVelocity.y -= 6;
+					frame = 1;
+					maxVelocity.y = 34;
 					break;
 					
 				case 2:
-					play("bubble2")
-					maxVelocity.y -= 3;
+					frame = 2;
+					maxVelocity.y = 37;
 					break;
 					
 				case 3:
-					play("bubble3")
+					frame = 3;
+					maxVelocity.y = 40;
 					break;
 			}
+		}
+
+		public override function kill():void
+		{
+			exists = false;
+			active = false;
+			visible = false;
 		}
 		
 		public override function update():void
 		{
+			if (acceleration.y != -30)
+				trace("y-acceleration: " + acceleration.y);
+			
 			if (velocity.y == 0)
 				killTimer += FlxG.elapsed;
 			

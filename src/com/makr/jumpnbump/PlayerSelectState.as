@@ -49,6 +49,7 @@
 		
 		public override function create():void
 		{
+
 			FlxG.mouse.show();
 
 			switch (FlxG.levels[1])

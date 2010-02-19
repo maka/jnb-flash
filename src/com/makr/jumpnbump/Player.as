@@ -35,8 +35,6 @@
 		// current killCount (for doublekill, etc.)
 		public var killCount:int = 0;
 
-		// current x-movement force
-		public var movementX:Number = 0;
 		public var particleTimer:Number = 0;
 	
 		private var _jumpReady:Boolean = false;
@@ -48,6 +46,7 @@
 		private var _isSwimming:Boolean = false;
 		private var _isFloating:Boolean = false;		
 		
+		public var hasDrowned:Boolean = false;
 		private var _swimTimer:Number = 0;
 		private var _flashTimer:Number = 0;
 		private var _respawnTimer:Number = 0;
@@ -191,6 +190,8 @@
 			visible = true;
 			dead = false;	// lets player be controlled again.
 			
+			_swimTimer = 0;
+			hasDrowned = false;
 			_respawnTimer = 0;
 			particleTimer = 0;
 			
@@ -258,8 +259,16 @@
 		
 		private function move(Facing:uint):void
 		{
+			// begin defining movement speeds
+			const ICE_SPEED_CHANGE_DIRECTION:Number = 1 * 60 * FlxG.elapsed;
+			const ICE_SPEED:Number = ICE_SPEED_CHANGE_DIRECTION * 0.75 * 60 * FlxG.elapsed;
+			const NORMAL_SPEED_CHANGE_DIRECTION:Number = 16 * 60 * FlxG.elapsed;
+			const NORMAL_SPEED:Number = NORMAL_SPEED_CHANGE_DIRECTION * 0.75 * 60 * FlxG.elapsed;
+			const MAX_SPEED:Number = 96;
+			// end defining movement speeds
+			
 			facing = Facing;
-			var S:int;
+			var S:int;	// the sign of any variables. this is -1 or 1 depending on the direction we're facing
 			
 			if (facing == LEFT)
 				S = -1;
@@ -269,26 +278,38 @@
 			if (_isSliding) 
 			{ // if below is ice,
 				if (velocity.x*S < 0)
-					velocity.x += 1*S;
+					velocity.x += ICE_SPEED_CHANGE_DIRECTION*S;
 				else
-					velocity.x += 0.75*S; // otherwise, apply 0.01171875px force left
+					velocity.x += ICE_SPEED*S; // otherwise, apply 0.01171875px force left
 			} 
 			else 
 			{	// NOT ON ICE:
 				if (velocity.x*S < 0)
-					velocity.x += 16*S;
+					velocity.x += NORMAL_SPEED_CHANGE_DIRECTION*S;
 				else
-					velocity.x += 12*S;
+					velocity.x += NORMAL_SPEED*S;
 			}
 			
-			if (velocity.x*S > 96)	// max x velocity is 1.5px per frame
-				velocity.x = 96*S;
+			if (velocity.x*S > MAX_SPEED)	// max x velocity is 1.5px per frame
+				velocity.x = MAX_SPEED*S;
 				
 			_isRunning = true;
 		}
 		
 		private function steer(ActionLeft:Boolean, ActionRight:Boolean, ActionUp:Boolean):void
 		{
+			// begin defining movement speeds
+			const GROUND_DECELERATION:Number = 16 * 60 * FlxG.elapsed;
+			const NORMAL_JUMP:Number = 275; // was 273.4375 but that value was not enough for low framerates
+			const NORMAL_JUMP_DECELERATION:Number = 32 * 60 * FlxG.elapsed;
+			const NORMAL_GRAVITY:Number = 12 * 60 * FlxG.elapsed;
+			const NORMAL_MAX_Y_SPEED:Number = 320;
+			
+			const WATER_JUMP:Number = 196; // was 192 but that value was not enough for low framerates
+			const WATER_BUOYANCY:Number = 1.5 * 60 * FlxG.elapsed;
+			const WATER_MAX_Y_SPEED:Number = 64;
+			// end defining movement speeds
+
 			if (ActionLeft && ActionRight)	// if both movement keys are pressed, continue going in the current direction
 			{
 				if (facing == RIGHT && ActionRight) 
@@ -310,13 +331,13 @@
 					// slow the player down if he isn't holding a movement key
 					if (velocity.x < 0) 
 					{
-						velocity.x += 16;
+						velocity.x += GROUND_DECELERATION;
 						if (velocity.x > 0)
 							velocity.x = 0;
 					} 
 					else 
 					{
-						velocity.x -= 16;
+						velocity.x -= GROUND_DECELERATION;
 						if (velocity.x < 0)
 							velocity.x = 0;
 					}
@@ -328,15 +349,15 @@
 			{
 				if (_isGrounded) 
 				{
-					velocity.y = -273.4375;
+					velocity.y = -NORMAL_JUMP;
 					_jumpReady = false;
 					_jumpAbort = true;
 					FlxG.play(SoundJump);
 				}
-				/* jump out of water */
+				// jump out of water
 				if (_isFloating) 
 				{
-					velocity.y = -192;
+					velocity.y = -WATER_JUMP;
 					setFloating(false);
 					_jumpReady = false;
 					_jumpAbort = true;
@@ -349,7 +370,7 @@
 				_jumpReady = true;
 				if (!_isFloating && !_isSwimming && velocity.y < 0 && _jumpAbort == 1) 
 				{
-					velocity.y += 32;
+					velocity.y += NORMAL_JUMP_DECELERATION;
 					if (velocity.y > 0)
 						velocity.y = 0;
 				}
@@ -359,19 +380,19 @@
 			if (_isSwimming) 
 			{
 				/* slowly move up to water surface */
-				velocity.y -= 1.5;
+				velocity.y -= WATER_BUOYANCY;
 				
 				// limit max y-velocity to 64
-				if (velocity.y < -64)
-					velocity.y = -64;
-				if (velocity.y > 64)
-					velocity.y = 64;
+				if (velocity.y < -WATER_MAX_Y_SPEED)
+					velocity.y = -WATER_MAX_Y_SPEED;
+				if (velocity.y > WATER_MAX_Y_SPEED)
+					velocity.y = WATER_MAX_Y_SPEED;
 			} 
 			else if (!_isFloating) 
 			{
-					velocity.y += 12; // add normal gravity
-					if (velocity.y > 320)	// max downward velocity is 320
-						velocity.y = 320;
+					velocity.y += NORMAL_GRAVITY; // add normal gravity
+					if (velocity.y > NORMAL_MAX_Y_SPEED)	// max downward velocity is 320
+						velocity.y = NORMAL_MAX_Y_SPEED;
 			}
 		}
 		
@@ -413,8 +434,6 @@
 		
 		public override function update():void
 		{
-			movementX = 0;
-			
 			// if dead, play death animation and count down to respawn
 			if (dead)
 			{
@@ -495,6 +514,7 @@
 					if (FlxG.levels[0] == "lotf" && FlxG.score == rabbitIndex)	// lose LOTF status when drowned
 						FlxG.score = -1;			
 					kill();
+					hasDrowned = true;
 				}
 
 			}
@@ -505,9 +525,6 @@
 					color = 0xffffff;
 			}
 
-			
-			// apply movement to velocity
-			velocity.x += movementX;
 			
 			animate();
 			

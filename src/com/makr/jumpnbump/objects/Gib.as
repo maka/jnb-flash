@@ -6,48 +6,42 @@
 
 	public class Gib extends FlxSprite
 	{
-		
-		/// Individual level assets
-		// witch level
+		// witch level		
 		[Embed(source = '../../../../../data/levels/witch/gore.png')] private var ImgGibWitch:Class;
 
-		// original level
+		// original level		
 		[Embed(source = '../../../../../data/levels/original/gore.png')] private var ImgGibOriginal:Class;
 		[Embed(source = '../../../../../data/levels/original/blood.png')] private var ImgBloodOriginal:Class;
-		
-		
+
 		private var ImgGib:Class;
 		private var ImgBlood:Class;
-		
-		private static const _STATIC_PERCENTAGE:uint = 8;
+
+//		private static const _STATIC_PERCENTAGE:uint = 8;
+		private static const _STATIC_PERCENTAGE:uint = 100;
 		private var _gravity:Number = 150;
 		private var _numBloodSprites:uint = 6;
 		private var _blood:FlxEmitter;
 		private var _force:Number = 200;
-		private var _static:Boolean = false;
 		private var _bleeding:Boolean = true;
 		private var _killTimer:Number = 0;
+		private const killTimeout:Number = 1.5;
 		private var _isSwimming:Boolean = false;
 		
-		public function Gib(PlayerID:uint, Kind:String, X:Number, Y:Number, Static:Boolean=false, Bleeding:Boolean=true, Xvel:Number = 0, Yvel:Number = 0 ):void
+		public function Gib():void
 		{
+			// defaults
+			ImgGib = ImgGibOriginal;
+			ImgBlood = ImgBloodOriginal;
+
+			
 			switch (FlxG.levels[1])
 			{
 				case "witch":
 					ImgGib = ImgGibWitch;
-					ImgBlood = ImgBloodOriginal;
-					break;
-
-				case "original":
-				default:
-					ImgGib = ImgGibOriginal;
-					ImgBlood = ImgBloodOriginal;
 					break;
 			}
-
-			_static = Static;
-			_bleeding = Bleeding;
-			super(X, Y);
+			
+			super(0, 0);
 			loadGraphic(ImgGib, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
@@ -58,8 +52,53 @@
 			
             maxVelocity.x = 100;
             maxVelocity.y = 200;
+			
+			
+			offset.x = 1-Math.floor(Math.random()*3);  //Where in the sprite the bounding box starts on the X axis
+            offset.y = 1-Math.floor(Math.random()*3);  //Where in the sprite the bounding box starts on the Y axis
 
-			acceleration.y = _gravity;
+			// set up the blood emitter
+			
+			if (_bleeding)
+			{
+				_blood = PlayState.gParticles.add(new FlxEmitter (0, 0)) as FlxEmitter;
+				_blood.createSprites(ImgBlood, _numBloodSprites, 16, true);
+				_blood.gravity = 0;
+//				_blood.setRotation( -30, 30);
+				_blood.setRotation(0, 0);
+				
+			}
+			
+			exists = false;
+			active = false;
+			visible = false;
+		}
+		
+		public function activate(rabbitIndex:uint, Kind:String, X:Number, Y:Number, Bleeding:Boolean=true, Xvel:Number = 0, Yvel:Number = 0):void
+		{
+			_killTimer = 0;
+			x = X;
+			y = Y;
+			exists = true
+			active = true;
+			visible = true;
+			
+			color = 0xffffff - FlxU.floor(Math.random() * 0x66) * 0x010101;
+//			color = FlxU.floor(Math.random() * 0xffffff);	// fasching mode
+			
+			_bleeding = Bleeding;
+			if (_bleeding)
+			{
+				_blood.x = X+1;
+				_blood.y = Y+1;
+				_blood.start(false, 0.03, 0)
+				for each (var bloodParticle:FlxSprite in _blood.members) 
+				{
+					bloodParticle.color = color;
+					bloodParticle.alpha = 1;
+				}
+
+			}
 			
 			if (Xvel == 0 && Yvel == 0)
 			{
@@ -72,48 +111,25 @@
 				velocity.y = Yvel;
 			}
 			
-            offset.x = 0;  //Where in the sprite the bounding box starts on the X axis
-            offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
+			acceleration.y = _gravity;
 
-			// set up the blood emitter
-			
-			if (_bleeding)
-			{
-				_blood = PlayState.gParticles.add(new FlxEmitter (X, Y)) as FlxEmitter;
-				_blood.createSprites(ImgBlood, _numBloodSprites, 0, true);
-				_blood.gravity = 0;
-				_blood.setRotation( -30, 30);
-				_blood.start(false, 0.05, 0)
-			}
-
-			
-			// set sprites
-			var sO:uint = PlayerID * 8;
-			addAnimation("Fur0", [0+sO]);
-			addAnimation("Fur1", [1+sO]);
-			addAnimation("Fur2", [2+sO]);
-			addAnimation("Fur3", [3+sO]);
-			addAnimation("Fur4", [4+sO]);
-			addAnimation("Fur5", [5+sO]);
-			addAnimation("Fur6", [6+sO]);
-			addAnimation("Fur7", [7+sO]);
-			addAnimation("Flesh", [32]);
-			
-						
+			// 	rI 0 => frames 0-7
+			// 	rI 1 => frames 8-15
+			// 	rI 2 => frames 16-23
+			// 	rI 3 => frames 24-31
+			// flesh => frame 32
 			
 			var animationName:String;
 			switch (Kind) 
 			{
 				case "Fur":
-					animationName = "Fur" + FlxU.floor(Math.random()*8).toString();
+					frame = rabbitIndex * 8 + FlxU.floor(Math.random() * 8);
 					break;
 					
 				case "Flesh":
-					animationName = "Flesh";
+					frame = 32;
 					break;
 			}
-			
-			play(animationName);
 		}
 		
 		public function isSwimming():Boolean { return _isSwimming; }
@@ -127,7 +143,7 @@
 			if (isSwimming)	
 			{
 				maxVelocity.x = 30;
-				maxVelocity.y = 60;
+				maxVelocity.y = 40;
 			}
 			else
 			{
@@ -138,10 +154,11 @@
 
 		public function makeStatic():void
 		{
-			_static = true;
+			exists = true
+			active = false;
+			visible = true;
 			velocity.x = 0;
 			velocity.y = 0;
-			acceleration.x = 0;
 			acceleration.y = 0;
 			if (_bleeding)
 				_blood.kill();
@@ -149,27 +166,23 @@
 		
 		public override function update():void
 		{
-			if (_static)
-				return;
-				
 			angularVelocity = velocity.x * 22.9183118;	// degrees/sec
 			
-			// Velocity.x in pixels/sec * 360 degrees / (5 pixels diameter * PI) == Velocity.x in pixels/sec * 22.9183118 degrees/pixel
+			//Velocity.x in pixels/sec * 360 degrees / (5 pixels diameter * PI) == Velocity.x in pixels/sec * 22.9183118 degrees/pixel
 
 			if (_bleeding)
 			{
-				_blood.x = x + 2;
-				_blood.y = y + 2;
-				
-				
+				_blood.x = x + 1;
+				_blood.y = y + 1;
+
 				_blood.setXSpeed(velocity.x * 0.2, velocity.x*0.6);
 				_blood.setYSpeed(velocity.y * 0.2, velocity.y*0.6);
+
 			}
+		
 			
 			if (x < 0 || x > 352)
-			{
 				velocity.x *= -.3;
-			}
 			
 			if (y > 250)
 			{
@@ -182,17 +195,25 @@
 				_killTimer += FlxG.elapsed;
 			}
 			
-			if (_killTimer > 1 )
+			if (_killTimer > 0)
+			{
+				for each (var bloodParticle:FlxSprite in _blood.members) 
+				{
+					bloodParticle.alpha = 1 - _killTimer / killTimeout;
+					if (bloodParticle.alpha < 0)
+						bloodParticle.alpha = 0;
+				}
+			}
+			
+			if (_killTimer > killTimeout )
 			{
 				
 				if (Math.random() * 100 < _STATIC_PERCENTAGE)	// [_STATIC_PERCENTAGE]% chance of becoming static
 				{
 					makeStatic();
-					trace("INFO: Gib: A gib was made static.");
 				}
 				else
 					kill();
-			
 			}
 						
 			super.update();
@@ -215,7 +236,10 @@
 		{
 			if (_bleeding)
 				_blood.kill();
-			super.kill();
+			
+			exists = false;
+			active = false;
+			visible = false;
 		}
 	}
 }

@@ -39,7 +39,7 @@
             offset.y = 4;  //Where in the sprite the bounding box starts on the Y axis
 
 			// set animations for everything the bunny can do
-			addAnimation("dust", [0, 1, 2, 3, 4, 4], 20, false);
+			addAnimation("dust", [0, 1, 2, 3, 4, 4], 30, false);
 			addAnimationCallback(animationCallback);
 			
 			play("dust");
