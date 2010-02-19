@@ -31,6 +31,10 @@
 		private var _bgMusicURL:String;
 		private var _rabbitColors:Array;
 
+		// controls for all players
+		private static const _KEY_LEFT:Array = ["LEFT", "A", "J", "NUMPAD_FOUR"];
+		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
+		private static const _KEY_JUMP:Array = ["UP", "W", "I", "NUMPAD_EIGHT"];
 		
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
 
@@ -121,11 +125,11 @@
 				_trunk[i] = new FlxTileblock(179 + i * 2, 153 + i * 2, 30, 22);
 			}
 
-			// creating a bunny
-			gPlayers.add(new Player(0, 80+Math.random()*40, 170));
-			gPlayers.add(new Player(1, Math.random()*40, 170));
-			gPlayers.add(new Player(2, 40+Math.random()*40, 170));
-			gPlayers.add(new Player(3, 120+Math.random()*40, 170));
+			// creating a bunny (every bunny gets a randon x-value in their own 30px range, ordered by keyboard layout (wasd, ijkl, arrows, 8456)
+			gPlayers.add(new Player(0, 90+Math.random()*30, 170));
+			gPlayers.add(new Player(1, Math.random()*30, 170));
+			gPlayers.add(new Player(2, 46+Math.random()*30, 170));
+			gPlayers.add(new Player(3, 130+Math.random()*30, 170));
 
 			// creating the KeySprites
 			for each (var player:Player in gPlayers.members) 
@@ -229,14 +233,14 @@
 			FlxG.fade.start(0xff000000, 1, startGame);
 		}
 		
-		private function getKeySpriteIndex(RabbitIndex:uint):uint
+		private function getKeySpriteIndex(RabbitIndex:uint):int
 		{
 			for (var i:int = 0; i < gKeySprites.members.length; i++) 
 			{
 				if (gKeySprites.members[i].rabbitIndex == RabbitIndex)
 					return i;
 			}
-			return null;
+			return -1;
 		}
 		
 		public override function update():void
@@ -244,28 +248,14 @@
 			if (FlxG.keys.justPressed("ESCAPE"))
 				FlxG.fade.start(0xff000000, 0.4, gotoMenu);
 
-			if (!(FlxG.levels[3] & 1) && (FlxG.keys.justPressed("LEFT") || FlxG.keys.justPressed("RIGHT") || FlxG.keys.justPressed("UP")))
+			// fade keysprite out if one of the movement keys is pressed
+			for (var i:int = 0; i < 4; i++) 
 			{
-				FlxG.levels[3] |= 1;
-				gKeySprites.members[getKeySpriteIndex(0)].fadeOut();
-			}
-
-			if (!(FlxG.levels[3] & 2) && (FlxG.keys.justPressed("A") || FlxG.keys.justPressed("D") || FlxG.keys.justPressed("W")))
-			{
-				FlxG.levels[3] |= 2;
-				gKeySprites.members[getKeySpriteIndex(1)].fadeOut();
-			}
-				
-			if (!(FlxG.levels[3] & 4) && (FlxG.keys.justPressed("J") || FlxG.keys.justPressed("L") || FlxG.keys.justPressed("I")))
-			{
-				FlxG.levels[3] |= 4;
-				gKeySprites.members[getKeySpriteIndex(2)].fadeOut();
-			}
-				
-			if (!(FlxG.levels[3] & 8) && (FlxG.keys.justPressed("NUMPAD_FOUR") || FlxG.keys.justPressed("NUMPAD_SIX") || FlxG.keys.justPressed("NUMPAD_EIGHT")))
-			{
-				FlxG.levels[3] |= 8;
-				gKeySprites.members[getKeySpriteIndex(3)].fadeOut();
+				if (!(FlxG.levels[3] & Math.pow(2,i)) && (FlxG.keys.justPressed(_KEY_LEFT[i]) || FlxG.keys.justPressed(_KEY_RIGHT[i]) || FlxG.keys.justPressed(_KEY_JUMP[i])))
+				{
+					FlxG.levels[3] |= Math.pow(2,i);
+					gKeySprites.members[getKeySpriteIndex(i)].fadeOut();
+				}
 			}
 			
 				
@@ -274,7 +264,9 @@
 			for each (var player:Player in gPlayers.members) 
 			{
 				performMenuCollisions(player);
-				if (!(FlxG.levels[3] & Math.pow(2, player.rabbitIndex)))
+				
+				// updating keysprite position
+				if (getKeySpriteIndex(player.rabbitIndex) != -1)
 				{
 					gKeySprites.members[getKeySpriteIndex(player.rabbitIndex)].x = player.x + player.velocity.x * FlxG.elapsed;
 					gKeySprites.members[getKeySpriteIndex(player.rabbitIndex)].y = player.y + player.velocity.y * FlxG.elapsed;
