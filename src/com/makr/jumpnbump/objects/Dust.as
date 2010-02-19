@@ -3,7 +3,7 @@
 	import flash.geom.Point;
 	import org.flixel.*;	
 	
-	public class Dust	extends FlxSprite
+	public class Dust extends FlxSprite
 	{
 		
 		/// Individual level assets

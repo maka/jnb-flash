@@ -1,6 +1,7 @@
 ﻿package com.makr.jumpnbump
 {
 	import com.makr.jumpnbump.objects.Dust;
+	import com.makr.jumpnbump.objects.KeySprite;
 	import flash.geom.Point;
 	import org.flixel.*;
 
@@ -15,16 +16,20 @@
 		// rabtown level		
 		[Embed(source = '../../../../data/levels/rabtown/menu.png')] private var ImgBgRabtown:Class;
 
-		
+		// witch level
+		private var _rabbitColorsWitch:Array = new Array(0x7CA824, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
+
 		// original level		
 		[Embed(source = '../../../../data/levels/original/menu.png')] private var ImgBgOriginal:Class;
 		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var ImgFgOriginal:Class;
 		private var _bgMusicURLOriginal:String = "music/original/m_jump.mp3";
+		private var _rabbitColorsOriginal:Array = new Array(0xDBDBDB, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 		
 	
 		private var ImgBg:Class;
 		private var ImgFg:Class;
 		private var _bgMusicURL:String;
+		private var _rabbitColors:Array;
 
 		
 		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
@@ -37,6 +42,7 @@
 		public static var gParticles:FlxGroup;
 		public static var gPlayers:FlxGroup;
 		public static var gForeground:FlxGroup;
+		public static var gKeySprites:FlxGroup;
 		
 		private function getDistance(a:Point, b:Point):Number
 		{
@@ -52,32 +58,29 @@
 
 			FlxG.mouse.show();
 
+			// defaults
+			ImgBg = ImgBgOriginal;
+			ImgFg = ImgFgOriginal;
+			_bgMusicURL = _bgMusicURLOriginal;
+			_rabbitColors = _rabbitColorsOriginal;
+
+			
 			switch (FlxG.levels[1])
 			{
 				case "green":
 					ImgBg = ImgBgGreen;
-					ImgFg = ImgFgOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
 					break;
 
 				case "topsy":
 					ImgBg = ImgBgTopsy;
-					ImgFg = ImgFgOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
 					break;
 			
 				case "rabtown":
 					ImgBg = ImgBgRabtown;
-					ImgFg = ImgFgOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
 					break;
 				
-				
-				case "original":
-				default:
-					ImgBg = ImgBgOriginal;
-					ImgFg = ImgFgOriginal;
-					_bgMusicURL = _bgMusicURLOriginal;
+				case "witch":
+					_rabbitColors = _rabbitColorsWitch;
 					break;
 			}
 
@@ -96,6 +99,7 @@
 			gParticles = new FlxGroup();
 			gPlayers = new FlxGroup();
 			gForeground = new FlxGroup();
+			gKeySprites = new FlxGroup();
 			
 			// creating the background
 			_bg = new FlxSprite;
@@ -109,6 +113,7 @@
 			_fg.x = _fg.y = 0;
 			gForeground.add(_fg);
 			
+			
 
 			
 			for (var i:int = 0; i < 4; i++) 
@@ -117,15 +122,27 @@
 			}
 
 			// creating a bunny
-			gPlayers.add(new Player(0, Math.random()*160, 170));
-			gPlayers.add(new Player(1, Math.random()*160, 170));
-			gPlayers.add(new Player(2, Math.random()*160, 170));
-			gPlayers.add(new Player(3, Math.random()*160, 170));
+			gPlayers.add(new Player(0, 80+Math.random()*40, 170));
+			gPlayers.add(new Player(1, Math.random()*40, 170));
+			gPlayers.add(new Player(2, 40+Math.random()*40, 170));
+			gPlayers.add(new Player(3, 120+Math.random()*40, 170));
 
+			// creating the KeySprites
+			for each (var player:Player in gPlayers.members) 
+			{
+				if (!(FlxG.levels[3] & Math.pow(2, player.rabbitIndex)))
+				{	
+					gKeySprites.add(new KeySprite(player.rabbitIndex, player.x, player.y));
+					gKeySprites.members[gKeySprites.members.length - 1].color = _rabbitColors[player.rabbitIndex];
+				}
+			}
+
+	
 			this.add(gBackground);
 			this.add(gParticles);
 			this.add(gPlayers);
 			this.add(gForeground);
+			this.add(gKeySprites);
 
 			var statusText:FlxText = new FlxText(10, 236, 380, "Press ESC for options.		 (level: " + FlxG.levels[0] + "_" + FlxG.levels[1] + ")");
 			statusText.color = 0xff333333;
@@ -212,16 +229,56 @@
 			FlxG.fade.start(0xff000000, 1, startGame);
 		}
 		
+		private function getKeySpriteIndex(RabbitIndex:uint):uint
+		{
+			for (var i:int = 0; i < gKeySprites.members.length; i++) 
+			{
+				if (gKeySprites.members[i].rabbitIndex == RabbitIndex)
+					return i;
+			}
+			return null;
+		}
+		
 		public override function update():void
         {
 			if (FlxG.keys.justPressed("ESCAPE"))
 				FlxG.fade.start(0xff000000, 0.4, gotoMenu);
 
+			if (!(FlxG.levels[3] & 1) && (FlxG.keys.justPressed("LEFT") || FlxG.keys.justPressed("RIGHT") || FlxG.keys.justPressed("UP")))
+			{
+				FlxG.levels[3] |= 1;
+				gKeySprites.members[getKeySpriteIndex(0)].fadeOut();
+			}
+
+			if (!(FlxG.levels[3] & 2) && (FlxG.keys.justPressed("A") || FlxG.keys.justPressed("D") || FlxG.keys.justPressed("W")))
+			{
+				FlxG.levels[3] |= 2;
+				gKeySprites.members[getKeySpriteIndex(1)].fadeOut();
+			}
+				
+			if (!(FlxG.levels[3] & 4) && (FlxG.keys.justPressed("J") || FlxG.keys.justPressed("L") || FlxG.keys.justPressed("I")))
+			{
+				FlxG.levels[3] |= 4;
+				gKeySprites.members[getKeySpriteIndex(2)].fadeOut();
+			}
+				
+			if (!(FlxG.levels[3] & 8) && (FlxG.keys.justPressed("NUMPAD_FOUR") || FlxG.keys.justPressed("NUMPAD_SIX") || FlxG.keys.justPressed("NUMPAD_EIGHT")))
+			{
+				FlxG.levels[3] |= 8;
+				gKeySprites.members[getKeySpriteIndex(3)].fadeOut();
+			}
+			
+				
 			updateParticles();
 				
-			for each (var Collidee:Player in gPlayers.members) 
+			for each (var player:Player in gPlayers.members) 
 			{
-				performMenuCollisions(Collidee);
+				performMenuCollisions(player);
+				if (!(FlxG.levels[3] & Math.pow(2, player.rabbitIndex)))
+				{
+					gKeySprites.members[getKeySpriteIndex(player.rabbitIndex)].x = player.x + player.velocity.x * FlxG.elapsed;
+					gKeySprites.members[getKeySpriteIndex(player.rabbitIndex)].y = player.y + player.velocity.y * FlxG.elapsed;
+				}
 			}
 			
 			super.update();

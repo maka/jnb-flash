@@ -1,6 +1,5 @@
 ﻿package com.makr.jumpnbump.objects
 {
-	import flash.geom.Point;
 	import org.flixel.*;	
 	
 	public class Spring	extends FlxSprite

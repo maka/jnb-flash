@@ -22,6 +22,8 @@
 				FlxG.levels[0] = "dm" as String;			// string for gamemode
 				FlxG.levels[1] = "original" as String;		// string for level
 				FlxG.levels[2] = 0; 			// bitmask for storing which players are playing
+				FlxG.levels[3] = 0;	// bitmask for storing which players have been used in this session
+
 			}
 
 			if (FlxG.scores.length == 0)
