@@ -14,7 +14,9 @@
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
     <class path="src" />
-    <class path="..\..\flixel" />
+    <class path="..\..\Libs\flixel" />
+    <class path="..\..\Libs\as3-signals\src" />
+    <class path="..\..\Libs\Stats" />
   </classpaths>
   <!-- Build options -->
   <build>

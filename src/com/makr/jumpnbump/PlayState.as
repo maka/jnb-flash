@@ -1,14 +1,20 @@
 ﻿package com.makr.jumpnbump
 {
+	import com.makr.jumpnbump.helpers.ObjectPool;
+	
+	import com.makr.jumpnbump.objects.Player;
 	import com.makr.jumpnbump.objects.ButFly;
 	import com.makr.jumpnbump.objects.Fly;
 	import com.makr.jumpnbump.objects.Gib;
 	import com.makr.jumpnbump.objects.PopupText;
 	import com.makr.jumpnbump.objects.Spring;
 	import com.makr.jumpnbump.objects.Dust;
+	import com.makr.jumpnbump.objects.Splash;
 	import com.makr.jumpnbump.objects.Bubble;
 	import com.makr.jumpnbump.objects.Scoreboard;
+	
 	import flash.display.BitmapData;
+	
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import org.flixel.*;
@@ -71,8 +77,8 @@
 		private var _rabbitColors:Array;
 		
 		// timers for objects created by players (dust, bubbles)
-		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
-		private static const BUBBLE_DELAY:Number = 0.2;		// delay between creating a bubble particles
+		private static const DUST_DELAY:Number = 0.05;			// delay between creating dust particles
+		private static const BUBBLE_DELAY:Number = 0.15;		// delay between creating bubble particles
 		
 		// other parts of the game
 		private var _map:FlxTilemap;
@@ -84,21 +90,21 @@
 		public static var gBackground:FlxGroup;		// group for background image
 		public static var gMap:FlxGroup;			//   "    "  tilemap view for debugging
 		public static var gParticles:FlxGroup;		//   "    "  simple particles (dust, splashes)
-		public static var opBubbles:FlxGroup;		//   "    "  bubble particles (is Object Pool)
-		public static var opGibs:FlxGroup;			//   "    "  gibs (is Object Pool)
+		public static var opBubbles:ObjectPool;		//   "    "  bubble particles (is Object Pool)
+		public static var opGibs:ObjectPool;		//   "    "  gibs (is Object Pool)
 		public static var gSprings:FlxGroup;		//   "    "  springs
 		public static var gButflies:FlxGroup;		//   "    "  butterflies
 		public static var gFlies:FlxGroup;			//   "    "  flies
 		public static var gPlayers:FlxGroup;		//   "    "  players
 		public static var gForeground:FlxGroup;		//   "    "  foreground image
-		public static var opPopupTexts:FlxGroup;	//   "    "  Popup Texts (is Object Pool)
+		public static var opPopupTexts:ObjectPool;	//   "    "  Popup Texts (is Object Pool)
 		public static var gUI:FlxGroup;				//   "    "  unique UI elements (icons (crown), buttons, scoreboard)
 		
 		// "Lord of the Flies" game mode specific variables
 		private var _crown:FlxSprite;				// crown sprite, displayed above current Lord
 
 		// gibs (number of gibs is NUM_GIBS ± random() * NUM_GIBS_VARIATION
-		private static const NUM_GIBS:uint = 15;
+		private static const NUM_GIBS:uint = 13;
 		private static const NUM_GIBS_VARIATION:uint = 3;
 		private static const GIBS_POOLSIZE:uint = (NUM_GIBS + NUM_GIBS_VARIATION) * 4;
 		
@@ -205,14 +211,11 @@
 			gBackground = new FlxGroup();
 			gMap = new FlxGroup();
 			gParticles = new FlxGroup();
-			opBubbles = new FlxGroup();
-			opGibs = new FlxGroup();
 			gSprings = new FlxGroup();
 			gButflies = new FlxGroup();
 			gFlies = new FlxGroup();
 			gPlayers = new FlxGroup();
 			gForeground = new FlxGroup();
-			opPopupTexts = new FlxGroup();
 			gUI = new FlxGroup()				// unique UI elements (icons (crown), buttons, scoreboard)
 				
 			// creating the background
@@ -300,17 +303,9 @@
 			staticGibLayer.createGraphic(FlxG.width, FlxG.height, 0x00ffffff, true);
 			
 			/// initializing object pools
-			// filling the gib pool with free gibs
-			for (var l:int = 0; l < GIBS_POOLSIZE; l++) 
-				opGibs.add(new Gib());
-			
-			// filling the bubble pool with free bubbles
-			for (var m:int = 0; m < BUBBLES_POOLSIZE; m++) 
-				opBubbles.add(new Bubble());
-
-			// filling the bubble pool with free bubbles
-			for (var n:int = 0; n < POPUPTEXT_POOLSIZE; n++) 
-				opPopupTexts.add(new PopupText());
+			opBubbles = new ObjectPool(Bubble, BUBBLES_POOLSIZE);
+			opGibs = new ObjectPool(Gib, GIBS_POOLSIZE);
+			opPopupTexts = new ObjectPool(PopupText, POPUPTEXT_POOLSIZE);
 
 			// adds all the groups to this state (they are rendered in this order)
 			this.add(gBackground);
@@ -364,12 +359,7 @@
 			// 4 = Spring
 
 			// SOLID: determining if the bunny is on solid ground
-			//if (Math.max(tileBelowLeft, tileBelow, tileBelowRight) < _map.collideIndex)	// the bunny's feet are touching a non-solid tile (air, water)
-			if (Rabbit.onFloor)
-				Rabbit.setGrounded(true);
-			else
-				Rabbit.setGrounded(false);
-				
+			// ! replaced by onFloor
 			
 			// SPRING: should propel the bunny upwards if:
 			// most of the bunny is on it OR the spring is the only thing underneath the bunny
@@ -386,7 +376,7 @@
 					{
 						if ((currentSpring.x == leftCorner.x && currentSpring.y == leftCorner.y) || 
 							(currentSpring.x == rightCorner.x &&currentSpring.y == rightCorner.y))
-							currentSpring.Activate();
+							currentSpring.activate();
 
 					}
 					
@@ -397,82 +387,71 @@
 			// ICE: the bunny should slide on ice if:
 			// most of the bunny is on it OR the ice is the only thing colliding with the bunny
 			// 
-			if (tileBelowLeft == 3 || tileBelowRight == 3) 	// if either corner touches the ice
-			{
-				if (tileBelow < _map.collideIndex			// and either the center does too (most of the bunny is in the ice)
-					|| tileBelow == 3) 						// OR the tile directly underneath is not solid (the bunny is touching nothing else)
-				{
-					Rabbit.setSliding(true);		// slide!
-				}
-			}
-			if (Rabbit.isSliding() && 			// if the bunny is sliding
-				tileBelow >= _map.collideIndex && 			// and the tile below is solid
-				tileBelow != 3)								// but not ice
-															// (i.e. the bunny has slid onto a solid tile)
-			{
-				Rabbit.setSliding(false);		// unslide!
-			}
+			if ((tileBelowLeft == 3 || tileBelowRight == 3) &&		// if either corner touches the ice
+				(tileBelow < _map.collideIndex || tileBelow == 3))	// AND the tile below is either ice too or noncolliding
+				Rabbit.isSliding = true;
+
+			if (Rabbit.isSliding && 				// if the bunny is sliding
+				tileBelow >= _map.collideIndex && 	// and the tile below is solid but not ice (i.e. the bunny has slid onto a solid tile)
+				tileBelow != 3)
+				Rabbit.isSliding = false;
 			
 			// WATER: two behaviors!
 			
 			// the bunny should SWIM if:
 			// most of the bunny is in water
+			if (tileBehind == 1 && !Rabbit.isSwimming) 
+			{
+				Rabbit.isSwimming = true;	// we're swimming!
+				Rabbit.isFloating = false;	// but not floating
+				gParticles.add(new Splash(Rabbit.x, Rabbit.y - (Rabbit.y % 16)));	// make a splash!
+
+			}
 			
 			// the bunny should FLOAT if:
 			// the center point of the bunny has just crossed the surface of the water from below
-			
-			// swim check
-			if (tileBehind == 1 &&						// most of the bunny is underwater.
-				!Rabbit.isSwimming())		// swimming flag ist not yet enabled
+			if (tileBehind != 1 && 			// most of the bunny is not in water, 
+				tileBelow == 1 &&			// its feet are wet,
+				Rabbit.isSwimming && 		// swimming flag ist still enabled (bunny has just left water)
+				Rabbit.velocity.y < 0 &&	// it came from below
+				!Rabbit.isFloating)			// floating flag is not yet enabled
 			{
-				Rabbit.setSwimming(true);	// we're swimming!
-				Rabbit.setFloating(false);	// but not floating
-			}
-			
-			// float check
-			if (tileBehind != 1 && 						// most of the bunny is not in water, 
-				tileBelow == 1 &&						// its feet are wet,
-				Rabbit.isSwimming() && 		// swimming flag ist still enabled (bunny has just left water)
-				Rabbit.velocity.y < 0 &&		// it came from below
-				!Rabbit.isFloating())		// floating flag is not yet enabled
-			{
-				Rabbit.setSwimming(false);	// not swimming anymore
-				Rabbit.setFloating(true);	// we're floating now!
+				Rabbit.isFloating = true;	// we're floating now!
 			}
 			
 			// exiting the pool in wondrous ways (coming out of the sides, falling through, etc.)
-			if (tileBehind != 1 && 						// most of the bunny is not in water, 
-				tileBelow != 1)							// there is no water directly below it (so we can't be floating)
+			if (tileBehind != 1 && 			// most of the bunny is not in water, 
+				tileBelow != 1)				// there is no water directly below it (so we can't be floating)
 			{
-				if (Rabbit.isSwimming())		// but we're still swimming! must have fallen through or exited at an edge of the pool
-														// otherwise the float check above would have caught it!
-					Rabbit.setSwimming(false);
+				if (Rabbit.isSwimming)		// but we're still swimming! must have fallen through or exited at an edge of the pool
+											// otherwise the float check above would have caught it!
+					Rabbit.isSwimming = false;
 					
-				if (Rabbit.isFloating())		// but we're stll floating! must have floated off the side
-					Rabbit.setFloating(false);
+				if (Rabbit.isFloating)		// but we're stll floating! must have floated off the side
+					Rabbit.isFloating = false;
 			}
 
-			if (Rabbit.onFloor || Rabbit.isSwimming() || Rabbit.isFloating())
+			if (Rabbit.onFloor || Rabbit.isSwimming || Rabbit.isFloating)
 				Rabbit.killCount = 0;	// resets killCounter to zero
 		}
-		
+
 		// Flixel does not handle collisions with the edges of the tilemap, only the tiles within.
 		// Here we make sure no one can fall off the map.
-		private function collideMapBorders(Sprite:Player):void
+		private function collideMapBorders(currentObject:FlxObject):void
 		{
 			var minX:Number = 1;
 			var minY:Number = 1;
-			var maxX:Number = 352 - Sprite.width -1;
-			var maxY:Number = 256 - Sprite.height -1;
+			var maxX:Number = 352 - currentObject.width -1;
+			var maxY:Number = 256 - currentObject.height -1;
 
 
 		
-			if (Sprite.y < minY)	// bunny is above the map ceiling (this IS allowed)
+			if (currentObject.y < minY)	// bunny is above the map ceiling (this IS allowed)
 									// in this case we extend the walls in the first row infinitely upward
 									// (standing on top of the map was extremely problematic the last time I tried it)
 			{
-				var leftEdge:Number = Sprite.x; 
-				var rightEdge:Number = Sprite.x + Sprite.width - 1;
+				var leftEdge:Number = currentObject.x; 
+				var rightEdge:Number = currentObject.x + currentObject.width - 1;
 
 				var leftTileIndex:uint = getTileIndex(leftEdge, minY);
 				var rightTileIndex:uint = getTileIndex(rightEdge, minY);
@@ -482,34 +461,33 @@
 				
 				if (leftTile >= _map.collideIndex)
 				{
-					Sprite.velocity.x = 0;
-					Sprite.x = (leftTileIndex + 1) * 16;
-				}
+					currentObject.x = (leftTileIndex + 1) * 16;
+					currentObject.hitLeft(null, 0);
+					}
 				
 				if (rightTile >= _map.collideIndex)
 				{
-					Sprite.velocity.x = 0;
-					Sprite.x = rightTileIndex * 16 - Sprite.width;
+					currentObject.x = rightTileIndex * 16 - currentObject.width;
+					currentObject.hitRight(null, 0);
 				}
 
 			}
 			
 			
-			if (Sprite.x < minX)		// falling off the map on the LEFT side (this is NOT allowed)
+			if (currentObject.x < minX)		// falling off the map on the LEFT side (this is NOT allowed)
 			{
-				Sprite.velocity.x = 0;
-				Sprite.x = minX
+				currentObject.x = minX
+				currentObject.hitLeft(null, 0);
 			}
-			if (Sprite.x > maxX)		// falling off the map on the RIGHT side (this is NOT allowed)
+			if (currentObject.x > maxX)		// falling off the map on the RIGHT side (this is NOT allowed)
 			{
-				Sprite.velocity.x = 0;
-				Sprite.x = maxX
+				currentObject.x = maxX
+				currentObject.hitRight(null, 0);
 			}
-			if (Sprite.y > maxY)		// falling out of the BOTTOM of the map (this is NOT allowed)
+			if (currentObject.y > maxY)		// falling out of the BOTTOM of the map (this is NOT allowed)
 			{
-				Sprite.velocity.y = 0;
-				Sprite.y = maxY
-				Sprite.setGrounded(true);
+				currentObject.y = maxY
+				currentObject.hitBottom(null, 0);
 			}
 		}
 		
@@ -535,7 +513,7 @@
 				
 				if (Killer.killCount > 1)
 				{
-					var newPopupText:PopupText = getObjectFromPool(opPopupTexts, PopupText, -1, POPUPTEXT_POOLSIZE);
+					var newPopupText:PopupText = opPopupTexts.getFirstAvail() as PopupText;
 
 					if (Killer.killCount < 4)
 					{
@@ -742,58 +720,6 @@
 			return true;
 		}
 
-		private function cleanupObjectPool(Group:FlxGroup, Poolsize:Number):uint
-		{
-//			var time:Number = getTimer();
-			var activeObjs:Array = new Array();
-			var freeObjs:Array = new Array();
-			
-			for each (var currentObj:FlxObject in Group.members) 
-			{
-				if (currentObj.exists == true && currentObj.visible == true)
-					activeObjs.push(currentObj);
-				else if (currentObj.exists == false && currentObj.visible == false)
-					freeObjs.push(currentObj);
-				else
-					trace("ERROR!");
-			}
-			
-			// shrinking the pool
-			var sizeAdjustment:Number = FlxU.floor((freeObjs.length / Poolsize) - 0.5) * Poolsize;
-			if (sizeAdjustment > 0)
-				freeObjs = freeObjs.slice(0, freeObjs.length - sizeAdjustment);
-			
-			trace ("TotalObjects: " + (activeObjs.length + freeObjs.length) + "; Active: " + activeObjs.length + "; Free: " + freeObjs.length );
-			
-			Group.members = activeObjs.concat(freeObjs);
-
-//			trace("cleanupObjectPool done; total time: "+(getTimer()-time)+"ms.");
-			return activeObjs.length;
-		}
-		
-		private function getObjectFromPool(Group:FlxGroup, ObjectClass:Class, startingIndex:int, resizeAmount:uint):*
-		{
-			var searchResult:FlxObject = null;
-			if (startingIndex == -1)
-			{
-				searchResult = Group.getFirstAvail();
-				if (searchResult != null)
-					return searchResult;
-				else
-					startingIndex = Group.members.length;
-			}	
-			
-			if (startingIndex == Group.members.length)
-			{
-				for (var i:int = 0; i < resizeAmount; i++) 
-				{
-					Group.add(new ObjectClass());
-				}
-			}
-			
-			return Group.members[startingIndex];
-		}
-
 		// creates a shower of blood and gore
 		private function gibPlayer(Gibbee:Player):void
 		{
@@ -801,9 +727,7 @@
 			var gibKind:String;
 			var gibIndex:uint;
 			
-			var gibStartIndex:uint = cleanupObjectPool(opGibs, GIBS_POOLSIZE);	// sort gib pool, returns index of first free gib
 			var currentObject:Gib;
-			
 			for (var re:int = 0; re < FlxU.floor((Math.random() * NUM_GIBS_VARIATION * 2) + (NUM_GIBS - NUM_GIBS_VARIATION)); re++) 
 			{
 				if (Math.random() < 0.33)
@@ -811,13 +735,12 @@
 				else
 					gibKind = "Flesh";
 				
-				currentObject = getObjectFromPool(opGibs, Gib, gibStartIndex, GIBS_POOLSIZE);
+				currentObject = opGibs.getFirstAvail() as Gib;
 				currentObject.activate(
 					Gibbee.rabbitIndex, 
 					gibKind, Gibbee.x + Gibbee.width / 2, 
 					Gibbee.y + Gibbee.height / 2
 				);
-				gibStartIndex++;
 			}
 //			trace("Total Time: " + (getTimer() - totalTime) + "ms");
 		}
@@ -830,16 +753,13 @@
 			
 			trace("Player " + Burstee.rabbitIndex + " just burst :o");
 			
-			var bubbleStartIndex:uint = cleanupObjectPool(opBubbles, BUBBLES_POOLSIZE);	// sort gib pool, returns index of first free gib
-			
 			for (var re:int = 0; re < FlxU.floor((Math.random() * NUM_BUBBLES_VARIATION * 2) + (NUM_BUBBLES - NUM_BUBBLES_VARIATION)); re++) 
 			{
-				var currentObject:Bubble = getObjectFromPool(opBubbles, Bubble, bubbleStartIndex, BUBBLES_POOLSIZE);
+				var currentObject:Bubble = opBubbles.getFirstAvail() as Bubble;
 				currentObject.activate(
 					Burstee.x + 8, Burstee.y + 8,
 					(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100
 				);
-				bubbleStartIndex++;
 			}
 
 			Burstee.particleTimer = -1;
@@ -926,11 +846,11 @@
 			// handle gibs
 			for each (var currentGib:Gib in opGibs.members) 
 			{
-				// set swimming flag
+				// set underwater flag
 				if (_map.getTileByIndex(getTileIndex(currentGib.x, currentGib.y)) == 1)
-					currentGib.setSwimming(true);
+					currentGib.isUnderwater = true;
 				else 
-					currentGib.setSwimming(false);
+					currentGib.isUnderwater = false;
 				
 				// render static gibs onto the background
 				if (currentGib.exists == true && currentGib.active == false && currentGib.visible == true)
@@ -988,7 +908,7 @@
 					currentPlayer.particleTimer += FlxG.elapsed;
 				
 				// new Bubble
-				if (currentPlayer.isSwimming() && currentPlayer.particleTimer > BUBBLE_DELAY && !currentPlayer.dead)
+				if (currentPlayer.isSwimming && currentPlayer.particleTimer > BUBBLE_DELAY && !currentPlayer.dead)
 				{
 					var xBubbleOrigin:Number;
 					var yBubbleOrigin:Number;
@@ -1001,37 +921,26 @@
 						
 					yBubbleOrigin = currentPlayer.y + 7;
 					
-					var currentObject:Bubble = getObjectFromPool(opBubbles, Bubble, -1, BUBBLES_POOLSIZE);
+					var currentObject:Bubble = opBubbles.getFirstAvail() as Bubble;
 					currentObject.activate(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0);
 
 					currentPlayer.particleTimer = 0;
 				}
-				else if (currentPlayer.isSwimming() && currentPlayer.particleTimer != -1 && currentPlayer.dead && currentPlayer.hasDrowned)
+				else if (currentPlayer.isSwimming && currentPlayer.particleTimer != -1 && currentPlayer.dead && currentPlayer.hasDrowned)
 				{
 					trace("Timer: " + currentPlayer.particleTimer);
 					bubbleBurstPlayer(currentPlayer);
 				}
 				
 				// new Dust
-				if (currentPlayer.isGrounded() && currentPlayer.isRunning() && !currentPlayer.isSliding() 
-					&& FlxU.abs(currentPlayer.velocity.x) < 96	// player is running slower than max speed
+				if (currentPlayer.onFloor && !currentPlayer.isSliding 
+					&& ((currentPlayer.isRunning && FlxU.abs(currentPlayer.velocity.x) < 96) 
+						|| (!currentPlayer.isRunning && currentPlayer.velocity.x != 0))
 					&& currentPlayer.particleTimer > DUST_DELAY)
 				{
-					var xDustOrigin:Number;
-					var yDustOrigin:Number;
-					var xDustDirection:int;
-					
-					if (currentPlayer.facing == 0)	// facing LEFT
-						xDustDirection = 1;
-					else							// facing RIGHT
-						xDustDirection = -1;
-					if (!currentPlayer.isRunning())
-						xDustDirection = 0;
-
-					xDustOrigin = currentPlayer.x + 2 + Math.random() * 9;
-					yDustOrigin = currentPlayer.y + 13 + Math.random() * 5;
-					
-					gParticles.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
+					gParticles.add(new Dust(currentPlayer.x + 2 + Math.random() * 9, 
+											currentPlayer.y + 13 + Math.random() * 5, 
+											0, -5 - Math.random() * 2.5));
 					
 					currentPlayer.particleTimer = 0;
 				}

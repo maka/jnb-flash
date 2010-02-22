@@ -37,19 +37,19 @@
 			// set animations for everything the bunny can do
 			addAnimation("idle", [5]);
 			addAnimation("sproing", [0, 1, 2, 3, 4, 5], 20, false);
-			addAnimationCallback(CallbackTest);
+			addAnimationCallback(callbackTest);
 
 			play("idle");
 		}
 		
-		public function Activate():void
+		public function activate():void
 		{
 			play("idle");
 			play("sproing");
 			FlxG.play(SoundSpring);
 		}
 		
-		private function CallbackTest(name:String, frameNumber:uint, frameIndex:uint):void
+		private function callbackTest(name:String, frameNumber:uint, frameIndex:uint):void
 		{
 			if (name == "sproing" && frameNumber == 5)
 				play("idle");

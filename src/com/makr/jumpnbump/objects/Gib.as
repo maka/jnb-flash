@@ -25,7 +25,7 @@
 		private var _bleeding:Boolean = true;
 		private var _killTimer:Number = 0;
 		private const killTimeout:Number = 1.5;
-		private var _isSwimming:Boolean = false;
+		private var _isUnderwater:Boolean = false;
 		
 		public function Gib():void
 		{
@@ -132,15 +132,15 @@
 			}
 		}
 		
-		public function isSwimming():Boolean { return _isSwimming; }
-		public function setSwimming(isSwimming:Boolean):void
+		public function get isUnderwater():Boolean { return _isUnderwater; }
+		public function set isUnderwater(isUnderwater:Boolean):void
 		{
-			if (_isSwimming == isSwimming)	// return if value is already set
+			if (_isUnderwater == isUnderwater)	// return if value is already set
 				return;
 				
-			_isSwimming = isSwimming;		// set value
+			_isUnderwater = isUnderwater;		// set value
 			
-			if (isSwimming)	
+			if (isUnderwater)	
 			{
 				maxVelocity.x = 30;
 				maxVelocity.y = 40;

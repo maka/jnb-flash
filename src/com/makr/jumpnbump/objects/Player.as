@@ -1,9 +1,5 @@
-﻿package com.makr.jumpnbump
-
+﻿package com.makr.jumpnbump.objects
 {
-	import adobe.utils.CustomActions;
-	import com.makr.jumpnbump.objects.Dust;
-	import com.makr.jumpnbump.objects.Splash;
 	import flash.geom.Point;
 	import org.flixel.*;	
 
@@ -11,12 +7,12 @@
 	public class Player	extends FlxSprite
 	{
 		// witch level
-		[Embed(source = '../../../../data/levels/witch/rabbit.png')] private var ImgPlayerWitch:Class;
+		[Embed(source = '../../../../../data/levels/witch/rabbit.png')] private var ImgPlayerWitch:Class;
 		
 		// original level
-		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Death")] private var SoundDeathOriginal:Class;
-		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Jump")] private var SoundJumpOriginal:Class;
-		[Embed(source = '../../../../data/levels/original/rabbit.png')] private var ImgPlayerOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Death")] private var SoundDeathOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Jump")] private var SoundJumpOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/rabbit.png')] private var ImgPlayerOriginal:Class;
 	
 		
 		private var SoundDeath:Class;
@@ -36,11 +32,10 @@
 		public var killCount:int = 0;
 
 		public var particleTimer:Number = 0;
-	
+		
 		private var _jumpReady:Boolean = false;
 		private var _jumpAbort:Boolean = false;
-		
-		private var _isGrounded:Boolean = false;
+	
 		private var _isSliding:Boolean = false;
 		private var _isRunning:Boolean = false;
 		private var _isSwimming:Boolean = false;
@@ -105,79 +100,60 @@
 			_jumpAbort = true;
 		}
 
-		public function isRunning():Boolean { return _isRunning; }
+		public function get isRunning():Boolean { return _isRunning; }
 		
-		public function isGrounded():Boolean { return _isGrounded; }
-		public function setGrounded(isGrounded:Boolean):void
+		public function get isSwimming():Boolean { return _isSwimming; }
+		public function set isSwimming(State:Boolean):void
 		{
-			if (_isGrounded == isGrounded)	// return if value is already set
-				return;
-			_isGrounded = isGrounded;		// set value
-			
-			if (!isGrounded)				// can only slide on the ground
-				setSliding(false);				
-		}
-		
-		public function isSwimming():Boolean { return _isSwimming; }
-		public function setSwimming(isSwimming:Boolean):void
-		{
-			if (_isSwimming == isSwimming)	// return if value is already set
+			if (_isSwimming == State)	// return if value is already set
 				return;
 				
-			_isSwimming = isSwimming;		// set value
+			_isSwimming = State;		// set value
 			
-			if (isSwimming)	
+			if (State == true)			// set vertical velocity to 0
 			{
-				setGrounded(false);			// not on the ground anymore
-			
-				var topTileEdge:Number = y - (y % 16);
-				PlayState.gParticles.add(new Splash(x, topTileEdge));
-			}	
-		}
-
-		public function isFloating():Boolean { return _isFloating; }
-		public function setFloating(isFloating:Boolean):void
-		{
-			if (_isFloating == isFloating)	// return if value is already set
-				return;
-				
-			_isFloating = isFloating;		// set value
-			
-			if (_isFloating)				// set vertical velocity to 0
-			{
-				velocity.y = 0;
-				setGrounded(false);
+				_isFloating = false;
 			}
 		}
 
-		public function isSliding():Boolean { return _isSliding; }
-		public function setSliding(isSliding:Boolean):void
+		public function get isFloating():Boolean { return _isFloating; }
+		public function set isFloating(State:Boolean):void
 		{
-			if (_isSliding == isSliding)	// return if value is already set
+			if (_isFloating == State)	// return if value is already set
 				return;
 				
-			_isSliding = isSliding;			// set value
+			_isFloating = State;		// set value
+			
+			if (State == true)			// set vertical velocity to 0
+			{
+				_isSwimming = false;	// not swimming anymore
+				velocity.y = 0;
+			}
 		}
 
-		public function setControls(enabled:Boolean):void
+		public function get isSliding():Boolean { return _isSliding; }
+		public function set isSliding(State:Boolean):void
 		{
-			if (_disableControls == !enabled)	// return if value is already set
+			if (_isSliding == State)	// return if value is already set
 				return;
 				
-			_disableControls = !enabled;			// set value
+			_isSliding = State;			// set value
 		}
 
-		public function setControlOverride(Override:String):void
+		public function disableControls(Disabled:Boolean = true):void
 		{
-			if (Override == _controlOverride)	// return if value is already set
+			if (_disableControls == Disabled)	// return if value is already set
+				return;
+				
+			_disableControls = Disabled;			// set value
+		}
+
+		public function overrideControls(Override:String):void
+		{
+			if (_controlOverride == Override)	// return if value is already set
 				return;
 				
 			_controlOverride = Override;			// set value
-		}
-
-		public function resetControlOverride():void
-		{
-			_controlOverride = "";	// reset value
 		}
 		
 		public override function reset(X:Number, Y:Number):void
@@ -204,7 +180,7 @@
 			_jumpReady = true;
 		}
 		
-		public function Player(newRabbitIndex:uint, X:Number, Y:Number):void
+		public function Player(RabbitIndex:uint, X:Number, Y:Number):void
 		{
 			switch (FlxG.levels[1])
 			{
@@ -222,8 +198,7 @@
 					break;
 			}
 
-			
-			rabbitIndex = newRabbitIndex;
+			rabbitIndex = RabbitIndex;
 			
 			super(X, Y);
 			
@@ -241,12 +216,12 @@
             offset.y = 4;
 			
 			// set animationOffset to use the right graphics
-			var aO:uint = rabbitIndex * 9;
+			var aO:uint = RabbitIndex * 9;
 			
 			// set animations for everything the bunny can do
 		
 			addAnimation("idle", [0+aO]);
-			addAnimation("normal", [0+aO, 1+aO, 2+aO, 3+aO], 15);
+			addAnimation("run", [0+aO, 1+aO, 2+aO, 3+aO], 15);
 			addAnimation("up", [4+aO]);
 			addAnimation("apex", [5+aO]);
 			addAnimation("down", [6+aO]);
@@ -259,15 +234,29 @@
 		
 		private function move(Facing:uint):void
 		{
-			// begin defining movement speeds
+			// begin movement speeds
 			const ICE_SPEED_CHANGE_DIRECTION:Number = 1 * 60 * FlxG.elapsed;
 			const ICE_SPEED:Number = ICE_SPEED_CHANGE_DIRECTION * 0.75 * 60 * FlxG.elapsed;
+			
 			const NORMAL_SPEED_CHANGE_DIRECTION:Number = 16 * 60 * FlxG.elapsed;
 			const NORMAL_SPEED:Number = NORMAL_SPEED_CHANGE_DIRECTION * 0.75 * 60 * FlxG.elapsed;
-			const MAX_SPEED:Number = 96;
-			// end defining movement speeds
 			
-			facing = Facing;
+			const MAX_SPEED:Number = 96;
+			
+			var speed:Number, speedChangeDirection:Number;
+			
+			if (_isSliding)	// on ice
+			{
+				speed = ICE_SPEED;
+				speedChangeDirection = ICE_SPEED_CHANGE_DIRECTION;
+			} 
+			else	// not on ice
+			{
+				speed = NORMAL_SPEED;
+				speedChangeDirection = NORMAL_SPEED_CHANGE_DIRECTION;
+			}
+			
+			this.facing = Facing;
 			var S:int;	// the sign of any variables. this is -1 or 1 depending on the direction we're facing
 			
 			if (facing == LEFT)
@@ -275,20 +264,10 @@
 			else if (facing == RIGHT)
 				S = 1;
 			
-			if (_isSliding) 
-			{ // if below is ice,
-				if (velocity.x*S < 0)
-					velocity.x += ICE_SPEED_CHANGE_DIRECTION*S;
-				else
-					velocity.x += ICE_SPEED*S; // otherwise, apply 0.01171875px force left
-			} 
-			else 
-			{	// NOT ON ICE:
-				if (velocity.x*S < 0)
-					velocity.x += NORMAL_SPEED_CHANGE_DIRECTION*S;
-				else
-					velocity.x += NORMAL_SPEED*S;
-			}
+			if (velocity.x*S < 0)
+				velocity.x += speedChangeDirection*S;
+			else
+				velocity.x += speed*S;
 			
 			if (velocity.x*S > MAX_SPEED)	// max x velocity is 1.5px per frame
 				velocity.x = MAX_SPEED*S;
@@ -298,7 +277,7 @@
 		
 		private function steer(ActionLeft:Boolean, ActionRight:Boolean, ActionUp:Boolean):void
 		{
-			// begin defining movement speeds
+			// movement speeds
 			const GROUND_DECELERATION:Number = 16 * 60 * FlxG.elapsed;
 			const NORMAL_JUMP:Number = 275; // was 273.4375 but that value was not enough for low framerates
 			const NORMAL_JUMP_DECELERATION:Number = 32 * 60 * FlxG.elapsed;
@@ -308,7 +287,6 @@
 			const WATER_JUMP:Number = 196; // was 192 but that value was not enough for low framerates
 			const WATER_BUOYANCY:Number = 1.5 * 60 * FlxG.elapsed;
 			const WATER_MAX_Y_SPEED:Number = 64;
-			// end defining movement speeds
 
 			if (ActionLeft && ActionRight)	// if both movement keys are pressed, continue going in the current direction
 			{
@@ -321,14 +299,12 @@
 				move(LEFT);
 			else if (ActionRight) 
 				move(RIGHT);
-			else if (!ActionLeft && !ActionRight)
-			{	// no movement keys pressed
+			else if (!ActionLeft && !ActionRight)	// no movement keys pressed
+			{
 				_isRunning = false;
-
 			
-				if (_isGrounded && !_isSliding)
+				if (onFloor && !_isSliding)	// slow the player down if he isn't holding a movement key
 				{
-					// slow the player down if he isn't holding a movement key
 					if (velocity.x < 0) 
 					{
 						velocity.x += GROUND_DECELERATION;
@@ -347,7 +323,7 @@
 			// Jumping!
 			if (_jumpReady && ActionUp) 
 			{
-				if (_isGrounded) 
+				if (onFloor) 
 				{
 					velocity.y = -NORMAL_JUMP;
 					_jumpReady = false;
@@ -358,14 +334,13 @@
 				if (_isFloating) 
 				{
 					velocity.y = -WATER_JUMP;
-					setFloating(false);
+					isFloating = false;
 					_jumpReady = false;
 					_jumpAbort = true;
 					FlxG.play(SoundJump);
 				}
 			}
-			/* fall down by gravity */
-			if (!ActionUp) 
+			if (!ActionUp)	// jump key isn't pressed, decelerate.
 			{
 				_jumpReady = true;
 				if (!_isFloating && !_isSwimming && velocity.y < 0 && _jumpAbort == 1) 
@@ -376,55 +351,54 @@
 				}
 			}
 			
-			// if most if the player is underwater
-			if (_isSwimming) 
+			if (_isSwimming) // underwater
 			{
-				/* slowly move up to water surface */
+				// slowly move up to water surface
 				velocity.y -= WATER_BUOYANCY;
 				
-				// limit max y-velocity to 64
+				// limit max y-velocity
 				if (velocity.y < -WATER_MAX_Y_SPEED)
 					velocity.y = -WATER_MAX_Y_SPEED;
 				if (velocity.y > WATER_MAX_Y_SPEED)
 					velocity.y = WATER_MAX_Y_SPEED;
 			} 
-			else if (!_isFloating) 
+			
+			if (!_isSwimming && !_isFloating) // apply gravity outside of water
 			{
-					velocity.y += NORMAL_GRAVITY; // add normal gravity
-					if (velocity.y > NORMAL_MAX_Y_SPEED)	// max downward velocity is 320
+					velocity.y += NORMAL_GRAVITY;
+					if (velocity.y > NORMAL_MAX_Y_SPEED)
 						velocity.y = NORMAL_MAX_Y_SPEED;
 			}
 		}
 		
 		private function animate():void
 		{
-			// animate!
-			var _apexThreshold:int = 36;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
-			var _downfastThreshold:int = 100;	// the vertical downward velocity where the downfast animation is played ([value] - ∞)
+			const APEX_THRESHOLD:int = 36;	// the vertical downward velocity where the apex animation is played (-[value] - [value])
+			const DOWNFAST_THRESHOLD:int = 100;	// the vertical downward velocity where the downfast animation is played ([value] - ∞)
 
 			 // not on the ground (in air or water)
-			if (_isGrounded == false)
+			if (!onFloor)
 			{
 				// going up
-				if (velocity.y < _apexThreshold)
+				if (velocity.y < APEX_THRESHOLD)
 					play("up");
 					
 				// at the apex of a jump or dive
-				if ((velocity.y < 0 ? -velocity.y : velocity.y) < _apexThreshold)
+				if (FlxU.abs(velocity.y) < APEX_THRESHOLD)
 					play("apex");
 					
 				// going down
-				if (velocity.y > _apexThreshold && velocity.y < _downfastThreshold)
+				if (velocity.y > APEX_THRESHOLD && velocity.y < DOWNFAST_THRESHOLD)
 					play("down");
 					
 				// going down quickly
-				if (velocity.y >= _downfastThreshold)
+				if (velocity.y >= DOWNFAST_THRESHOLD)
 					play("downfast");
 			}
 			
 			// on the ground, running
 			else if (_isRunning == true)
-				play("normal");
+				play("run");
 			
 			// on the ground, doing nothing
 			else
@@ -447,8 +421,12 @@
 				return;
 			}
 			
-			// handle input
+			// can't slide if we're not on the floor
+			if (!onFloor)
+				isSliding = false;
 			
+			
+			// handle input
 			var actionLeft:Boolean = false;
 			var actionRight:Boolean = false;
 			var actionUp:Boolean = false;
@@ -467,14 +445,6 @@
 				actionUp = (_controlOverride == "JUMP");
 			}
 
-			
-			// if direction key is pressed
-			if (actionLeft || actionRight)
-				_isRunning = true;
-			else
-				_isRunning = false;
-
-				
 			steer(actionLeft, actionRight, actionUp);
 			
 			// handle drowning
@@ -486,7 +456,7 @@
 				{
 					_flashTimer += FlxG.elapsed;
 					
-					while (_flashTimer >= 0.5) 
+					while (_flashTimer >= 0.5)
 						_flashTimer -= 0.5;
 					
 					if (_flashTimer <= 0.25)
@@ -498,10 +468,8 @@
 				{
 					_flashTimer += FlxG.elapsed;
 					
-					while (_flashTimer >= 0.25) 
-					{
+					while (_flashTimer >= 0.25)
 						_flashTimer -= 0.25;
-					}
 						
 					if (_flashTimer <= 0.125)
 						color = 0x80C1F3;
@@ -527,10 +495,9 @@
 
 			
 			animate();
+
 			
 			super.update();
-			
-			
 		}
 	}
 }

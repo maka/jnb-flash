@@ -1,5 +1,6 @@
 ﻿package com.makr.jumpnbump
 {
+	import com.makr.jumpnbump.objects.Player;
 	import com.makr.jumpnbump.objects.Dust;
 	import com.makr.jumpnbump.objects.KeySprite;
 	import flash.geom.Point;
@@ -36,7 +37,7 @@
 		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
 		private static const _KEY_JUMP:Array = ["UP", "W", "I", "NUMPAD_EIGHT"];
 		
-		private static const DUST_DELAY:Number = 0.1;			// delay between creating a dust particles
+		private static const DUST_DELAY:Number = 0.05;			// delay between creating a dust particles
 
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
@@ -117,13 +118,8 @@
 			_fg.x = _fg.y = 0;
 			gForeground.add(_fg);
 			
-			
-
-			
 			for (var i:int = 0; i < 4; i++) 
-			{
 				_trunk[i] = new FlxTileblock(179 + i * 2, 153 + i * 2, 30, 22);
-			}
 
 			// creating a bunny (every bunny gets a randon x-value in their own 30px range, ordered by keyboard layout (wasd, ijkl, arrows, 8456)
 			gPlayers.add(new Player(0, 90+Math.random()*30, 170));
@@ -159,23 +155,26 @@
 
 		
 		
-		private function performMenuCollisions(Collidee:Player):void
+		private function performMenuCollisions(currentPlayer:Player):void
 		{
-			var pHeight:Number = Collidee.height;
-			var pWidth:Number = Collidee.width;
+			var pHeight:Number = currentPlayer.height;
+			var pWidth:Number = currentPlayer.width;
 			
-			var pX:Number = Collidee.x;
-			var pY:Number = Collidee.y;
+			var pX:Number = currentPlayer.x;
+			var pY:Number = currentPlayer.y;
 			
 			var leftEdge:Number = 1;
 			var rightEdge:Number = 400;
-			var floor:Number = 175 + Collidee.rabbitIndex * 2;	
+		
+			var trunk:FlxTileblock = _trunk[currentPlayer.rabbitIndex];
+			var floor:Number = 175 + currentPlayer.rabbitIndex * 2;
+
 			
 			// preventing exit left
 			if (pX < leftEdge)
 			{
-				Collidee.velocity.x = 0;
-				Collidee.x = leftEdge
+				currentPlayer.x = leftEdge	// rabbits would slowly move off the screen, regardless of hitLeft.
+				currentPlayer.hitLeft(null, 0);
 			}
 			
 			// triggering transition on right edge
@@ -186,20 +185,11 @@
 			
 			if (pY > floor - pHeight)
 			{
-				Collidee.velocity.y = 0;
-				Collidee.y = floor - pHeight;
-				Collidee.setGrounded(true);
-			}
-			else
-			{
-				Collidee.setGrounded(false);
-			}
+				currentPlayer.y = floor - pHeight;
+				currentPlayer.hitBottom(null, 0);
+			}			
 			
-			_trunk[Collidee.rabbitIndex].collide(Collidee);
-			
-			if (pX > _trunk[Collidee.rabbitIndex].x - pWidth + 1 && pX < _trunk[Collidee.rabbitIndex].x + _trunk[Collidee.rabbitIndex].width - 1 && 
-				pY > _trunk[Collidee.rabbitIndex].y - pHeight - 1)
-				Collidee.setGrounded(true);
+			trunk.collide(currentPlayer);
 		}	
 		
 		private function transition():void
@@ -208,8 +198,8 @@
 			{
 				if (currentPlayer.x > _trunk[currentPlayer.rabbitIndex].x - currentPlayer.width)
 				{
-					currentPlayer.setControls(false);
-					currentPlayer.setControlOverride("RIGHT");
+					currentPlayer.disableControls();
+					currentPlayer.overrideControls("RIGHT");
 					
 					
 					switch (currentPlayer.rabbitIndex) 
@@ -257,9 +247,6 @@
 					gKeySprites.members[getKeySpriteIndex(i)].fadeOut();
 				}
 			}
-			
-				
-			updateParticles();
 				
 			for each (var player:Player in gPlayers.members) 
 			{
@@ -272,8 +259,10 @@
 					gKeySprites.members[getKeySpriteIndex(player.rabbitIndex)].y = player.y + player.velocity.y * FlxG.elapsed;
 				}
 			}
+				
+			updateParticles();
 			
-			super.update();
+			super.update();				
 		}
 
 		// creates new particles, perform collisions, erase dead ones
@@ -285,23 +274,14 @@
 				currentPlayer.particleTimer += FlxG.elapsed;
 				
 				// new Dust
-				if (currentPlayer.isGrounded() && !currentPlayer.isSliding() 
-					&& ((currentPlayer.isRunning() && FlxU.abs(currentPlayer.velocity.x) < 96) || (!currentPlayer.isRunning() && currentPlayer.velocity.x != 0))
+				if (currentPlayer.onFloor && !currentPlayer.isSliding 
+					&& ((currentPlayer.isRunning && FlxU.abs(currentPlayer.velocity.x) < 96) 
+						|| (!currentPlayer.isRunning && currentPlayer.velocity.x != 0))
 					&& currentPlayer.particleTimer > DUST_DELAY)
 				{
-					var xDustOrigin:Number;
-					var yDustOrigin:Number;
-					var xDustDirection:int;
-					
-					if (currentPlayer.facing == 0)	// facing LEFT
-						xDustDirection = 1;
-					else							// facing RIGHT
-						xDustDirection = -1;
-
-					xDustOrigin = currentPlayer.x + 2 + Math.random() * 9;
-					yDustOrigin = currentPlayer.y + 13 + Math.random() * 5;
-					
-					gParticles.add(new Dust(xDustOrigin, yDustOrigin, xDustDirection));
+					gParticles.add(new Dust(currentPlayer.x + 2 + Math.random() * 9, 
+											currentPlayer.y + 13 + Math.random() * 5, 
+											0, -5 - Math.random() * 2.5));
 					
 					currentPlayer.particleTimer = 0;
 				}

@@ -5,7 +5,9 @@
   <compiler>
     <source-path append="true">
       <path-element>G:\Flex\Projects\jumpnbump\src</path-element>
-      <path-element>G:\Flex\flixel</path-element>
+      <path-element>G:\Flex\Libs\flixel</path-element>
+      <path-element>G:\Flex\Libs\as3-signals\src</path-element>
+      <path-element>G:\Flex\Libs\Stats</path-element>
       <path-element>G:\Flex\FlashDevelop\Library\AS3\classes</path-element>
     </source-path>
   </compiler>

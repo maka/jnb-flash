@@ -1,5 +1,7 @@
 ﻿package com.makr.jumpnbump.objects
 {
+	import flash.events.EventDispatcher;
+	import flash.events.IEventDispatcher;
 	import flash.geom.Point;
 	import org.flixel.*;	
 	
@@ -47,6 +49,8 @@
 			// i don't know why this is so ridiculously complicated in FlxButton,
 			// here's the simpe version of what I want to do:
 			
+			
+			
 			if (_onToggle) 
 			{
 				_text.color = 0xff006FD7;
@@ -54,13 +58,13 @@
 				_on.visible = true;
 				_off.visible = false;
 			}
-			if (!_onToggle && !_off.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y))
+			if (!_onToggle && !this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y))
 			{
 				_hover.visible = false;
 				_on.visible = false
 				_off.visible = true;
 			}
-			if (!_onToggle && _off.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
+			if (!_onToggle && this.overlapsPoint(FlxG.mouse.x, FlxG.mouse.y)) 
 			{
 				_text.color = 0x666666;
 				_hover.visible = true;

@@ -38,16 +38,18 @@
             offset.y = -4;  //Where in the sprite the bounding box starts on the Y axis
 
 			// set animations for everything the bunny can do
-			addAnimation("splish", [0, 1, 2, 3, 4, 5, 6, 7, 8, 8], 25, false);
-			addAnimationCallback(animationCallback);
+			addAnimation("splish", [0, 1, 2, 3, 4, 5, 6, 7, 8], 25, false);
+
 			FlxG.play(SoundSplash);		// make some noise
 			play("splish");
 		}
 		
-		private function animationCallback(name:String, frameNumber:uint, frameIndex:uint):void
+		public override function update():void
 		{
-			if (frameNumber == 9)
+			if (finished == true)
 				kill();
+			
+			super.update();
 		}
 	}
 }

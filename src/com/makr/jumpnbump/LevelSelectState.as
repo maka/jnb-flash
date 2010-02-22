@@ -129,8 +129,6 @@
 			FlxG.flash.start(0xff000000, 0.4);
 		}
 
-		
-		
 		public override function update():void
         {
 			

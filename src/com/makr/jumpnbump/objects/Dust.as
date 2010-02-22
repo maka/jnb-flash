@@ -14,7 +14,7 @@
 		private var ImgDust:Class;
 		
 		
-		public function Dust(X:Number = 0, Y:Number = 0, XDirection:Number = 0):void
+		public function Dust(X:Number = 0, Y:Number = 0, Xvel:Number = 0, Yvel:Number = 0):void
 		{
 			switch (FlxG.levels[1])
 			{
@@ -27,20 +27,18 @@
 			super(X, Y);
 			loadGraphic(ImgDust, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
 			
-			//velocity.y = -16 - Math.random() * 8;
-			
- 			velocity.x = 8 * XDirection;
+			velocity.x = Xvel;
+			velocity.y = Yvel;
 			
            // set bounding box
             width = 5;
             height = 5;
 			
-            offset.x = 3;  //Where in the sprite the bounding box starts on the X axis
-            offset.y = 4;  //Where in the sprite the bounding box starts on the Y axis
+            offset.x = 1;  //Where in the sprite the bounding box starts on the X axis
+            offset.y = 6;  //Where in the sprite the bounding box starts on the Y axis
 
 			// set animations for everything the bunny can do
-			addAnimation("dust", [0, 1, 2, 3, 4, 4], 30, false);
-			addAnimationCallback(animationCallback);
+			addAnimation("dust", [0, 1, 2, 3, 4], 25, false);
 			
 			play("dust");
 		}
@@ -50,10 +48,12 @@
 			play("dust");
 		}
 		
-		private function animationCallback(name:String, frameNumber:uint, frameIndex:uint):void
+		public override function update():void
 		{
-			if (frameNumber == 5)
+			if (finished == true)
 				kill();
+			
+			super.update();
 		}
 	}
 }
