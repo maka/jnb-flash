@@ -7,14 +7,14 @@
 	public class Gib extends FlxSprite
 	{
 		// witch level		
-		[Embed(source = '../../../../../data/levels/witch/gore.png')] private var ImgGibWitch:Class;
+		[Embed(source = '../../../../../data/levels/witch/gore.png')] private var _imgGibWitch:Class;
 
 		// original level		
-		[Embed(source = '../../../../../data/levels/original/gore.png')] private var ImgGibOriginal:Class;
-		[Embed(source = '../../../../../data/levels/original/blood.png')] private var ImgBloodOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/gore.png')] private var _imgGibOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/blood.png')] private var _imgBloodOriginal:Class;
 
-		private var ImgGib:Class;
-		private var ImgBlood:Class;
+		private var _imgGib:Class;
+		private var _imgBlood:Class;
 
 //		private static const _STATIC_PERCENTAGE:uint = 8;
 		private static const _STATIC_PERCENTAGE:uint = 100;
@@ -24,25 +24,25 @@
 		private var _force:Number = 200;
 		private var _bleeding:Boolean = true;
 		private var _killTimer:Number = 0;
-		private const killTimeout:Number = 1.5;
+		private const _KILL_TIMEOUT:Number = 1.5;
 		private var _isUnderwater:Boolean = false;
 		
 		public function Gib():void
 		{
 			// defaults
-			ImgGib = ImgGibOriginal;
-			ImgBlood = ImgBloodOriginal;
+			_imgGib = _imgGibOriginal;
+			_imgBlood = _imgBloodOriginal;
 
 			
 			switch (FlxG.levels[1])
 			{
 				case "witch":
-					ImgGib = ImgGibWitch;
+					_imgGib = _imgGibWitch;
 					break;
 			}
 			
 			super(0, 0);
-			loadGraphic(ImgGib, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgGib, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
             width = 3;
@@ -62,7 +62,7 @@
 			if (_bleeding)
 			{
 				_blood = PlayState.gParticles.add(new FlxEmitter (0, 0)) as FlxEmitter;
-				_blood.createSprites(ImgBlood, _numBloodSprites, 16, true);
+				_blood.createSprites(_imgBlood, _numBloodSprites, 16, true);
 				_blood.gravity = 0;
 //				_blood.setRotation( -30, 30);
 				_blood.setRotation(0, 0);
@@ -133,14 +133,14 @@
 		}
 		
 		public function get isUnderwater():Boolean { return _isUnderwater; }
-		public function set isUnderwater(isUnderwater:Boolean):void
+		public function set isUnderwater(State:Boolean):void
 		{
-			if (_isUnderwater == isUnderwater)	// return if value is already set
+			if (_isUnderwater == State)	// return if value is already set
 				return;
 				
-			_isUnderwater = isUnderwater;		// set value
+			_isUnderwater = State;		// set value
 			
-			if (isUnderwater)	
+			if (State == true)	
 			{
 				maxVelocity.x = 30;
 				maxVelocity.y = 40;
@@ -199,13 +199,13 @@
 			{
 				for each (var bloodParticle:FlxSprite in _blood.members) 
 				{
-					bloodParticle.alpha = 1 - _killTimer / killTimeout;
+					bloodParticle.alpha = 1 - _killTimer / _KILL_TIMEOUT;
 					if (bloodParticle.alpha < 0)
 						bloodParticle.alpha = 0;
 				}
 			}
 			
-			if (_killTimer > killTimeout )
+			if (_killTimer > _KILL_TIMEOUT )
 			{
 				
 				if (Math.random() * 100 < _STATIC_PERCENTAGE)	// [_STATIC_PERCENTAGE]% chance of becoming static

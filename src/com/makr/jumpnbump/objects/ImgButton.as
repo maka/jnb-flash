@@ -1,7 +1,5 @@
 ﻿package com.makr.jumpnbump.objects
 {
-	import flash.events.EventDispatcher;
-	import flash.events.IEventDispatcher;
 	import flash.geom.Point;
 	import org.flixel.*;	
 	

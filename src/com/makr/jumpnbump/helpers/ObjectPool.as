@@ -7,7 +7,7 @@
 	public class ObjectPool extends FlxGroup
 	{
 		// minimal number of available objects after shrinking is (shrinkBuffer * poolSize)
-		private var shrinkBuffer:Number;
+		private var _shrinkBuffer:Number;
 		
 		public var poolSize:uint;
 		public var poolClass:Class;
@@ -17,7 +17,7 @@
 		{
 			poolClass = PoolClass;
 			poolSize = PoolSize;
-			shrinkBuffer = ShrinkBuffer;
+			_shrinkBuffer = ShrinkBuffer;
 			
 			firstAvailIndex = 0;
 			
@@ -62,7 +62,7 @@
 			{
 				// sizeReduction is the number of available objects (minus shrinkBuffer), expressed in full Poolsizes
 				var availObjsSize:uint = availObjs.length;
-				var sizeReduction:Number = FlxU.floor((availObjsSize / poolSize) - shrinkBuffer);
+				var sizeReduction:Number = FlxU.floor((availObjsSize / poolSize) - _shrinkBuffer);
 				if (sizeReduction > 0)
 					availObjs = availObjs.slice(0, availObjsSize - (sizeReduction * poolSize));
 			}

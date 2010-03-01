@@ -7,11 +7,11 @@
 		
 		/// Individual level assets
 		// original level
-		[Embed(source = '../../../../../data/levels/original/spring.png')] private var ImgSpringOriginal:Class;
-		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Spring")] private var SoundSpringOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/spring.png')] private var _imgSpringOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Spring")] private var _soundSpringOriginal:Class;
 		
-		private var ImgSpring:Class;
-		private var SoundSpring:Class;
+		private var _imgSpring:Class;
+		private var _soundSpring:Class;
 		
 		public function Spring(X:Number,Y:Number):void
 		{
@@ -19,13 +19,13 @@
 			{
 				case "original":
 				default:
-					ImgSpring = ImgSpringOriginal;
-					SoundSpring = SoundSpringOriginal;
+					_imgSpring = _imgSpringOriginal;
+					_soundSpring = _soundSpringOriginal;
 					break;
 			}
 
 			super(X, Y);
-			loadGraphic(ImgSpring, true, true, 16, 12); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgSpring, true, true, 16, 12); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
             width = 16;
@@ -46,7 +46,7 @@
 		{
 			play("idle");
 			play("sproing");
-			FlxG.play(SoundSpring);
+			FlxG.play(_soundSpring);
 		}
 		
 		private function callbackTest(name:String, frameNumber:uint, frameIndex:uint):void

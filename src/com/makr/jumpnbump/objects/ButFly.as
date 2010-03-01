@@ -9,25 +9,21 @@
 		
 		/// Individual level assets
 		// original level
-		[Embed(source = '../../../../../data/levels/original/butfly.png')] private var ImgButflyOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/butfly.png')] private var _imgButflyOriginal:Class;
 		
-		private var ImgButfly:Class;
+		private var _imgButfly:Class;
 
 		public function ButFly(X:Number, Y:Number):void
 		{
-			switch (FlxG.levels[1])
-			{
-				case "original":
-				default:
-					ImgButfly = ImgButflyOriginal;
-					break;
-			}
+			// Loading assets into variables
+			// defaults
+			_imgButfly = _imgButflyOriginal;
 
 			
 			x = X;
 			y = Y;
 			
-			loadGraphic(ImgButfly, true, true, 9, 8); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgButfly, true, true, 9, 8); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
             width = 4;

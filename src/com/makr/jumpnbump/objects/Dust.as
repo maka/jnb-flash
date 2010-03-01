@@ -8,24 +8,20 @@
 		
 		/// Individual level assets
 		// original level
-		[Embed(source = '../../../../../data/levels/original/dust.png')] private var ImgDustOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/dust.png')] private var _imgDustOriginal:Class;
 		
 		
-		private var ImgDust:Class;
+		private var _imgDust:Class;
 		
 		
 		public function Dust(X:Number = 0, Y:Number = 0, Xvel:Number = 0, Yvel:Number = 0):void
 		{
-			switch (FlxG.levels[1])
-			{
-				case "original":
-				default:
-					ImgDust = ImgDustOriginal;
-					break;
-			}
+			// Loading assets into variables
+			// defaults
+			_imgDust = _imgDustOriginal;
 
 			super(X, Y);
-			loadGraphic(ImgDust, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgDust, true, false, 5, 5); // load player sprite (is animated, is reversible, is 19x19)
 			
 			velocity.x = Xvel;
 			velocity.y = Yvel;

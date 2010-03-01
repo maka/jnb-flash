@@ -7,7 +7,7 @@
 	{
 	
 		/// Assets independent from level selection
-		[Embed(source = '../../../../../data/levels/common/radiobutton.png')] private var ImgRadioButton:Class;
+		[Embed(source = '../../../../../data/levels/common/radiobutton.png')] private var _imgRadioButton:Class;
 		
 		private var _radioButton:FlxSprite;
 		private var _text:FlxText;
@@ -19,7 +19,7 @@
 			super(x, y, Callback);
 			
 			_radioButton = new FlxSprite();
-			_radioButton.loadGraphic(ImgRadioButton, true, false, 13, 13);
+			_radioButton.loadGraphic(_imgRadioButton, true, false, 13, 13);
 			_radioButton.addAnimation("unchecked", [0]);
 			_radioButton.addAnimation("checked", [1]);
 			_radioButton.addAnimation("unchecked_hover", [2]);

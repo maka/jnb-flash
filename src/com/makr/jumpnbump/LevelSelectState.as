@@ -10,13 +10,13 @@
 	{
 		
 		/// Individual level assets
-		[Embed(source = '../../../../data/levels/original/thumb.png')] 	private var ImgThumbOriginal:Class;
-		[Embed(source = '../../../../data/levels/topsy/thumb.png')]		private var ImgThumbTopsy:Class;
-		[Embed(source = '../../../../data/levels/jump2/thumb.png')] 	private var ImgThumbJump2:Class;
-		[Embed(source = '../../../../data/levels/green/thumb.png')] 	private var ImgThumbGreen:Class;
-		[Embed(source = '../../../../data/levels/rabtown/thumb.png')] 	private var ImgThumbRabtown:Class;
-		[Embed(source = '../../../../data/levels/crystal2/thumb.png')] 	private var ImgThumbCrystal2:Class;
-		[Embed(source = '../../../../data/levels/witch/thumb.png')] 	private var ImgThumbWitch:Class;
+		[Embed(source = '../../../../data/levels/original/thumb.png')] 	private var _imgThumbOriginal:Class;
+		[Embed(source = '../../../../data/levels/topsy/thumb.png')]		private var _imgThumbTopsy:Class;
+		[Embed(source = '../../../../data/levels/jump2/thumb.png')] 	private var _imgThumbJump2:Class;
+		[Embed(source = '../../../../data/levels/green/thumb.png')] 	private var _imgThumbGreen:Class;
+		[Embed(source = '../../../../data/levels/rabtown/thumb.png')] 	private var _imgThumbRabtown:Class;
+		[Embed(source = '../../../../data/levels/crystal2/thumb.png')] 	private var _imgThumbCrystal2:Class;
+		[Embed(source = '../../../../data/levels/witch/thumb.png')] 	private var _imgThumbWitch:Class;
 		
 		private var _levelButtons:Array = new Array;
 		private var _currentLevel:int = -1;
@@ -79,13 +79,13 @@
 
 			
 			var levelBox:Point = new Point(16, 62);
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 0, levelBox.y + 64 * 0, 	ImgThumbOriginal, 	handleButtonOriginal,	"Original"));
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 1, levelBox.y + 64 * 0, 	ImgThumbTopsy, 		handleButtonTopsy,		"Topsy Turvey"));
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 2, levelBox.y + 64 * 0, 	ImgThumbJump2, 		handleButtonJump2,		"Jump 2"));
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 3, levelBox.y + 64 * 0, 	ImgThumbGreen, 		handleButtonGreen,		"Green Land"));
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 0, levelBox.y + 64 * 1, 	ImgThumbRabtown, 	handleButtonRabtown,	"Rabbit Town"));
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 1, levelBox.y + 64 * 1, 	ImgThumbCrystal2, 	handleButtonCrystal2,	"Crystal 2"));
-			_levelButtons.push(new ImgButton(levelBox.x + 96 * 2, levelBox.y + 64 * 1, 	ImgThumbWitch, 		handleButtonWitch,		"Witch"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 0, levelBox.y + 64 * 0, 	_imgThumbOriginal, 	handleButtonOriginal,	"Original"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 1, levelBox.y + 64 * 0, 	_imgThumbTopsy, 	handleButtonTopsy,		"Topsy Turvey"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 2, levelBox.y + 64 * 0, 	_imgThumbJump2, 	handleButtonJump2,		"Jump 2"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 3, levelBox.y + 64 * 0, 	_imgThumbGreen, 	handleButtonGreen,		"Green Land"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 0, levelBox.y + 64 * 1, 	_imgThumbRabtown, 	handleButtonRabtown,	"Rabbit Town"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 1, levelBox.y + 64 * 1, 	_imgThumbCrystal2, 	handleButtonCrystal2,	"Crystal 2"));
+			_levelButtons.push(new ImgButton(levelBox.x + 96 * 2, levelBox.y + 64 * 1, 	_imgThumbWitch, 	handleButtonWitch,		"Witch"));
 			
 			var exitButtonText:FlxText = new FlxText(5, 1, 52, "done");
 			exitButtonText.color = 0x000000

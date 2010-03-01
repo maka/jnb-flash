@@ -8,24 +8,20 @@
 		
 		/// Individual level assets
 		// original level
-		[Embed(source = '../../../../../data/levels/original/bubble.png')] private var ImgBubbleOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/bubble.png')] private var _imgBubbleOriginal:Class;
 		
 		
-		private var ImgBubble:Class;
-		private var killTimer:Number;
+		private var _imgBubble:Class;
+		private var _killTimer:Number;
 		
 		public function Bubble():void
 		{
-			switch (FlxG.levels[1])
-			{
-				case "original":
-				default:
-					ImgBubble = ImgBubbleOriginal;
-					break;
-			}
+			// Loading assets into variables
+			// defaults
+			_imgBubble = _imgBubbleOriginal;
 
 			super(0, 0);
-			loadGraphic(ImgBubble, true, false, 4, 4); // load player sprite (is animated, is not reversible, is 4x4)
+			loadGraphic(_imgBubble, true, false, 4, 4); // load player sprite (is animated, is not reversible, is 4x4)
 			
 			alpha = Math.random() * 0.5;
 			
@@ -62,7 +58,7 @@
 			velocity.x = Xvel;
 			velocity.y = Yvel;
 			
-			killTimer = 0;
+			_killTimer = 0;
 
 			switch (FlxU.floor(Math.random()*4)) 
 			{
@@ -101,9 +97,9 @@
 				trace("y-acceleration: " + acceleration.y);
 			
 			if (velocity.y == 0)
-				killTimer += FlxG.elapsed;
+				_killTimer += FlxG.elapsed;
 			
-			if (killTimer > 1)
+			if (_killTimer > 1)
 				kill();
 			
 			// random factor

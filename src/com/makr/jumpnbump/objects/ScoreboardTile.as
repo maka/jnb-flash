@@ -8,13 +8,13 @@
 		
 		/// Individual level assets
 		// witch level
-		[Embed(source = '../../../../../data/levels/witch/numbers.png')] private var ImgNumberWitch:Class;
+		[Embed(source = '../../../../../data/levels/witch/numbers.png')] private var _imgNumberWitch:Class;
 
 		// original level
-		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var ImgNumberOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/numbers.png')] private var _imgNumberOriginal:Class;
 		
 		
-		private var ImgNumber:Class;
+		private var _imgNumber:Class;
 		
 		
 		public var Tiles:Array = new Array;
@@ -25,19 +25,19 @@
 			switch (FlxG.levels[1])
 			{
 				case "witch":
-					ImgNumber = ImgNumberWitch;
+					_imgNumber = _imgNumberWitch;
 					break;
 
 				case "original":
 				default:
-					ImgNumber = ImgNumberOriginal;
+					_imgNumber = _imgNumberOriginal;
 					break;
 			}
 
 			x = X;
 			y = Y;
 			
-			loadGraphic(ImgNumber, true, false, 16, 22);
+			loadGraphic(_imgNumber, true, false, 16, 22);
 
 			// set animations for everything the bunny can do
 			addAnimation("0", [0]);

@@ -8,12 +8,12 @@
 		
 		/// Individual level assets
 		// original level
-		[Embed(source = '../../../../../data/levels/original/splash.png')] private var ImgSplashOriginal:Class;
-		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Splash")] private var SoundSplashOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/splash.png')] private var _imgSplashOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Splash")] private var _soundSplashOriginal:Class;
 		
 		
-		private var ImgSplash:Class;
-		private var SoundSplash:Class;
+		private var _imgSplash:Class;
+		private var _soundSplash:Class;
 		
 		
 		public function Splash(X:Number,Y:Number):void
@@ -22,13 +22,13 @@
 			{
 				case "original":
 				default:
-					ImgSplash = ImgSplashOriginal;
-					SoundSplash = SoundSplashOriginal;
+					_imgSplash = _imgSplashOriginal;
+					_soundSplash = _soundSplashOriginal;
 					break;
 			}
 
 			super(X, Y);
-			loadGraphic(ImgSplash, true, false, 31, 13); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgSplash, true, false, 31, 13); // load player sprite (is animated, is reversible, is 19x19)
 			
             // set bounding box
             width = 31;
@@ -40,7 +40,7 @@
 			// set animations for everything the bunny can do
 			addAnimation("splish", [0, 1, 2, 3, 4, 5, 6, 7, 8], 25, false);
 
-			FlxG.play(SoundSplash);		// make some noise
+			FlxG.play(_soundSplash);		// make some noise
 			play("splish");
 		}
 		

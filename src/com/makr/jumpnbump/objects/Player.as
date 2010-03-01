@@ -7,17 +7,17 @@
 	public class Player	extends FlxSprite
 	{
 		// witch level
-		[Embed(source = '../../../../../data/levels/witch/rabbit.png')] private var ImgPlayerWitch:Class;
+		[Embed(source = '../../../../../data/levels/witch/rabbit.png')] private var _imgPlayerWitch:Class;
 		
 		// original level
-		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Death")] private var SoundDeathOriginal:Class;
-		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Jump")] private var SoundJumpOriginal:Class;
-		[Embed(source = '../../../../../data/levels/original/rabbit.png')] private var ImgPlayerOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Death")] private var _soundDeathOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/sounds.swf', symbol="Jump")] private var _soundJumpOriginal:Class;
+		[Embed(source = '../../../../../data/levels/original/rabbit.png')] private var _imgPlayerOriginal:Class;
 	
 		
-		private var SoundDeath:Class;
-		private var SoundJump:Class;
-		private var ImgPlayer:Class;
+		private var _soundDeath:Class;
+		private var _soundJump:Class;
+		private var _imgPlayer:Class;
 
 		
 		// controls for all players
@@ -35,7 +35,7 @@
 		
 		private var _jumpReady:Boolean = false;
 		private var _jumpAbort:Boolean = false;
-	
+		
 		private var _isSliding:Boolean = false;
 		private var _isRunning:Boolean = false;
 		private var _isSwimming:Boolean = false;
@@ -80,7 +80,7 @@
 			velocity.x = 0;
 			velocity.y = 0;
             acceleration.y = 0;
-			FlxG.play(SoundDeath);				
+			FlxG.play(_soundDeath);				
 		}
 		
 		public function springJump():void
@@ -185,16 +185,16 @@
 			switch (FlxG.levels[1])
 			{
 				case "witch":
-					SoundDeath = SoundDeathOriginal;
-					SoundJump = SoundJumpOriginal;
-					ImgPlayer = ImgPlayerWitch;
+					_soundDeath = _soundDeathOriginal;
+					_soundJump = _soundJumpOriginal;
+					_imgPlayer = _imgPlayerWitch;
 					break;
 
 				case "original":
 				default:
-					SoundDeath = SoundDeathOriginal;
-					SoundJump = SoundJumpOriginal;
-					ImgPlayer = ImgPlayerOriginal;
+					_soundDeath = _soundDeathOriginal;
+					_soundJump = _soundJumpOriginal;
+					_imgPlayer = _imgPlayerOriginal;
 					break;
 			}
 
@@ -202,7 +202,7 @@
 			
 			super(X, Y);
 			
-			loadGraphic(ImgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgPlayer, true, true, 19, 19); // load player sprite (is animated, is reversible, is 19x19)
 			
 		    // Max speeds
             maxVelocity.x = 1000;
@@ -328,7 +328,7 @@
 					velocity.y = -NORMAL_JUMP;
 					_jumpReady = false;
 					_jumpAbort = true;
-					FlxG.play(SoundJump);
+					FlxG.play(_soundJump);
 				}
 				// jump out of water
 				if (_isFloating) 
@@ -337,7 +337,7 @@
 					isFloating = false;
 					_jumpReady = false;
 					_jumpAbort = true;
-					FlxG.play(SoundJump);
+					FlxG.play(_soundJump);
 				}
 			}
 			if (!ActionUp)	// jump key isn't pressed, decelerate.

@@ -24,61 +24,61 @@
 	public class PlayState extends FlxState
 	{
 		/// Assets independent from level selection
-		[Embed(source = '../../../../data/levels/common/tiles.png')] private var ImgTiles:Class;
-		[Embed(source = '../../../../data/levels/common/crown.png')] private var ImgCrown:Class;
+		[Embed(source = '../../../../data/levels/common/tiles.png')] private var _imgTiles:Class;
+		[Embed(source = '../../../../data/levels/common/crown.png')] private var _imgCrown:Class;
 
 
 		/// Individual level assets
 		// green level		
-		[Embed(source = '../../../../data/levels/green/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapGreen:Class;
-		[Embed(source = '../../../../data/levels/green/level.png')] private var ImgBgGreen:Class;
-		[Embed(source = '../../../../data/levels/green/leveloverlay.png')] private var ImgFgGreen:Class;
+		[Embed(source = '../../../../data/levels/green/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapGreen:Class;
+		[Embed(source = '../../../../data/levels/green/level.png')] private var _imgBgGreen:Class;
+		[Embed(source = '../../../../data/levels/green/leveloverlay.png')] private var _imgFgGreen:Class;
 		
 		// topsy level		
-		[Embed(source = '../../../../data/levels/topsy/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapTopsy:Class;
-		[Embed(source = '../../../../data/levels/topsy/level.png')] private var ImgBgTopsy:Class;
-		[Embed(source = '../../../../data/levels/topsy/leveloverlay.png')] private var ImgFgTopsy:Class;
+		[Embed(source = '../../../../data/levels/topsy/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapTopsy:Class;
+		[Embed(source = '../../../../data/levels/topsy/level.png')] private var _imgBgTopsy:Class;
+		[Embed(source = '../../../../data/levels/topsy/leveloverlay.png')] private var _imgFgTopsy:Class;
 		
 		// rabtown level		
-		[Embed(source = '../../../../data/levels/rabtown/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapRabtown:Class;
-		[Embed(source = '../../../../data/levels/rabtown/level.png')] private var ImgBgRabtown:Class;
-		[Embed(source = '../../../../data/levels/rabtown/leveloverlay.png')] private var ImgFgRabtown:Class;
+		[Embed(source = '../../../../data/levels/rabtown/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapRabtown:Class;
+		[Embed(source = '../../../../data/levels/rabtown/level.png')] private var _imgBgRabtown:Class;
+		[Embed(source = '../../../../data/levels/rabtown/leveloverlay.png')] private var _imgFgRabtown:Class;
 		
 		// jump2 level		
-		[Embed(source = '../../../../data/levels/jump2/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapJump2:Class;
-		[Embed(source = '../../../../data/levels/jump2/level.png')] private var ImgBgJump2:Class;
-		[Embed(source = '../../../../data/levels/jump2/leveloverlay.png')] private var ImgFgJump2:Class;
+		[Embed(source = '../../../../data/levels/jump2/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapJump2:Class;
+		[Embed(source = '../../../../data/levels/jump2/level.png')] private var _imgBgJump2:Class;
+		[Embed(source = '../../../../data/levels/jump2/leveloverlay.png')] private var _imgFgJump2:Class;
 
 		// crystal2 level		
-		[Embed(source = '../../../../data/levels/crystal2/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapCrystal2:Class;
-		[Embed(source = '../../../../data/levels/crystal2/level.png')] private var ImgBgCrystal2:Class;
-		[Embed(source = '../../../../data/levels/crystal2/leveloverlay.png')] private var ImgFgCrystal2:Class;
+		[Embed(source = '../../../../data/levels/crystal2/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapCrystal2:Class;
+		[Embed(source = '../../../../data/levels/crystal2/level.png')] private var _imgBgCrystal2:Class;
+		[Embed(source = '../../../../data/levels/crystal2/leveloverlay.png')] private var _imgFgCrystal2:Class;
 
 		// witch level		
-		[Embed(source = '../../../../data/levels/witch/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapWitch:Class;
-		[Embed(source = '../../../../data/levels/witch/level.png')] private var ImgBgWitch:Class;
-		[Embed(source = '../../../../data/levels/witch/leveloverlay.png')] private var ImgFgWitch:Class;
+		[Embed(source = '../../../../data/levels/witch/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapWitch:Class;
+		[Embed(source = '../../../../data/levels/witch/level.png')] private var _imgBgWitch:Class;
+		[Embed(source = '../../../../data/levels/witch/leveloverlay.png')] private var _imgFgWitch:Class;
 		private var _rabbitColorsWitch:Array = new Array(0x7CA824, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 
 		// original level		
-		[Embed(source = '../../../../data/levels/original/levelmap.txt', mimeType = "application/octet-stream")] private var DataMapOriginal:Class;
-		[Embed(source = '../../../../data/levels/original/level.png')] private var ImgBgOriginal:Class;
-		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var ImgFgOriginal:Class;
-		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var SoundFlyOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/levelmap.txt', mimeType = "application/octet-stream")] private var _dataMapOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/level.png')] private var _imgBgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/leveloverlay.png')] private var _imgFgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/sounds.swf', symbol="Fly")] private var _soundFlyOriginal:Class;
 		private var _bgMusicURLOriginal:String = "music/original/m_bump.mp3";
 		private var _rabbitColorsOriginal:Array = new Array(0xDBDBDB, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 		
 		// asset holders, the assets for the current level will be copied into these variables and then used
-		private var DataMap:Class;
-		private var ImgBg:Class;
-		private var ImgFg:Class;
-		private var SoundFly:Class;
+		private var _dataMap:Class;
+		private var _imgBg:Class;
+		private var _imgFg:Class;
+		private var _soundFly:Class;
 		private var _bgMusicURL:String;
 		private var _rabbitColors:Array;
 		
 		// timers for objects created by players (dust, bubbles)
-		private static const DUST_DELAY:Number = 0.05;			// delay between creating dust particles
-		private static const BUBBLE_DELAY:Number = 0.15;		// delay between creating bubble particles
+		private static const _DUST_DELAY:Number = 0.05;			// delay between creating dust particles
+		private static const _BUBBLE_DELAY:Number = 0.15;		// delay between creating bubble particles
 		
 		// other parts of the game
 		private var _map:FlxTilemap;
@@ -140,10 +140,10 @@
 			
 			// Loading assets into variables
 			// defaults
-			DataMap = DataMapOriginal;
-			ImgBg = ImgBgOriginal;
-			ImgFg = ImgFgOriginal;
-			SoundFly = SoundFlyOriginal;
+			_dataMap = _dataMapOriginal;
+			_imgBg = _imgBgOriginal;
+			_imgFg = _imgFgOriginal;
+			_soundFly = _soundFlyOriginal;
 			_bgMusicURL = _bgMusicURLOriginal;
 			_rabbitColors = _rabbitColorsOriginal;
 
@@ -151,52 +151,49 @@
 			switch (FlxG.levels[1])
 			{
 				case "green":
-					DataMap = DataMapGreen;
-					ImgBg = ImgBgGreen;
-					ImgFg = ImgFgGreen;
+					_dataMap = _dataMapGreen;
+					_imgBg = _imgBgGreen;
+					_imgFg = _imgFgGreen;
 					break;
 				
 				case "topsy":
-					DataMap = DataMapTopsy;
-					ImgBg = ImgBgTopsy;
-					ImgFg = ImgFgTopsy;
+					_dataMap = _dataMapTopsy;
+					_imgBg = _imgBgTopsy;
+					_imgFg = _imgFgTopsy;
 					break;
 				
 				case "rabtown":
-					DataMap = DataMapRabtown;
-					ImgBg = ImgBgRabtown;
-					ImgFg = ImgFgRabtown;
+					_dataMap = _dataMapRabtown;
+					_imgBg = _imgBgRabtown;
+					_imgFg = _imgFgRabtown;
 					break;
 				
 				case "jump2":
-					DataMap = DataMapJump2;
-					ImgBg = ImgBgJump2;
-					ImgFg = ImgFgJump2;
+					_dataMap = _dataMapJump2;
+					_imgBg = _imgBgJump2;
+					_imgFg = _imgFgJump2;
 					break;
 
 				case "crystal2":
-					DataMap = DataMapCrystal2;
-					ImgBg = ImgBgCrystal2;
-					ImgFg = ImgFgCrystal2;
+					_dataMap = _dataMapCrystal2;
+					_imgBg = _imgBgCrystal2;
+					_imgFg = _imgFgCrystal2;
 					break;
 
 				case "witch":
-					DataMap = DataMapWitch;
-					ImgBg = ImgBgWitch;
-					ImgFg = ImgFgWitch;
+					_dataMap = _dataMapWitch;
+					_imgBg = _imgBgWitch;
+					_imgFg = _imgFgWitch;
 					_rabbitColors = _rabbitColorsWitch;
 					break;
 			}
-
-			
-			
 			
 			FlxG.music.loadStream(_bgMusicURL, true);
 			FlxG.music.survive = true;
 			FlxG.music.play();
 			
 			_flyNoise = new FlxSound;
-			_flyNoise.loadEmbedded(SoundFly, true);
+			_flyNoise.loadEmbedded(_soundFly, true);
 			_flyNoise.survive = false;
 			FlxG.sounds.push(_flyNoise);
 			_flyNoise.volume = 0;
@@ -219,16 +216,16 @@
 			gUI = new FlxGroup()				// unique UI elements (icons (crown), buttons, scoreboard)
 				
 			// creating the background
-			var _bg:FlxSprite = new FlxSprite(0, 0, ImgBg);
+			var _bg:FlxSprite = new FlxSprite(0, 0, _imgBg);
 			gBackground.add(_bg);	
 			
 			// creating the foreground
-			var _fg:FlxSprite = new FlxSprite(0, 0, ImgFg);
+			var _fg:FlxSprite = new FlxSprite(0, 0, _imgFg);
 			gForeground.add(_fg);
 
 			// creating the map
 			_map = new FlxTilemap;
-			_map.loadMap(new DataMap, ImgTiles, 16)
+			_map.loadMap(new _dataMap, _imgTiles, 16)
             _map.drawIndex = 0;
             _map.collideIndex = 2;
             _map.follow();
@@ -277,7 +274,7 @@
 			}
 			
 			// creating the lotf crown
-			_crown = new FlxSprite(0, 0, ImgCrown);
+			_crown = new FlxSprite(0, 0, _imgCrown);
 			_crown.visible = false;
 			gUI.add(_crown);
 			
@@ -322,12 +319,11 @@
 			this.add(opPopupTexts);
 			this.add(gUI);
 
-			
-			// fade in
+			// finally, fade in
 			FlxG.flash.start(0xff000000, 0.4);
 		}
 		
-		// returns the TileIndex for the tile at position (x,y), to be used with _map.getTileByIndex() to get tile value at pos(x,y)
+		// Returns the TileIndex for the tile at position (x,y), to be used with _map.getTileByIndex() to get tile value at pos(x,y)
 		private function getTileIndex(x:Number, y:Number):uint
 		{
 			return FlxU.floor(y / 16) * _map.widthInTiles + FlxU.floor(x / 16);
@@ -402,8 +398,7 @@
 			// most of the bunny is in water
 			if (tileBehind == 1 && !Rabbit.isSwimming) 
 			{
-				Rabbit.isSwimming = true;	// we're swimming!
-				Rabbit.isFloating = false;	// but not floating
+				Rabbit.isSwimming = true;	// we're swimming now!
 				gParticles.add(new Splash(Rabbit.x, Rabbit.y - (Rabbit.y % 16)));	// make a splash!
 
 			}
@@ -908,7 +903,7 @@
 					currentPlayer.particleTimer += FlxG.elapsed;
 				
 				// new Bubble
-				if (currentPlayer.isSwimming && currentPlayer.particleTimer > BUBBLE_DELAY && !currentPlayer.dead)
+				if (currentPlayer.isSwimming && currentPlayer.particleTimer > _BUBBLE_DELAY && !currentPlayer.dead)
 				{
 					var xBubbleOrigin:Number;
 					var yBubbleOrigin:Number;
@@ -936,11 +931,11 @@
 				if (currentPlayer.onFloor && !currentPlayer.isSliding 
 					&& ((currentPlayer.isRunning && FlxU.abs(currentPlayer.velocity.x) < 96) 
 						|| (!currentPlayer.isRunning && currentPlayer.velocity.x != 0))
-					&& currentPlayer.particleTimer > DUST_DELAY)
+					&& currentPlayer.particleTimer > _DUST_DELAY)
 				{
 					gParticles.add(new Dust(currentPlayer.x + 2 + Math.random() * 9, 
 											currentPlayer.y + 13 + Math.random() * 5, 
-											0, -5 - Math.random() * 2.5));
+											0, -10 - Math.random() * 5));
 					
 					currentPlayer.particleTimer = 0;
 				}

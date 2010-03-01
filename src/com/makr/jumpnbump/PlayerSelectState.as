@@ -9,26 +9,26 @@
 	public class PlayerSelectState extends FlxState
 	{
 		// green level		
-		[Embed(source = '../../../../data/levels/green/menu.png')] private var ImgBgGreen:Class;
+		[Embed(source = '../../../../data/levels/green/menu.png')] private var _imgBgGreen:Class;
 
 		// topsy level		
-		[Embed(source = '../../../../data/levels/topsy/menu.png')] private var ImgBgTopsy:Class;
+		[Embed(source = '../../../../data/levels/topsy/menu.png')] private var _imgBgTopsy:Class;
 		
 		// rabtown level		
-		[Embed(source = '../../../../data/levels/rabtown/menu.png')] private var ImgBgRabtown:Class;
+		[Embed(source = '../../../../data/levels/rabtown/menu.png')] private var _imgBgRabtown:Class;
 
 		// witch level
 		private var _rabbitColorsWitch:Array = new Array(0x7CA824, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 
 		// original level		
-		[Embed(source = '../../../../data/levels/original/menu.png')] private var ImgBgOriginal:Class;
-		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var ImgFgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/menu.png')] private var _imgBgOriginal:Class;
+		[Embed(source = '../../../../data/levels/original/menuoverlay.png')] private var _imgFgOriginal:Class;
 		private var _bgMusicURLOriginal:String = "music/original/m_jump.mp3";
 		private var _rabbitColorsOriginal:Array = new Array(0xDBDBDB, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 		
 	
-		private var ImgBg:Class;
-		private var ImgFg:Class;
+		private var _imgBg:Class;
+		private var _imgFg:Class;
 		private var _bgMusicURL:String;
 		private var _rabbitColors:Array;
 
@@ -37,7 +37,7 @@
 		private static const _KEY_RIGHT:Array = ["RIGHT", "D", "L", "NUMPAD_SIX"];
 		private static const _KEY_JUMP:Array = ["UP", "W", "I", "NUMPAD_EIGHT"];
 		
-		private static const DUST_DELAY:Number = 0.05;			// delay between creating a dust particles
+		private static const _DUST_DELAY:Number = 0.05;			// delay between creating a dust particles
 
 		private var _bg:FlxSprite;
 		private var _fg:FlxSprite;
@@ -64,8 +64,8 @@
 			FlxG.mouse.show();
 
 			// defaults
-			ImgBg = ImgBgOriginal;
-			ImgFg = ImgFgOriginal;
+			_imgBg = _imgBgOriginal;
+			_imgFg = _imgFgOriginal;
 			_bgMusicURL = _bgMusicURLOriginal;
 			_rabbitColors = _rabbitColorsOriginal;
 
@@ -73,15 +73,15 @@
 			switch (FlxG.levels[1])
 			{
 				case "green":
-					ImgBg = ImgBgGreen;
+					_imgBg = _imgBgGreen;
 					break;
 
 				case "topsy":
-					ImgBg = ImgBgTopsy;
+					_imgBg = _imgBgTopsy;
 					break;
 			
 				case "rabtown":
-					ImgBg = ImgBgRabtown;
+					_imgBg = _imgBgRabtown;
 					break;
 				
 				case "witch":
@@ -108,13 +108,13 @@
 			
 			// creating the background
 			_bg = new FlxSprite;
-			_bg.loadGraphic(ImgBg, false, false, 400, 256);
+			_bg.loadGraphic(_imgBg, false, false, 400, 256);
 			_bg.x = _bg.y = 0;
 			gBackground.add(_bg);	
 			
 			// creating the foreground
 			_fg = new FlxSprite;
-			_fg.loadGraphic(ImgFg, false, false, 400, 256);
+			_fg.loadGraphic(_imgFg, false, false, 400, 256);
 			_fg.x = _fg.y = 0;
 			gForeground.add(_fg);
 			
@@ -277,11 +277,11 @@
 				if (currentPlayer.onFloor && !currentPlayer.isSliding 
 					&& ((currentPlayer.isRunning && FlxU.abs(currentPlayer.velocity.x) < 96) 
 						|| (!currentPlayer.isRunning && currentPlayer.velocity.x != 0))
-					&& currentPlayer.particleTimer > DUST_DELAY)
+					&& currentPlayer.particleTimer > _DUST_DELAY)
 				{
 					gParticles.add(new Dust(currentPlayer.x + 2 + Math.random() * 9, 
 											currentPlayer.y + 13 + Math.random() * 5, 
-											0, -5 - Math.random() * 2.5));
+											0, -10 - Math.random() * 5));
 					
 					currentPlayer.particleTimer = 0;
 				}

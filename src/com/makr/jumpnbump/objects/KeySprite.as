@@ -4,7 +4,7 @@
 	
 	public class KeySprite extends FlxSprite
 	{
-		[Embed(source = '../../../../../data/levels/common/keys.png')] private var ImgKeyLayout:Class;
+		[Embed(source = '../../../../../data/levels/common/keys.png')] private var _imgKeyLayout:Class;
 
 		private var _fadeTime:Number = 0;
 		private var _fadeTimer:Number = 0;
@@ -14,7 +14,7 @@
 		public function KeySprite(RabbitIndex:uint, X:Number = 0, Y:Number = 0):void
 		{
 			super(X, Y);
-			loadGraphic(ImgKeyLayout, true, false, 19, 14); // load player sprite (is animated, is reversible, is 19x19)
+			loadGraphic(_imgKeyLayout, true, false, 19, 14); // load player sprite (is animated, is reversible, is 19x19)
 			
 			offset.x = 1;
 			offset.y = 16;
