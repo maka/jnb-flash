@@ -275,7 +275,7 @@
 				
 				// new Dust
 				if (currentPlayer.onFloor && !currentPlayer.isSliding 
-					&& ((currentPlayer.isRunning && FlxU.abs(currentPlayer.velocity.x) < 96) 
+					&& ((currentPlayer.isRunning && Math.abs(currentPlayer.velocity.x) < 96) 
 						|| (!currentPlayer.isRunning && currentPlayer.velocity.x != 0))
 					&& currentPlayer.particleTimer > _DUST_DELAY)
 				{

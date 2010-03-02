@@ -62,7 +62,7 @@
 			{
 				// sizeReduction is the number of available objects (minus shrinkBuffer), expressed in full Poolsizes
 				var availObjsSize:uint = availObjs.length;
-				var sizeReduction:Number = FlxU.floor((availObjsSize / poolSize) - _shrinkBuffer);
+				var sizeReduction:Number = Math.floor((availObjsSize / poolSize) - _shrinkBuffer);
 				if (sizeReduction > 0)
 					availObjs = availObjs.slice(0, availObjsSize - (sizeReduction * poolSize));
 			}

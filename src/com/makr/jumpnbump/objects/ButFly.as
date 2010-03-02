@@ -40,7 +40,7 @@
 			var frames:Array = new Array();
 			
 			// this is a hack to make the animation start on a random frame
-			switch (FlxU.floor(Math.random()*10)) 
+			switch (Math.floor(Math.random()*10)) 
 			{
 				case 0:
 					frames = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1];

@@ -384,7 +384,7 @@
 					play("up");
 					
 				// at the apex of a jump or dive
-				if (FlxU.abs(velocity.y) < APEX_THRESHOLD)
+				if (Math.abs(velocity.y) < APEX_THRESHOLD)
 					play("apex");
 					
 				// going down

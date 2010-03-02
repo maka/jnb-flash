@@ -60,7 +60,7 @@
 			
 			_killTimer = 0;
 
-			switch (FlxU.floor(Math.random()*4)) 
+			switch (Math.floor(Math.random()*4)) 
 			{
 				case 0:
 					frame = 0;

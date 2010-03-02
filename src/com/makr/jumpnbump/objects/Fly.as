@@ -2,8 +2,9 @@
 {
 	import com.makr.jumpnbump.PlayState;
 	import flash.geom.Point;
+	import flash.utils.Timer;
 	import org.flixel.*;	
-	
+
 	public class Fly extends FlxSprite
 	{
 		
@@ -77,8 +78,8 @@
 			
 			// random factor
 			var randomness:Point = new Point(0, 0);
-			randomness.x += (FlxU.floor(Math.random() * 3) - 1) * 30;
-			randomness.y += (FlxU.floor(Math.random() * 3) - 1) * 30;
+			randomness.x = (Math.floor(Math.random() * 3) - 1) * 30;
+			randomness.y = (Math.floor(Math.random() * 3) - 1) * 30;
 			direction = direction.add(randomness);
 			
 			// boundary check

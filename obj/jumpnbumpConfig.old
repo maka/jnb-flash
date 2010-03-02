@@ -4,7 +4,7 @@
 <flex-config>
   <compiler>
     <source-path append="true">
-      <path-element>G:\Flex\Projects\jumpnbump\src</path-element>
+      <path-element>G:\Flex\Projects\jnb-flash\src</path-element>
       <path-element>G:\Flex\Libs\flixel</path-element>
       <path-element>G:\Flex\Libs\as3-signals\src</path-element>
       <path-element>G:\Flex\Libs\Stats</path-element>
@@ -12,7 +12,7 @@
     </source-path>
   </compiler>
   <file-specs>
-    <path-element>G:\Flex\Projects\jumpnbump\src\jumpnbump.as</path-element>
+    <path-element>G:\Flex\Projects\jnb-flash\src\jumpnbump.as</path-element>
   </file-specs>
   <default-background-color>#FFFFFF</default-background-color>
   <default-frame-rate>60</default-frame-rate>
