@@ -11,16 +11,19 @@
 		
 		public var rabbitIndex:uint;
 		
-		public function KeySprite(RabbitIndex:uint, X:Number = 0, Y:Number = 0):void
+		public function KeySprite(RabbitIndex:uint, X:Number = 0, Y:Number = 0, Color:uint = 0xffffff):void
 		{
 			super(X, Y);
 			loadGraphic(_imgKeyLayout, true, false, 19, 14); // load player sprite (is animated, is reversible, is 19x19)
+
 			
 			offset.x = 1;
 			offset.y = 16;
 
 			rabbitIndex = RabbitIndex;
 			frame = rabbitIndex;
+
+			color = Color;
 			
 			alpha = 0;
 			

@@ -20,8 +20,8 @@
 			if (FlxG.levels.length == 0)
 			{
 				FlxG.levels = new Array;
-				FlxG.levels[0] = "dm" as String;			// string for gamemode
-				FlxG.levels[1] = "original" as String;		// string for level
+				FlxG.levels[0] = String("dm");			// string for gamemode
+				FlxG.levels[1] = String("original");		// string for level
 				FlxG.levels[2] = 0; 			// bitmask for storing which players are playing
 				FlxG.levels[3] = 0;	// bitmask for storing which players have been used in this session
 

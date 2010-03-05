@@ -115,7 +115,7 @@
 			velocity.x = Xvel;
 			velocity.y = Yvel;
 			
-			timer = 0.5 + Math.random() * 2.5;
+			timer = 0.5 + Math.random() * 2;
 			
 			rabbitIndex = RabbitIndex
 			

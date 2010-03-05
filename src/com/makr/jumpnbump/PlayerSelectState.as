@@ -132,8 +132,7 @@
 			{
 				if (!(FlxG.levels[3] & Math.pow(2, player.rabbitIndex)))
 				{	
-					gKeySprites.add(new KeySprite(player.rabbitIndex, player.x, player.y));
-					gKeySprites.members[gKeySprites.members.length - 1].color = _rabbitColors[player.rabbitIndex];
+					gKeySprites.add(new KeySprite(player.rabbitIndex, player.x, player.y, _rabbitColors[player.rabbitIndex]));
 				}
 			}
 
@@ -225,10 +224,10 @@
 		
 		private function getKeySpriteIndex(RabbitIndex:uint):int
 		{
-			for (var i:int = 0; i < gKeySprites.members.length; i++) 
+			for each (var keySprite:KeySprite in gKeySprites.members) 
 			{
-				if (gKeySprites.members[i].rabbitIndex == RabbitIndex)
-					return i;
+				if (keySprite.rabbitIndex == RabbitIndex)
+					return gKeySprites.members.indexOf(keySprite);
 			}
 			return -1;
 		}

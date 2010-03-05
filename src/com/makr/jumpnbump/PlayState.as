@@ -1,7 +1,7 @@
 ﻿package com.makr.jumpnbump
 {
 	import com.makr.jumpnbump.helpers.ObjectPool;
-	import com.makr.jumpnbump.objects.BloodLayer;
+	import com.makr.jumpnbump.objects.Gore;
 	import flash.geom.ColorTransform;
 	import flash.geom.Rectangle;
 	
@@ -88,16 +88,12 @@
 		private var _respawnMap:Array;				// array that holds all positions where a player can spawn (VOID above SOLID or ICE)
 		private var _scoreboard:Scoreboard;
 
-		// layers
-		public static var blood:BloodLayer;			// blood is drawn onto here.
-		public static var staticGibLayer:FlxSprite;	// the image onto which static gibs are rendered before they are reused.
-		
 		// the various groups
 		public static var gBackground:FlxGroup;		// group for background image
 		public static var gMap:FlxGroup;			//   "    "  tilemap view for debugging
 		public static var gParticles:FlxGroup;		//   "    "  simple particles (dust, splashes)
 		public static var opBubbles:ObjectPool;		//   "    "  bubble particles (is Object Pool)
-		public static var opGibs:ObjectPool;		//   "    "  gibs (is Object Pool)
+		public static var gore:Gore;
 		public static var gSprings:FlxGroup;		//   "    "  springs
 		public static var gButflies:FlxGroup;		//   "    "  butterflies
 		public static var gFlies:FlxGroup;			//   "    "  flies
@@ -110,10 +106,6 @@
 		// "Lord of the Flies" game mode specific variables
 		private var _crown:FlxSprite;				// crown sprite, displayed above current Lord
 
-		// gibs (number of gibs is NUM_GIBS ± random() * NUM_GIBS_VARIATION
-		private static const NUM_GIBS:uint = 13;
-		private static const NUM_GIBS_VARIATION:uint = 3;
-		private static const GIBS_POOLSIZE:uint = (NUM_GIBS + NUM_GIBS_VARIATION) * 4;
 		
 		// bubbles (bubble burst num see above)
 		private static const NUM_BUBBLES:uint = 35;
@@ -214,7 +206,6 @@
 			// creating new groups
 			gBackground = new FlxGroup();
 			gMap = new FlxGroup();
-			blood = new BloodLayer();
 			gParticles = new FlxGroup();
 			gSprings = new FlxGroup();
 			gButflies = new FlxGroup();
@@ -303,23 +294,17 @@
 				gButflies.add(new ButFly(butflySpawnPoint.x, butflySpawnPoint.y));
 			}
 			
-			// creating the layer for static gibs
-			staticGibLayer = new FlxSprite(0, 0);
-			staticGibLayer.createGraphic(FlxG.width, FlxG.height, 0x00ffffff, true);
-			
 			/// initializing object pools
 			opBubbles = new ObjectPool(Bubble, BUBBLES_POOLSIZE);
-			opGibs = new ObjectPool(Gib, GIBS_POOLSIZE);
+			gore = new Gore();
 			opPopupTexts = new ObjectPool(PopupText, POPUPTEXT_POOLSIZE);
 
 			// adds all the groups to this state (they are rendered in this order)
 			this.add(gBackground);
-			this.add(staticGibLayer);
 //			this.add(gMap);
-			this.add(blood);
 			this.add(gParticles);
 			this.add(opBubbles);
-			this.add(opGibs);
+			this.add(gore);
 			this.add(gSprings);
 			this.add(gButflies);
 			this.add(gFlies);
@@ -499,7 +484,7 @@
 		private function killPlayer(Killer:Player, Killee:Player):void
 		{
 			Killer.bounceJump();			// killer bounces
-			gibPlayer(Killee);				// killee gets gibbed
+			gore.createGibs(Killee.rabbitIndex, Killee.x + Killee.width * 0.5, Killee.y + Killee.height * 0.5 , Killee.velocity.x, Killee.velocity.y); 
 			Killee.kill();					// killee and is dead
 			
 			
@@ -517,7 +502,7 @@
 				
 				if (Killer.killCount > 1)
 				{
-					var newPopupText:PopupText = opPopupTexts.getFirstAvail() as PopupText;
+					var newPopupText:PopupText = PopupText(opPopupTexts.getFirstAvail());
 
 					if (Killer.killCount < 4)
 					{
@@ -724,30 +709,7 @@
 			return true;
 		}
 
-		// creates a shower of blood and gore
-		private function gibPlayer(Gibbee:Player):void
-		{
-//			var totalTime:Number = getTimer();
-			var gibKind:String;
-			var gibIndex:uint;
-			
-			var currentObject:Gib;
-			for (var re:int = 0; re < Math.floor((Math.random() * NUM_GIBS_VARIATION * 2) + (NUM_GIBS - NUM_GIBS_VARIATION)); re++) 
-			{
-				if (Math.random() < 0.33)
-					gibKind = "Fur";
-				else
-					gibKind = "Flesh";
-				
-				currentObject = opGibs.getFirstAvail() as Gib;
-				currentObject.activate(
-					Gibbee.rabbitIndex, 
-					gibKind, Gibbee.x + Gibbee.width * 0.5, Gibbee.y + Gibbee.height * 0.5,
-					true, Gibbee.velocity.x * 0.2, Gibbee.velocity.y * 0.2
-				);
-			}
-//			trace("Total Time: " + (getTimer() - totalTime) + "ms");
-		}
+
 		
 	
 		// creates a shower of lovely bubbles
@@ -759,7 +721,7 @@
 			
 			for (var re:int = 0; re < Math.floor((Math.random() * NUM_BUBBLES_VARIATION * 2) + (NUM_BUBBLES - NUM_BUBBLES_VARIATION)); re++) 
 			{
-				var currentObject:Bubble = opBubbles.getFirstAvail() as Bubble;
+				var currentObject:Bubble = Bubble(opBubbles.getFirstAvail());
 				currentObject.activate(
 					Burstee.x + 8, Burstee.y + 8,
 					(Math.random() - 0.5 ) * 100, (Math.random() - 0.5 ) * 100
@@ -848,20 +810,13 @@
 			}
 			
 			// handle gibs
-			for each (var currentGib:Gib in opGibs.members) 
+			for each (var currentGib:Gib in gore.gibs.members) 
 			{
 				// set underwater flag
 				if (_map.getTileByIndex(getTileIndex(currentGib.x, currentGib.y)) == 1)
 					currentGib.isUnderwater = true;
 				else 
 					currentGib.isUnderwater = false;
-				
-				// render static gibs onto the background
-				if (currentGib.exists == true && currentGib.active == false && currentGib.visible == true)
-				{
-					staticGibLayer.draw(currentGib, currentGib.x - currentGib.offset.x, currentGib.y - currentGib.offset.y);
-					currentGib.kill();
-				}
 			}
 
 			
@@ -878,12 +833,12 @@
 			
 
 			// collide gibs, players, butterflies and flies with the tilemap
-			FlxU.collide(_map, opGibs);
+			FlxU.collide(_map, gore.gibs);
 			FlxU.collide(_map, gPlayers);
 			FlxU.collide(_map, gButflies);
 			FlxU.collide(_map, gFlies);
 			FlxU.collide(_map, opBubbles);
-
+			
 			collidePlayers();	// handle player-player collisions
 		}	
 
@@ -925,7 +880,7 @@
 						
 					yBubbleOrigin = currentPlayer.y + 7;
 					
-					var currentObject:Bubble = opBubbles.getFirstAvail() as Bubble;
+					var currentObject:Bubble = Bubble(opBubbles.getFirstAvail());
 					currentObject.activate(xBubbleOrigin, yBubbleOrigin, currentPlayer.velocity.x, 0);
 
 					currentPlayer.particleTimer = 0;

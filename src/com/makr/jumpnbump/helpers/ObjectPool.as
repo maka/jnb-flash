@@ -3,6 +3,8 @@
 	import org.flixel.FlxGroup;
 	import org.flixel.FlxObject;
 	import org.flixel.FlxU;
+	import org.flixel.FlxG;
+	import flash.utils.getTimer;
 	
 	public class ObjectPool extends FlxGroup
 	{
@@ -13,12 +15,18 @@
 		public var poolClass:Class;
 		public var firstAvailIndex:uint;
 		
-		public function ObjectPool(PoolClass:Class, PoolSize:uint, ShrinkBuffer:Number = 0.5) 
+		public var cleanupMS:int = 0, cleanupNUM:int = 0;
+		
+		public var tmpMembers:Array;
+		
+		public function ObjectPool(PoolClass:Class, PoolSize:uint, ShrinkBuffer:Number = 1) 
 		{
 			poolClass = PoolClass;
 			poolSize = PoolSize;
 			_shrinkBuffer = ShrinkBuffer;
 			
+			tmpMembers = [];
+
 			firstAvailIndex = 0;
 			
 			growPool();
@@ -28,7 +36,7 @@
 		{
 			for (var i:int = 0; i < poolSize; i++) 
 			{
-				add(new poolClass());
+				members[members.length] = new poolClass();
 			}
 		}
 		
@@ -36,60 +44,67 @@
 		{
 			for (var i:int = 0; i < members.length; i++) 
 			{
-				if ((i < firstAvailIndex && members[i].exists == false ) ||
-					(i >= firstAvailIndex && members[i].exists == true ))
+				if (i < firstAvailIndex && members[i].exists == false )
+					return false;
+					
+				else if (i >= firstAvailIndex && members[i].exists == true )
 					return false;
 			}
 			
 			return true;
 		}
 		
-		public function cleanupPool(Shrink:Boolean = true):void
+		public function cleanupPool():void
 		{
-			var availObjs:Array = new Array();
-			var unavailObjs:Array = new Array();
-			
+			cleanupNUM += members.length;
+			var timer:uint = getTimer();
+
+			var membersLength:uint = members.length;
+
+			// clear temporary arrays
+			tmpMembers = members.concat();
+			firstAvailIndex = 0;
+
+			// separate unavailable and available objects
+			var ptr:int = membersLength - 1;
 			for each (var currentObj:FlxObject in members) 
 			{
 				if (currentObj.exists == true)
-					unavailObjs.push(currentObj);
+					tmpMembers[firstAvailIndex++] = currentObj;
 				else
-					availObjs.push(currentObj);
+					tmpMembers[ptr--] = currentObj;
 			}
 			
-			// shrinking the pool
-			if (Shrink)
-			{
-				// sizeReduction is the number of available objects (minus shrinkBuffer), expressed in full Poolsizes
-				var availObjsSize:uint = availObjs.length;
-				var sizeReduction:Number = Math.floor((availObjsSize / poolSize) - _shrinkBuffer);
-				if (sizeReduction > 0)
-					availObjs = availObjs.slice(0, availObjsSize - (sizeReduction * poolSize));
-			}
+
+			// intended poolsize is the number of unavailable objects + a buffer of free objects, rounded up to the nearest poolsize unit
+			var intendedSize:int = Math.ceil(firstAvailIndex / poolSize + _shrinkBuffer) * poolSize;
+			tmpMembers.length = Math.min(intendedSize, membersLength);
+
+			members = tmpMembers.concat();
 			
-			// apply the cleaned up version of the pool (unavailable Objects, then available Objects)
-			members = unavailObjs.concat(availObjs);
+			tmpMembers.length = 0;
 			
-			// set firstAvailIndex to new first available object
-			firstAvailIndex = unavailObjs.length;
+			cleanupMS += getTimer() - timer;
+			
+			if (String(poolClass) == "[class Gib]")
+				trace(membersLength + "," + (getTimer() - timer));
 		}
-
-
+		
 		public override function getFirstAvail():FlxObject
 		{
 			// if the firstAvailIndex has hit the end of the array,
 			// first check if the array is in order
 			
-			if (firstAvailIndex == members.length || 	// if the firstAvailIndex has hit the end of the array
-				members[firstAvailIndex].exists)		// if the first available Object is in fact not available, something is wrong
+			if (firstAvailIndex == members.length || 	// if the firstAvailIndex has hit the end of the array OR
+				FlxObject(members[firstAvailIndex]).exists)		// if the first available Object is in fact not available, something is wrong
 			{
-				if (checkPool())
-					growPool();
+				if (checkPool())	// if the pool is in order
+					growPool();		// expand it
 				else
-					cleanupPool();
+					cleanupPool();	// otherwise clean it up
 			}
 			
-			return members[firstAvailIndex++] as FlxObject; 
+			return FlxObject(members[firstAvailIndex++]);
 		}
 	}
 }

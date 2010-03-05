@@ -2,7 +2,8 @@
 {
 	import com.makr.jumpnbump.helpers.FxGroup;
 	import com.makr.jumpnbump.helpers.ObjectPool;
-	import com.makr.jumpnbump.objects.BloodLayer;
+	import com.makr.jumpnbump.helpers.SpritePool;
+	import com.makr.jumpnbump.objects.Gore;
 	
 	import com.makr.jumpnbump.objects.RabbitDummy;
 	import com.makr.jumpnbump.objects.Gib;
@@ -27,16 +28,10 @@
 		// asset holders, the assets for the current level will be copied into these variables and then used
 		private var _rabbitColors:Array;
 
-		public static var opRabbits:ObjectPool;
-		private static const _RABBITS_POOLSIZE:uint = 20;
+		private var gore:Gore;
+		private var opRabbits:ObjectPool;
+		private const _RABBITS_POOLSIZE:uint = 20;
 
-		// gibs (number of gibs is NUM_GIBS ± random() * NUM_GIBS_VARIATION
-		public static var opGibs:ObjectPool;
-		private static const _NUM_GIBS:uint = 13;
-		private static const _NUM_GIBS_VARIATION:uint = 3;
-		private static const _GIBS_POOLSIZE:uint = (_NUM_GIBS + _NUM_GIBS_VARIATION) * 4;
-		public static var blood:BloodLayer;
-		
 		private var _spawnTimer:Number = 0;
 		
 		public override function create():void
@@ -44,7 +39,7 @@
 //			FlxG.timeScale = 0.1;
 
 			// Display Statistics
-//			addChild( new Stats() );
+			addChild( new Stats() );
 			
 			// Loading assets into variables
 			// defaults
@@ -58,46 +53,18 @@
 					break;
 			}
 
-			blood = new BloodLayer();
 
-			/// initializing object pools
+			/// initializing objects
 			opRabbits = new ObjectPool(RabbitDummy, _RABBITS_POOLSIZE);
-			opGibs = new ObjectPool(Gib, _GIBS_POOLSIZE);
+			gore = new Gore();
 
-			// adds all the groups to this state (they are rendered in this order)
-			this.add(blood);
-			this.add(opGibs);
+			this.add(gore);
 			this.add(opRabbits);
 
 			// finally, fade in
 			FlxG.flash.start(0xff000000, 0.4);
 		}
-		
-		// creates a shower of blood and gore
-		private function gibRabbit(Gibbee:RabbitDummy):void
-		{
-//			var totalTime:Number = getTimer();
-			var gibKind:String;
-			var gibIndex:uint;
-			
-			var currentObject:Gib;
-			for (var re:int = 0; re < Math.floor((Math.random() * _NUM_GIBS_VARIATION * 2) + (_NUM_GIBS - _NUM_GIBS_VARIATION)); re++) 
-			{
-				if (Math.random() < 0.33)
-					gibKind = "Fur";
-				else
-					gibKind = "Flesh";
 				
-				currentObject = opGibs.getFirstAvail() as Gib;
-				currentObject.activate(
-					Gibbee.rabbitIndex, 
-					gibKind, Gibbee.x + Gibbee.width * 0.5, Gibbee.y + Gibbee.height * 0.5,
-					true, Gibbee.velocity.x, Gibbee.velocity.y, false
-				);
-			}
-//			trace("Total Time: " + (getTimer() - totalTime) + "ms");
-		}
-		
 		private function spawnRabbit():void
 		{
 			var currentObject:RabbitDummy;
@@ -105,7 +72,6 @@
 			currentObject.activate(
 				Math.floor(Math.random() * 4), 
 				150 + Math.random() * 100, 265, 
-//				Math.pow(Math.random(), 2) * Math.floor(Math.random() * 3 - 1) * 96, -265 + (Math.random() * 80)
 				Math.random() * 128 - 64, -265 + (Math.random() * 80)
 			);
 		}
@@ -116,6 +82,7 @@
 			// check if ESCAPE has been pressed and if so, exit PlayState
 			if (FlxG.keys.justPressed("ESCAPE"))
 				FlxG.fade.start(0xff000000, 1, quit);
+			
 			
 			_spawnTimer -= FlxG.elapsed;
 			if (_spawnTimer < 0 || FlxG.keys.pressed("SPACE"))
@@ -128,31 +95,13 @@
 			{
 				if (currentRabbit.exists && currentRabbit.timer < 0)
 				{
-					gibRabbit(currentRabbit);
+					gore.createGibs(currentRabbit.rabbitIndex, currentRabbit.x + currentRabbit.width * 0.5, currentRabbit.y + currentRabbit.height * 0.5, currentRabbit.velocity.x, currentRabbit.velocity.y, true, false); 
 					currentRabbit.kill();
 				}
 			}
-
+			
 			super.update();
 		}	
-
-		public override function render():void
-		{
-			trace("BEGIN render")
-			var totalTime:Number = getTimer();
-				var bloodTime:Number = getTimer();
-					blood.render();
-				bloodTime = getTimer() - bloodTime;
-				var gibTime:Number = getTimer();
-					opGibs.render();
-				gibTime = getTimer() - gibTime;
-				var rabbitTime:Number = getTimer();
-					opRabbits.render();
-				rabbitTime = getTimer() - rabbitTime;
-			totalTime = getTimer() - totalTime;
-			trace("TIMES: blood="+bloodTime+"ms; gibs="+gibTime+"ms; rabbit="+rabbitTime+"ms;; total: "+totalTime+"ms.");
-			trace("END render");
-		}
 
 		// exits PlayState
         private function quit():void
