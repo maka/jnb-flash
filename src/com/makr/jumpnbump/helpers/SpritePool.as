@@ -34,7 +34,7 @@
 		
 		public function SpritePool(ImgSprite:Class, Framerate:uint, FrameWidth:uint = 0, Lifetime:Number = 0):void
 		{
-			splashEffect = false;
+			splashEffect = true;
 			
 			_spriteBitmap = FlxG.addBitmap(ImgSprite);
 

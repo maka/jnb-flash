@@ -3,6 +3,7 @@
 	import com.makr.jumpnbump.helpers.ObjectPool;
 	import com.makr.jumpnbump.helpers.SpritePool;
 	import flash.display.BitmapData;
+	import flash.geom.ColorTransform;
 	import flash.geom.Point;
 	import flash.utils.Dictionary;
 	import org.flixel.FlxG;
@@ -62,6 +63,7 @@
 
 			var currentGib:Gib, vMulti:Number, numNewParticles:uint;
 			var currentPosition:Point = new Point(), velocity:Point = new Point();
+			var staticGibsDrawn:Boolean = false;
 			
 			for (var gibIndex:int = 0; gibIndex < gibs.firstAvailIndex; gibIndex++) 
 			{
@@ -70,8 +72,13 @@
 				// render static gibs onto the background
 				if (currentGib.exists == true && currentGib.active == false && currentGib.visible == true)
 				{
+					// if this is the first time this cycle that active gibs are drawn, fade the layer slightly
+					if (staticGibsDrawn == false)
+						_staticGibLayer.colorTransform(FlxG.buffer.rect, new ColorTransform(1, 1, 1, 0.99));
+						
 					currentGib.drawGib(_staticGibLayer);
 					currentGib.kill();
+					staticGibsDrawn = true;
 				}
 
 				// blood
