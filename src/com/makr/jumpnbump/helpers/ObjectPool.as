@@ -106,5 +106,18 @@
 			
 			return FlxObject(members[firstAvailIndex++]);
 		}
+
+		public override function render():void
+		{
+			var currentObject:FlxObject;
+			
+			for (var objIndex:int = 0; objIndex < firstAvailIndex; objIndex++) 
+			{
+				currentObject = members[objIndex] as FlxObject;
+				if((currentObject != null) && currentObject.exists && currentObject.visible)
+					currentObject.render();
+			}
+		}
+
 	}
 }
