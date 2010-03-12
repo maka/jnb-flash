@@ -550,14 +550,9 @@
 						if (Math.abs(pA.x - pB.x) < maxWidth && 
 							Math.abs(pA.y - pB.y) < maxHeight)	// check that they intersect
 						{												
-							//trace("PlayState:collidePlayers()");
-							//trace("	Players " + pA.rabbitIndex + " and " + pB.rabbitIndex + " intersect;");
-							
 							if ((pA.y - pB.y > 5 && pA.velocity.y < pB.velocity.y) ||
 								(pB.y - pA.y > 5 && pB.velocity.y < pA.velocity.y))
 							{
-								//trace("	Resolution: Kill");
-
 								if (pA.y < pB.y)	// the one up top is faster than the one below
 									killPlayer(pA, pB);								// playerKill(killer, killee);
 								else
@@ -565,9 +560,6 @@
 							}
 							else
 							{
-								//trace("	Resolution: Push");
-
-								
 								if (pA.x < pB.x)
 								{
 									if (pA.velocity.x > 0)
@@ -701,7 +693,6 @@
 			for each (var ghost:Player in theDead)
 			{
 				var respawnPoint:Point = getFreeSpawnPoint();	
-//				trace("respawning player R#" + ghost.rabbitIndex + "(" + ghost.x + "," + ghost.y+") at new location (" + respawnPoint.x + "," + respawnPoint.y+")");
 				ghost.reset(respawnPoint.x, respawnPoint.y);
 				ghost.particleTimer = 0;
 			}
@@ -716,8 +707,6 @@
 		private function bubbleBurstPlayer(Burstee:Player):void
 		{
 			var bubbleIndex:uint;
-			
-			trace("Player " + Burstee.rabbitIndex + " just burst :o");
 			
 			for (var re:int = 0; re < Math.floor((Math.random() * NUM_BUBBLES_VARIATION * 2) + (NUM_BUBBLES - NUM_BUBBLES_VARIATION)); re++) 
 			{
@@ -887,7 +876,6 @@
 				}
 				else if (currentPlayer.isSwimming && currentPlayer.particleTimer != -1 && currentPlayer.dead && currentPlayer.hasDrowned)
 				{
-					trace("Timer: " + currentPlayer.particleTimer);
 					bubbleBurstPlayer(currentPlayer);
 				}
 				

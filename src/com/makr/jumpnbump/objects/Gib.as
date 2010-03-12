@@ -114,7 +114,6 @@
 
 		public function makeStatic():void
 		{
-			trace("GIB MADE STATIC PART 1");
 			exists = true
 			active = false;
 			visible = true;

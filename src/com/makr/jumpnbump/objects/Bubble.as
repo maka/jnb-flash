@@ -93,9 +93,6 @@
 		
 		public override function update():void
 		{
-			if (acceleration.y != -30)
-				trace("y-acceleration: " + acceleration.y);
-			
 			if (velocity.y == 0)
 				_killTimer += FlxG.elapsed;
 			

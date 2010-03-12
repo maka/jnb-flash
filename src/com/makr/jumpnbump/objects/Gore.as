@@ -58,11 +58,8 @@
 
 		public override function update():void
 		{
-var btimer:Number = getTimer();
 			_blood.update();
-btimer = getTimer() - btimer;
 
-var gtimer:Number = getTimer();
 			var currentGib:Gib, vMulti:Number, numNewParticles:uint;
 			var currentPosition:Point = new Point(), velocity:Point = new Point();
 			
@@ -73,7 +70,6 @@ var gtimer:Number = getTimer();
 				// render static gibs onto the background
 				if (currentGib.exists == true && currentGib.active == false && currentGib.visible == true)
 				{
-					FlxG.log("GIB MADE STATIC PART 2");
 					currentGib.drawGib(_staticGibLayer);
 					currentGib.kill();
 				}
@@ -107,27 +103,14 @@ var gtimer:Number = getTimer();
 					}
 				}
 			}
-gtimer = getTimer() - gtimer;
-
-FlxG.log("Gore active gibs: "+gibs.firstAvailIndex+" (poolsize "+gibs.members.length+", blood particles: "+_blood.members.length);
-FlxG.log("Gore UPDATE: "+(gtimer+btimer)+"ms.(gibs:"+gtimer+"ms, blood:"+btimer+"ms)");
-//FlxG.log("Gore BLOOD UPDATE: "+(Math.round(100*(10000 * btimer / _blood.memberCount))/100)+" ms per 10000 particles ("+btimer+"ms, "+_blood.memberCount+" particles)");
-
-//FlxG.log("cleanupPool"+gibs.poolClass+": " + Math.round(100*10000 * gibs.cleanupMS / gibs.cleanupNUM)/100 + "ms / 10000 objs. ("+gibs.cleanupMS+"ms & "+gibs.cleanupNUM+"gibs total)");
-
 		}
 
 		public override function render():void
 		{
-var btimer:Number = getTimer();
 			_blood.render();
-btimer = getTimer() - btimer;
 
-var gtimer:Number = getTimer();
 			FlxG.buffer.copyPixels(_staticGibLayer, _staticGibLayer.rect, new Point(), null, null, true);
 			gibs.render();
-gtimer = getTimer() - gtimer;
-FlxG.log("Gore RENDER: "+(gtimer+btimer)+"ms.(gibs:"+gtimer+"ms, blood:"+btimer+"ms)");
 		}
 		
 		// creates a shower of blood and gore

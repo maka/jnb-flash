@@ -15,8 +15,6 @@
 		public var poolClass:Class;
 		public var firstAvailIndex:uint;
 		
-		public var cleanupMS:int = 0, cleanupNUM:int = 0;
-		
 		public var tmpMembers:Array;
 		
 		public function ObjectPool(PoolClass:Class, PoolSize:uint, ShrinkBuffer:Number = 1) 
@@ -56,9 +54,6 @@
 		
 		public function cleanupPool():void
 		{
-			cleanupNUM += members.length;
-			var timer:uint = getTimer();
-
 			var membersLength:uint = members.length;
 
 			// clear temporary arrays
@@ -83,11 +78,6 @@
 			members = tmpMembers.concat();
 			
 			tmpMembers.length = 0;
-			
-			cleanupMS += getTimer() - timer;
-			
-			if (String(poolClass) == "[class Gib]")
-				trace(membersLength + "," + (getTimer() - timer));
 		}
 		
 		public override function getFirstAvail():FlxObject
