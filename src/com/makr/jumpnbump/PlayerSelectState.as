@@ -3,6 +3,7 @@
 	import com.makr.jumpnbump.objects.Player;
 	import com.makr.jumpnbump.objects.Dust;
 	import com.makr.jumpnbump.objects.KeySprite;
+	import flash.events.KeyboardEvent;
 	import flash.geom.Point;
 	import org.flixel.*;
 
@@ -26,7 +27,8 @@
 		private var _bgMusicURLOriginal:String = "music/original/m_jump.mp3";
 		private var _rabbitColorsOriginal:Array = new Array(0xDBDBDB, 0xDFBF8B, 0xA7A7A7, 0xB78F77);
 		
-	
+		private var _keyboardString:String = "";
+		
 		private var _imgBg:Class;
 		private var _imgFg:Class;
 		private var _bgMusicURL:String;
@@ -60,7 +62,6 @@
 		
 		public override function create():void
 		{
-
 			FlxG.mouse.show();
 
 			// defaults
@@ -135,7 +136,6 @@
 					gKeySprites.add(new KeySprite(player.rabbitIndex, player.x, player.y, _rabbitColors[player.rabbitIndex]));
 				}
 			}
-
 	
 			this.add(gBackground);
 			this.add(gParticles);
@@ -150,6 +150,32 @@
 			// fade in
 			FlxG.flash.start(0xff000000, 0.4);
 		
+			stage.addEventListener(KeyboardEvent.KEY_UP, cheatHandler);
+		}
+		
+		private function cheatHandler(event:KeyboardEvent):void
+		{
+			// return if the key is not a letter
+			if (event.keyCode < 65 || event.keyCode > 90)
+				return;
+			
+			// append current key value to _keyboardString (keyCode to String is always upper case)
+			_keyboardString += String.fromCharCode(event.keyCode);
+		
+			//DEBUG: display _keyboardString
+			trace(_keyboardString);
+			
+			if (_keyboardString.substr(-7) == "JETPACK")
+				trace("JETPACK cheat toggled.");
+			if (_keyboardString.substr(-9) == "POGOSTICK")
+				trace("POGOSTICK cheat toggled.");
+			if (_keyboardString.substr(-14) == "LORDOFTHEFLIES")
+				trace("LORDOFTHEFLIES cheat toggled.");
+			if (_keyboardString.substr(-14) == "BUNNIESINSPACE")
+				trace("BUNNIESINSPACE cheat toggled.");
+			if (_keyboardString.substr( -23) == "BLOODISTHICKERTHANWATER")
+				trace("BLOODISTHICKERTHANWATER cheat toggled.");
+			
 		}
 
 		
@@ -295,6 +321,8 @@
 		
 		private function startGame():void
         {
+			stage.removeEventListener (KeyboardEvent.KEY_UP, cheatHandler);
+
 			FlxG.mouse.cursor.visible = false;
 			FlxG.music.stop();
 			FlxG.state = new PlayState();

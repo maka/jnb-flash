@@ -72,7 +72,7 @@
 				// render static gibs onto the background
 				if (currentGib.exists == true && currentGib.active == false && currentGib.visible == true)
 				{
-					// if this is the first time this cycle that active gibs are drawn, fade the layer slightly
+					// if this is the first time this cycle that static gibs are drawn, fade the layer slightly
 					if (staticGibsDrawn == false)
 						_staticGibLayer.colorTransform(FlxG.buffer.rect, new ColorTransform(1, 1, 1, 0.99));
 						
