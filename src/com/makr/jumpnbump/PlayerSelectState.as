@@ -97,8 +97,14 @@
 				FlxG.music.play();
 			}
 			
-			FlxG.levels[2] = FlxG.scores[0] = FlxG.scores[1] = FlxG.scores[2] = FlxG.scores[3] = 0;
-			FlxG.score = -1;
+			FlxG.levels[2] = 0;
+			FlxG.scores[0] = [
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0
+			];
+			FlxG.scores[1] = -1;
 
 			// creating new layers
 			gBackground = new FlxGroup();

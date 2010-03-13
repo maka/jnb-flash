@@ -479,8 +479,8 @@
 				if (_swimTimer > 10)	// 10 seconds underwater, drown.
 				{
 					color = 0x80C1F3;
-					if (FlxG.levels[0] == "lotf" && FlxG.score == rabbitIndex)	// lose LOTF status when drowned
-						FlxG.score = -1;			
+					if (FlxG.levels[0] == "lotf" && FlxG.scores[1] == rabbitIndex)	// lose LOTF status when drowned
+						FlxG.scores[1] = -1;			
 					kill();
 					hasDrowned = true;
 				}

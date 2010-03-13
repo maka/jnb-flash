@@ -490,14 +490,16 @@
 			
 			if (FlxG.levels[0] == "lotf")	// if game mode is LOTF
 			{
-				if (FlxG.score == -1 || FlxG.score == Killee.rabbitIndex)	// and either there is no lord OR the killer killed him
-					FlxG.score = Killer.rabbitIndex;						// there is a new lord!
+				if (FlxG.scores[1] == -1 || FlxG.scores[1] == Killee.rabbitIndex)	// and either there is no lord OR the killer killed him
+					FlxG.scores[1] = Killer.rabbitIndex;						// there is a new lord!
 			}
 			else	// if game mode is standard DM
 			{
 				if (Killer.killCount < 5)
 					Killer.killCount++;
-				FlxG.scores[Killer.rabbitIndex] += Killer.killCount;	// increment killer score
+					
+				// increment killer score
+				FlxG.scores[0][Killer.rabbitIndex * 4 + Killee.rabbitIndex] += Killer.killCount;
 
 				
 				if (Killer.killCount > 1)
@@ -734,21 +736,20 @@
 			}
 	
 			/// LOTF GAME MODE
-			// determine who is currently the Lord
 			var LoTF:Player;
-			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
-				LoTF = getPlayerFromRabbitIndex(FlxG.score);
-		
-			// put a crown on the Lord
-			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)
+			if (FlxG.levels[0] == "lotf" && FlxG.scores[1] != -1)
 			{
+				// determine who is currently the Lord
+				LoTF = getPlayerFromRabbitIndex(FlxG.scores[1]);
+		
+				// put a crown on the Lord
 				_crown.visible = true;
 				if (LoTF.facing == 0)		// facing LEFT
 					_crown.x = LoTF.x + 2 + LoTF.velocity.x * FlxG.elapsed;
 				else						// facing RIGHT
 					_crown.x = LoTF.x + 4 + LoTF.velocity.x * FlxG.elapsed;
 				_crown.y = LoTF.y - 11 + LoTF.velocity.y * FlxG.elapsed;
-				FlxG.scores[FlxG.score] += FlxG.elapsed;
+				FlxG.scores[0][4*FlxG.scores[1]] += FlxG.elapsed;
 				_scoreboard.update();
 			}
 			else
@@ -757,7 +758,7 @@
 				
 			// handle flies
 			var SwarmCenter:Point = new Point(0, 0);
-			if (FlxG.levels[0] == "lotf" && FlxG.score != -1)	// make flies swarm around the Lord if there is one
+			if (FlxG.levels[0] == "lotf" && FlxG.scores[1] != -1)	// make flies swarm around the Lord if there is one
 			{
 				SwarmCenter.x = LoTF.x + 8;
 				SwarmCenter.y = LoTF.y + 8;

@@ -29,14 +29,38 @@
 			}
 		}
 		
+		public function logScoreboard():void
+		{
+			var a:Array = FlxG.scores[0].concat();
+			
+			for (var i:int = 0; i < a.length; i++) 
+			{
+				a[i] = int((a[i])*10)/10;
+			}
+			
+			FlxG.log("		DOTT	JIFFY	FIZZ	MIJJI");
+			FlxG.log("DOTT:	" + a[0] + "		" + a[1] + "		" + a[2] + "		" + a[3] + "		" + (a[0]+a[1]+a[2]+a[3]));
+			FlxG.log("JIFFY:	" + a[4] + "		" + a[5] + "		" + a[6] + "		" + a[7] + "		" + (a[4]+a[5]+a[6]+a[7]));
+			FlxG.log("FIZZ:	" + a[8] + "		" + a[9] + "		" + a[10] + "		" + a[11] + "		" + (a[8]+a[9]+a[10]+a[11]));
+			FlxG.log("MIJJI:	" + a[12] + "		" + a[13] + "		" + a[14] + "		" + a[15] + "		" + (a[12]+a[13]+a[14]+a[15]));
+		}
+		
 		public function update():void
 		{
-			for (var i:int = 0; i < FlxG.scores.length; i++) 
+			var score:int;
+			var scoreArray:Array;
+			for (var i:int = 0; i < 4; i++) 
 			{
-				var scoreArray:Array = numberToArray(FlxG.scores[i]);
+				score = FlxG.scores[0][i * 4];
+				score += FlxG.scores[0][i * 4 + 1];
+				score += FlxG.scores[0][i * 4 + 2];
+				score += FlxG.scores[0][i * 4 + 3];
+				scoreArray = numberToArray(score);
 				Tiles[2 * i + 1].play(scoreArray.pop());
 				Tiles[2 * i + 0].play(scoreArray.pop());
 			}
+			
+			logScoreboard();
 		}
 	}
 }

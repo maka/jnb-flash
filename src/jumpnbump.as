@@ -17,25 +17,45 @@
 		
 			var gamePrefs:FlxSave;
 			
-			if (FlxG.levels.length == 0)
+			if (FlxG.levels.length == 0)	// FlxG.levels stores the games' options
 			{
 				FlxG.levels = new Array;
-				FlxG.levels[0] = String("dm");			// string for gamemode
-				FlxG.levels[1] = String("original");		// string for level
-				FlxG.levels[2] = 0; 			// bitmask for storing which players are playing
-				FlxG.levels[3] = 0;	// bitmask for storing which players have been used in this session
+				// string for gamemode, default "dm"
+				FlxG.levels[0] = String("dm");
+				// string for level, default "original"
+				FlxG.levels[1] = String("original");
+				// bitmask for storing which players are playing a level right now
+				FlxG.levels[2] = 0;
+				// bitmask for storing which players have been used in this session at all (e.g. to display KeySprites above the others)
+				FlxG.levels[3] = 0;
 
 			}
 
-			if (FlxG.scores.length == 0)
+			if (FlxG.scores.length == 0)	// FlxG.scores stores information about the current game (PlayState stuff)
 			{
 				FlxG.scores = new Array;
-				FlxG.scores[0] = 0;
-				FlxG.scores[1] = 0;
-				FlxG.scores[2] = 0;
-				FlxG.scores[3] = 0;
+				// Score Matrix!
+				FlxG.scores[0] = [
+					0, 0, 0, 0,
+					0, 0, 0, 0,
+					0, 0, 0, 0,
+					0, 0, 0, 0
+				];
+				
+				// Works like the original scoreboard:
+				//	
+				// 			DOTT	JIFFY	FIZZ	MIJJI	(TOTAL)
+				// DOTT		-		[0+1]	[0+2]	[0+3]	<- sum
+				// JIFFY	[4+0]	-		[4+2]	[4+3]	<- sum
+				// FIZZ		[8+0]	[8+1]	-		[8+3]	<- sum
+				// MIJJI	[12+0]	[12+1]	[12+2]	-		<- sum
+				//
+				
+				// scores[KillerID*4 + KilleeID]++
 			}
-			FlxG.score = -1;		// lotf uses this variable to store the lord's rabbitIndex
+			
+			// lotf uses this variable to store the lord's rabbitIndex
+			FlxG.scores[1] = -1;		
 			
 			FlxG.music = new FlxSound;
 			
