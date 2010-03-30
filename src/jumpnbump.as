@@ -14,7 +14,7 @@
 		{
 //			super(400, 256, PlayerSelectState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
 			super(400, 256, FireworksState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
-		
+			
 			var gamePrefs:FlxSave;
 			
 			if (FlxG.levels.length == 0)	// FlxG.levels stores the games' options
@@ -51,7 +51,7 @@
 				// MIJJI	[12+0]	[12+1]	[12+2]	-		<- sum
 				//
 				
-				// scores[KillerID*4 + KilleeID]++
+				// LoTF stores the time in the unused values (DOTT-DOTT, JIFFY-JIFFY, etc.)
 			}
 			
 			// lotf uses this variable to store the lord's rabbitIndex

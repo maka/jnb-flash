@@ -8,6 +8,8 @@
 
 	public class Gib extends FlxSprite
 	{
+		public const _2PI:Number = 2 * Math.PI;
+		
 		private var _gibGraphic:BitmapData;
 
 		private var _collideWithBorders:Boolean = true;
@@ -29,7 +31,7 @@
 
 		private var _rotationFrame:uint = 0;
 		private var _rotationAngle:Number = 0;
-		private var _frameRect:Rectangle = new Rectangle(0, 0, 8, 8);
+		private var _frameRect:Rectangle = new Rectangle(0, 0, 5, 5);
 		private var _renderDest:Point = new Point(0, 0);
 		
 		public function Gib():void
@@ -37,25 +39,17 @@
 			_gibGraphic = null;
 			super(0, 0);
 			
-			createGraphic(8, 8);
-			
             // set bounding box
             width = 3;
             height = 3;
 			
 			drag.x = 15;
 			
+			offset.x = offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
+			
             maxVelocity.x = 150;
             maxVelocity.y = 200;
-			
-			
-			offset.x = offset.y = 0;  //Where in the sprite the bounding box starts on the Y axis
 
-//			offset.x = 2+3-Math.floor(Math.random()*2);  //Where in the sprite the bounding box starts on the X axis
-//            offset.y = 2+3-Math.floor(Math.random()*2);  //Where in the sprite the bounding box starts on the Y axis
-
-			// set up the blood emitter
-			
 			exists = false;
 			active = false;
 			visible = false;
@@ -124,10 +118,6 @@
 		
 		public override function update():void
 		{
-			angularVelocity = velocity.x * 22.9183118;	// degrees/sec
-			
-			// ^- Velocity.x in pixels/sec * 360 degrees / (5 pixels diameter * PI) == Velocity.x in pixels/sec * 22.9183118 degrees/pixel
-
 			if (_collideWithBorders)
 			{
 				if (x < 0 || x > 352)
@@ -164,19 +154,33 @@
 		
 		public function drawGib(Surface:BitmapData, MergeAlpha:Boolean = true):void
 		{
-			// calculate baked rotation frame from angle
-			_rotationAngle = angle % 360;
-			if (_rotationAngle < 0)
-				_rotationAngle += 360;
-			_rotationFrame = Math.floor((_rotationAngle * _gibGraphic.height) / (360 * 8));
 			
-			// location of frame on the spritesheet
-			_frameRect.x = frame * 8;
-			_frameRect.y = _rotationFrame * 8;
+			// get the direction the gib is headed
+			var rotation:Number = Math.atan2(velocity.y, velocity.x);
 			
-			// location of object to be rendered
-			_renderDest.x = x - offset.x - 1.5;
-			_renderDest.y = y - offset.y - 1.5;
+			// offset the angle by 22.5 degrees
+			rotation += 0.392699082;
+			
+			// limit the angle to the interval [0, 2PI[
+			if (rotation < 0)
+				rotation += _2PI;
+			
+			else if (rotation >= _2PI)
+				rotation -= _2PI;
+			
+			// set the render source to the proper frame
+			// if the frame is a gib, apply rotation offsets
+			if (frame != 32)
+				_frameRect.x = (frame + Math.floor(rotation / _2PI * 8)) * 5;
+			
+			// if the frame is flesh (which has no rotations)
+			else
+				_frameRect.x = frame * 5;
+			
+			
+			// set the render destination
+			_renderDest.x = x - offset.x;
+			_renderDest.y = y - offset.y;
 
 			// render!
 			Surface.copyPixels(_gibGraphic, _frameRect, _renderDest, null, null, MergeAlpha);

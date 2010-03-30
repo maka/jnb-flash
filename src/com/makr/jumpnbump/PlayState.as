@@ -749,7 +749,7 @@
 				else						// facing RIGHT
 					_crown.x = LoTF.x + 4 + LoTF.velocity.x * FlxG.elapsed;
 				_crown.y = LoTF.y - 11 + LoTF.velocity.y * FlxG.elapsed;
-				FlxG.scores[0][4*FlxG.scores[1]] += FlxG.elapsed;
+				FlxG.scores[0][5*FlxG.scores[1]] += FlxG.elapsed;
 				_scoreboard.update();
 			}
 			else

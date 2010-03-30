@@ -32,7 +32,7 @@
 		private var _gibGraphics:BitmapData;
 		public var gibs:ObjectPool;
 		private var _staticGibLayer:BitmapData;	// the image onto which static gibs are rendered before they are reused.
-		private const _NUM_GIBS:uint = 13;
+		private const _NUM_GIBS:uint = 130;
 		private const _NUM_GIBS_VARIATION:uint = 3;
 		private const _GIBS_POOLSIZE:uint = (_NUM_GIBS + _NUM_GIBS_VARIATION) * 4;
 				
@@ -53,7 +53,7 @@
 			gibs = new ObjectPool(Gib, _GIBS_POOLSIZE);
 			
 			// creating the layer for static gibs
-			_gibGraphics = generateRotatedGibs();
+			_gibGraphics = FlxG.addBitmap(_imgGib, false, true);
 			_staticGibLayer = new BitmapData(FlxG.width, FlxG.height, true, 0);
 		}
 
@@ -135,10 +135,10 @@
 				// flesh => frame 32
 
 				if (Math.random() < 0.33)
-					gibFrame = RabbitIndex * 8 + Math.floor(Math.random() * 8);
+					gibFrame = RabbitIndex * 8;
 				else
 					gibFrame = 32;
-				
+					
 				currentObject = Gib(gibs.getFirstAvail());
 				currentObject.activate(_gibGraphics, gibFrame, PosX, PosY, Bleeding, VelX, VelY, CollideWithBorders);
 				
@@ -147,38 +147,6 @@
 				currentObject.previousBloodTime = _blood.timer;
 				
 			}
-		}
-		
-		// Creates 36 rotated variations of every frame of the gib graphic (taken from FlxSprite and modified to suit my needs)
-		private function generateRotatedGibs(Rotations:uint = 36):BitmapData
-		{
-			
-			//Create the brush and canvas
-			var brush:FlxSprite = new FlxSprite().loadGraphic(_imgGib, true);
-			brush.antialiasing = true;
-			
-			var frames:uint = brush.pixels.width / brush.pixels.height;
-
-			var size:uint = 8;
-			
-			var rotationIncrement:Number = 360/Rotations;
-
-			var canvas:FlxSprite = new FlxSprite().createGraphic(frames * size, Rotations * size, 0, true);
-			
-			//Generate a new sheet if necessary, then fix up the width & height
-
-			var center:uint = size/2;
-			for(var row:int = 0; row < frames; row++)
-			{
-				brush.frame = row;
-				for(var column:int = 0; column < Rotations; column++)
-				{
-					canvas.draw(brush, center + size*row - brush.frameWidth/2, center + size*column - brush.frameHeight/2);
-					brush.angle += rotationIncrement;
-				}
-			}
-
-			return canvas.pixels;
 		}
 	}
 }
